@@ -106,6 +106,11 @@ void setup() {
 
   // Setup display
   display_setup();
+  if(displayEnabled) {
+    displayPV.prt_str("TeenyGPSTestbed_C2", 20, 0, 0);
+    display_display();
+    delay(500);
+  }
 
   //Setup buttons
   if(displayEnabled) {
@@ -113,13 +118,13 @@ void setup() {
     if(displayEnabled) {
       displayPV.prt_str("- Buttons Enabled", 20, 0, 16);
       display_display();
-      delay(1000);
+      delay(500);
     }
   } else {
     if(displayEnabled) {
       displayPV.prt_str("- Buttons Missing", 20, 0, 16);
       display_display();
-      delay(1000);
+      delay(500);
     }
   }
 
@@ -128,7 +133,7 @@ void setup() {
   if(displayEnabled) {
     displayPV.prt_str("- Setup RTC", 20, 0, 32);
     display_display();
-    delay(1000);
+    delay(500);
   }
 
   //Setup sdcard
@@ -136,13 +141,13 @@ void setup() {
     if(displayEnabled) {
       displayPV.prt_str("- SD Card Enabled", 20, 0, 48);
       display_display();
-      delay(1000);
+      delay(500);
     }
   } else {
     if(displayEnabled) {
       displayPV.prt_str("- SD Card Missing", 20, 0, 48);
       display_display();
-      delay(1000);
+      delay(500);
     }
   }
 

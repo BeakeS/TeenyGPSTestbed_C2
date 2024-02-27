@@ -5,7 +5,7 @@ bool displayEnabled;
 #include <Wire.h>
 #include <TeenyPrtVal.h>
 #include <TeenyMenu.h>
-//M5Display display = M5.lcd;
+//M5Display display = M5.Lcd;
 //TeenyPrtVal<M5Display> displayPV(display);
 //TeenyMenu<M5Display> menu(display, 12, 16, false, 16, 16, 6, 10, 11, 154, 6, 0, 20);
 TFT_eSprite display = TFT_eSprite(&M5.Lcd);
@@ -391,11 +391,11 @@ void menu_idle_timer() {
     if(!menuDisplaySleepMode) {
       menuDisplaySleepMode = true;
       //msg_update("Enter Sleep Mode");
-      M5.lcd.sleep();
+      M5.Lcd.sleep();
     }
   } else if(menuDisplaySleepMode) {
     menuDisplaySleepMode = false;
-    M5.lcd.wakeup();
+    M5.Lcd.wakeup();
     msg_update("Exit Sleep Mode");
   }
 }
@@ -998,16 +998,14 @@ void display_display() {
 /********************************************************************/
 bool display_setup() {
   // Setup display
-  M5.lcd.setRotation(2);
+  //M5.Lcd.setRotation(1); // M5Display.cpp default
+  M5.Lcd.setRotation(2);
   display.setPsram(true); // Use psram
   display.setColorDepth(1); // Monochrome
   display.setTextSize(2); // font is 12x16
   display.setTextColor(WHITE);
   display.createSprite(240, 320); //320x240 rotated 90 degrees
   display_clearDisplay();
-  displayPV.prt_str("TeenyGPSTestbed_C2", 20, 0, 0);
-  display_display();
-  delay(1000);
   displayEnabled = true;
   return displayEnabled;
 }

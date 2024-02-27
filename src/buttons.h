@@ -1,4 +1,7 @@
 
+// When defined, displays button actions
+//#define DEBUG_BUTTON_PRESSES
+
 /********************************************************************/
 // Buttons
 volatile bool insideButtonsClick;
@@ -16,22 +19,50 @@ volatile bool buttonC_longClickEvent;
 void buttonA_singleClick() {
   menuInputTime = millis();
   if(!menuDisplaySleepMode) {
-    menu.registerKeyPress(TEENYMENU_KEY_DOWN);
+    menu.registerKeyPress(TEENYMENU_KEY_UP);
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnA.SC.%d", ++count);
+    msg_update(_tempStr);
+#endif
   }
   displayRefresh = true;
 }
 void buttonA_doubleClick() {
   menuInputTime = millis();
+  if(!menuDisplaySleepMode) {
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnA.DC.%d", ++count);
+    msg_update(_tempStr);
+#endif
+  }
   displayRefresh = true;
 }
 void buttonA_longClick() {
   menuInputTime = millis();
+  if(!menuDisplaySleepMode) {
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnA.LC.%d", ++count);
+    msg_update(_tempStr);
+#endif
+  }
   displayRefresh = true;
 }
 void buttonB_singleClick() {
   menuInputTime = millis();
   if(!menuDisplaySleepMode) {
     menu.registerKeyPress(TEENYMENU_KEY_RIGHT);
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnB.SC.%d", ++count);
+    msg_update(_tempStr);
+#endif
   }
   displayRefresh = true;
 }
@@ -39,6 +70,12 @@ void buttonB_doubleClick() {
   menuInputTime = millis();
   if(!menuDisplaySleepMode) {
     menu.registerKeyPress(TEENYMENU_KEY_LEFT);
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnB.DC.%d", ++count);
+    msg_update(_tempStr);
+#endif
   }
   displayRefresh = true;
 }
@@ -46,22 +83,50 @@ void buttonB_longClick() {
   menuInputTime = millis();
   if(!menuDisplaySleepMode) {
     menu.registerKeyPress(TEENYMENU_KEY_LEFT);
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnB.LC.%d", ++count);
+    msg_update(_tempStr);
+#endif
   }
   displayRefresh = true;
 }
 void buttonC_singleClick() {
   menuInputTime = millis();
   if(!menuDisplaySleepMode) {
-    menu.registerKeyPress(TEENYMENU_KEY_UP);
+    menu.registerKeyPress(TEENYMENU_KEY_DOWN);
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnC.SC.%d", ++count);
+    msg_update(_tempStr);
+#endif
   }
   displayRefresh = true;
 }
 void buttonC_doubleClick() {
   menuInputTime = millis();
+  if(!menuDisplaySleepMode) {
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnC.DC.%d", ++count);
+    msg_update(_tempStr);
+#endif
+  }
   displayRefresh = true;
 }
 void buttonC_longClick() {
   menuInputTime = millis();
+  if(!menuDisplaySleepMode) {
+#ifdef DEBUG_BUTTON_PRESSES
+    static uint16_t count=0;
+    char _tempStr[22];
+    sprintf(_tempStr, "BtnC.LC.%d", ++count);
+    msg_update(_tempStr);
+#endif
+  }
   displayRefresh = true;
 }
 
@@ -126,18 +191,24 @@ void buttons_click() {
 void buttons_setup() {
   insideButtonsClick = false; 
   // Button locations
-  M5.BtnA.set(240, 230,  80, 80);
-  M5.BtnB.set(240, 130,  70, 80);
-  M5.BtnC.set(240,  20, 110, 80);
+  //M5.BtnA.set( 10, 240, 110, 40); M5Core2.h default for rotation=1
+  //M5.BtnB.set(130, 240,  70, 40); M5Core2.h default for rotation=1
+  //M5.BtnC.set(230, 240,  80, 40); M5Core2.h default for rotation=1
+  //M5.BtnA.set(240,  10, 40, 110); For rotation=2
+  //M5.BtnB.set(240, 130, 40,  70); For rotation=2
+  //M5.BtnC.set(240, 230, 40,  80); For rotation=2
+  M5.BtnA.set(230,  10, 50, 110);
+  M5.BtnB.set(230, 115, 50,  70);
+  M5.BtnC.set(230, 220, 50,  80);
   // Timing
-  M5.BtnA.tapTime = 100; // default=150
-  M5.BtnA.dbltapTime = 300; // default=300
+  M5.BtnA.tapTime       = 80; // default=150
+  M5.BtnB.tapTime       = 80;
+  M5.BtnC.tapTime       = 80;
+  M5.BtnA.dbltapTime    = 300; // default=300
+  M5.BtnB.dbltapTime    = 300;
+  M5.BtnC.dbltapTime    = 300;
   M5.BtnA.longPressTime = 350;
-  M5.BtnB.tapTime = 100;
-  M5.BtnB.dbltapTime = 300;
   M5.BtnB.longPressTime = 350;
-  M5.BtnC.tapTime = 100;
-  M5.BtnC.dbltapTime = 300;
   M5.BtnC.longPressTime = 350;
 }
 
