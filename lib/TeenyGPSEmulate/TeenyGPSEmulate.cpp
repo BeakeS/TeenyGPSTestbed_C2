@@ -216,72 +216,42 @@ void TeenyGPSEmulate::processIncomingPacket() {
       emulatorSettings.navigationRate |= receivedPacket.payload[3] << 8;
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
-    // Poll CFG-MSG (autoPVT enable/disable)
+    // Poll CFG-MSG (autoPVTRate)
     } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 2) &&
               (receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
               (receivedPacket.payload[1] == TGPSE_UBX_NAV_PVT)) {
-      // Return autoPVT setting
+      // Return autoPVTRate setting
       responsePacket.messageClass = receivedPacket.messageClass;
       responsePacket.messageID = receivedPacket.messageID;
       responsePacket.payloadLength = 3;
       responsePacket.payload[0] = TGPSE_UBX_CLASS_NAV;
       responsePacket.payload[1] = TGPSE_UBX_NAV_PVT;
-      responsePacket.payload[2] = emulatorSettings.autoPVT;
+      responsePacket.payload[2] = emulatorSettings.autoPVTRate;
       calcChecksum(&responsePacket);
       responsePacket.validPacket = true;
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
-    // Set CFG-MSG (autoPVT enable/disable)
+    // Set CFG-MSG (autoPVTRate)
     } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 3)) {
       if((receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
          (receivedPacket.payload[1] == TGPSE_UBX_NAV_PVT)) {
-        // Update autoPVT setting
-        emulatorSettings.autoPVT = receivedPacket.payload[2];
+        // Update autoPVTRate setting
+        emulatorSettings.autoPVTRate = receivedPacket.payload[2];
         buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
       } else {
         buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, false);
       }
-
-    // Poll CFG-NAVX5 (navigation engine expert settings)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
-              (receivedPacket.messageID == TGPSE_UBX_CFG_NAVX5) &&
-              (receivedPacket.payloadLength == 0)) {
-      // Return measureRate and navigationRate
-      responsePacket.messageClass = receivedPacket.messageClass;
-      responsePacket.messageID = receivedPacket.messageID;
-      responsePacket.payloadLength = TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH;
-      memcpy(responsePacket.payload, TGPSE_UBX_CFG_NAVX5_PAYLOAD, TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH);
-      responsePacket.payload[27] = emulatorSettings.aopCfg;
-      responsePacket.payload[30] = emulatorSettings.aopOrbMaxErr & 0xFF;
-      responsePacket.payload[31] = emulatorSettings.aopOrbMaxErr >> 8;
-      calcChecksum(&responsePacket);
-      responsePacket.validPacket = true;
-      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
-
-    // Set CFG-NAVX5 (navigation engine expert settings)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
-              (receivedPacket.messageID == TGPSE_UBX_CFG_NAVX5) &&
-              (receivedPacket.payloadLength == TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH) &&
-              (receivedPacket.payload[2] == 0x00) &&
-              ((receivedPacket.payload[3] & 0x40) == 0x40) &&
-              (receivedPacket.payload[4] == 0x00) &&
-              (receivedPacket.payload[5] == 0x00)) {
-      // Update measureRate and navigationRate
-      emulatorSettings.aopCfg = receivedPacket.payload[27];
-      emulatorSettings.aopOrbMaxErr = receivedPacket.payload[30];
-      emulatorSettings.aopOrbMaxErr |= receivedPacket.payload[31] << 8;
-      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
     // Poll NAV-PVT (Navigation position velocity time solution - manual polling mode)
     } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_NAV) &&
               (receivedPacket.messageID == TGPSE_UBX_NAV_PVT) &&
               (receivedPacket.payloadLength == 0)) {
       // Request NAV-PVT packet if not in autoPVT mode
-      if(!emulatorSettings.autoPVT) {
+      if(emulatorSettings.autoPVTRate!=0) {
         if(requestPVTPacket) {
           lostPVTRequestCount += (lostPVTRequestCount < 99) ? 1 : 0;
         } else {
@@ -360,11 +330,44 @@ void TeenyGPSEmulate::sendPacket(ubxPacket_t *pkt) {
 
 /********************************************************************/
 /********************************************************************/
+// Methods for accessing emulator state
+/********************************************************************/
+/********************************************************************/
+uint32_t TeenyGPSEmulate::getBaudRate() {
+  return emulatorSettings.baudRate;
+}
+
+/********************************************************************/
+bool TeenyGPSEmulate::getOutputUBX() {
+  return emulatorSettings.outputUBX;
+}
+
+/********************************************************************/
+uint16_t TeenyGPSEmulate::getMeasurementRate() {
+  return emulatorSettings.measureRate;
+}
+
+/********************************************************************/
+uint16_t TeenyGPSEmulate::getNavigationRate() {
+  return emulatorSettings.navigationRate;
+}
+
+/********************************************************************/
+uint8_t TeenyGPSEmulate::getAutoPVTRate() {
+  return emulatorSettings.autoPVTRate;
+}
+
+/********************************************************************/
+/********************************************************************/
 // Methods for manual and automatic UBX PVT transmission
 /********************************************************************/
 /********************************************************************/
 uint32_t TeenyGPSEmulate::getPVTTransmissionRate() {
-  return (uint32_t)(emulatorSettings.measureRate * emulatorSettings.navigationRate);
+  if(emulatorSettings.autoPVTRate == 0) {
+    return 0;
+  }
+  return ((uint32_t)emulatorSettings.measureRate *
+                    emulatorSettings.navigationRate) / emulatorSettings.autoPVTRate;
 }
 
 /********************************************************************/
@@ -382,13 +385,13 @@ uint8_t TeenyGPSEmulate::getLostPVTRequestCount() {
 }
 
 /********************************************************************/
-void TeenyGPSEmulate::setAutoPVTEnable(bool enable) {
-  emulatorSettings.autoPVT = enable;
+void TeenyGPSEmulate::setAutoPVTRate(uint8_t rate) {
+  emulatorSettings.autoPVTRate = rate;
 }
 
 /********************************************************************/
 bool TeenyGPSEmulate::isAutoPVTEnabled() {
-  return emulatorSettings.autoPVT;
+  return emulatorSettings.autoPVTRate!=0;
 }
 
 /********************************************************************/

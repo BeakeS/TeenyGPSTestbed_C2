@@ -29,8 +29,6 @@ poll UBX-CFG-RATE for setMeasRate and setNavRate - Returns UBX-CFG-RATE and ACK
 set  UBX-CFG-RATE for setMeasRate and setNavRate - Returns ACK
 set  UBX-CFG-MSG  for setAutoPVT - Returns ACK
 set  UBX-CFG-CFG  for saveConfig - Returns ACK
-poll UBX-CFG-NAVX5 for setAopCfg - Returns UBX-CFG-NAVX5 and ACK
-set  UBX-CFG-NAVX5 for setAopCfg - Returns ACK
 poll UBX-MON-VER  for getProtocolVersion - Returns UBX-MON-VER only
 */
 
@@ -54,8 +52,6 @@ const uint8_t    TGPSE_UBX_CFG_MSG   = 0x01;
 const uint8_t    TGPSE_UBX_CFG_RATE  = 0x08;
 const uint16_t   TGPSE_UBX_CFG_RATE_PAYLOADLENGTH = 6;
 const uint8_t    TGPSE_UBX_CFG_CFG   = 0x09;
-const uint8_t    TGPSE_UBX_CFG_NAVX5 = 0x23;
-const uint16_t   TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH = 40;
 const uint8_t  TGPSE_UBX_CLASS_MON = 0x0A;
 const uint8_t    TGPSE_UBX_MON_VER   = 0x04;
 const uint16_t   TGPSE_UBX_MON_VER_PAYLOADLENGTH = 160;
@@ -130,34 +126,6 @@ typedef struct {
 } ubxNAVPVTInfo_t;
 
 /********************************************************************/
-// Emulator Settings
-/********************************************************************/
-typedef struct {
-  uint32_t baudRate = 38400;
-  bool     outputUBX = true;
-  uint8_t  pad00a;
-  uint8_t  pad00b;
-  uint8_t  pad00c;
-  uint16_t measureRate = 1000;
-  uint8_t  pad01a;
-  uint8_t  pad01b;
-  uint16_t navigationRate = 1;
-  uint8_t  pad02a;
-  uint8_t  pad02b;
-  bool     autoPVT = false;
-  uint8_t  pad03a;
-  uint8_t  pad03b;
-  uint8_t  pad03c;
-  bool     aopCfg = false;
-  uint8_t  pad04a;
-  uint8_t  pad04b;
-  uint8_t  pad04c;
-  uint16_t aopOrbMaxErr = 0;
-  uint8_t  pad05a;
-  uint8_t  pad05b;
-} emulatorSettings_t;
-
-/********************************************************************/
 // UBX Packet Payload Defaults
 /********************************************************************/
 const uint8_t TGPSE_UBX_CFG_PRT_PAYLOAD[TGPSE_UBX_CFG_PRT_PAYLOADLENGTH] = {
@@ -166,12 +134,6 @@ const uint8_t TGPSE_UBX_CFG_PRT_PAYLOAD[TGPSE_UBX_CFG_PRT_PAYLOADLENGTH] = {
 };
 const uint8_t TGPSE_UBX_CFG_RATE_PAYLOAD[TGPSE_UBX_CFG_RATE_PAYLOADLENGTH] = {
   0xE8,0x03,0x01,0x00,0x01,0x00
-};
-const uint8_t TGPSE_UBX_CFG_NAVX5_PAYLOAD[TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH] = {
-  0x02,0x00,0xff,0xff,0x3f,0x02,0x00,0x00,0x03,0x02,
-  0x03,0x20,0x06,0x00,0x00,0x01,0x00,0x00,0x4b,0x07,
-  0x00,0x01,0x00,0x00,0x01,0x01,0x00,0x00,0x00,0x64,
-  0x64,0x00,0x00,0x01,0x11,0x00,0x00,0x00,0x00,0x00
 };
 const uint8_t TGPSE_UBX_MON_VER_PAYLOAD[TGPSE_UBX_MON_VER_PAYLOADLENGTH] = {
   0x52,0x4F,0x4D,0x20,0x43,0x4F,0x52,0x45,0x20,0x33,
@@ -210,6 +172,27 @@ const uint8_t TGPSE_UBX_NAV_PVT_COLD_PAYLOAD[TGPSE_UBX_NAV_PVT_PAYLOADLENGTH] = 
 #include "TeenyGPSEmulate.navPvtLoop.h"
 
 /********************************************************************/
+// Emulator Settings
+/********************************************************************/
+typedef struct {
+  uint32_t baudRate = 38400;
+  bool     outputUBX = true;
+  uint8_t  pad00a;
+  uint8_t  pad00b;
+  uint8_t  pad00c;
+  uint16_t measureRate = 1000;
+  uint8_t  pad01a;
+  uint8_t  pad01b;
+  uint16_t navigationRate = 1;
+  uint8_t  pad02a;
+  uint8_t  pad02b;
+  uint8_t  autoPVTRate = 0;
+  uint8_t  pad03a;
+  uint8_t  pad03b;
+  uint8_t  pad03c;
+} emulatorSettings_t;
+
+/********************************************************************/
 // TeenyGPSEmulate Class
 /********************************************************************/
 class TeenyGPSEmulate {
@@ -222,20 +205,27 @@ class TeenyGPSEmulate {
     TeenyGPSEmulate(const TeenyGPSEmulate&);
     TeenyGPSEmulate& operator=(const TeenyGPSEmulate&);
 
-    // Emulator setup
+    // Setup
     bool init(HardwareSerial &serialPort_, uint32_t baudRate_);
     bool reset();
 
-    // Emulator methods for process incoming commands/requests from host
+    // Methods for process incoming commands/requests from host
     void tick(); // can do in ISR - depends on serial read hardware queue
     void processIncomingPacket(); // do not call in ISR - uses serial read and write
     uint8_t getLostRxPacketCount();
 
-    // Emulator methods for manual and auto PVT packet transmission
+    // Methods to access internal state
+    uint32_t     getBaudRate();
+    bool         getOutputUBX();
+    uint16_t     getMeasurementRate();
+    uint16_t     getNavigationRate();
+    uint8_t      getAutoPVTRate();
+
+    // Methods for manual and auto PVT packet transmission
     uint32_t     getPVTTransmissionRate();
     bool         isPVTPacketRequested();
     uint8_t      getLostPVTRequestCount();
-    void         setAutoPVTEnable(bool enable=true); // Debug use only //
+    void         setAutoPVTRate(uint8_t rate=1); // Debug use only //
     bool         isAutoPVTEnabled();
     bool         setPVTPacket(uint8_t *buf, size_t size);
     bool         setPVTColdPacket();

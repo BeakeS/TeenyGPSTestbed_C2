@@ -140,7 +140,7 @@ class TeenyMenu {
       }
       if (_menuPageCurrent->itemsCount>0 &&
           !_menuPageCurrent->getCurrentMenuItem()->readonly) {
-        int pointerPosition = getCurrentItemTopOffset();
+        uint16_t pointerPosition = getCurrentItemTopOffset();
         _display.drawRect(0, pointerPosition+1, 2, _menuItemHeight-3, _white);
       }
     }
@@ -149,7 +149,7 @@ class TeenyMenu {
       byte currentPageScreenNum = _menuPageCurrent->currentItemNum / _menuItemsPerScreen;
       TeenyMenuItem* menuItemTmp = (_menuPageCurrent)->getMenuItem(currentPageScreenNum * _menuItemsPerScreen);
       byte i = 0;
-      byte yOffset = _menuFirstItemScreenTopOffset;
+      uint16_t yOffset = _menuFirstItemScreenTopOffset;
       while (menuItemTmp != 0 && i < _menuItemsPerScreen) {
         switch (menuItemTmp->type) {
           case TEENYMENU_ITEM_VAL:
@@ -248,8 +248,8 @@ class TeenyMenu {
       if (screensCount > 1) {
         byte currentScreenNum = _menuPageCurrent->currentItemNum / _menuItemsPerScreen;
       //byte scrollbarHeight = (_display.height() - _menuFirstItemScreenTopOffset) / screensCount;
-        byte scrollbarHeight = (_menuItemHeight * _menuItemsPerScreen) / screensCount;
-        byte scrollbarPosition = (currentScreenNum * scrollbarHeight) + _menuFirstItemScreenTopOffset;
+        uint16_t scrollbarHeight = (_menuItemHeight * (uint16_t)_menuItemsPerScreen) / screensCount;
+        uint16_t scrollbarPosition = (currentScreenNum * scrollbarHeight) + _menuFirstItemScreenTopOffset;
         // draw scrollbar at last pixel column = _display.width()-1
         _display.drawLine(_display.width()-1, scrollbarPosition,
                           _display.width()-1, scrollbarPosition+scrollbarHeight-1, _white);
@@ -316,7 +316,7 @@ class TeenyMenu {
 /********************************************************************/
     TeenyMenuPage* _menuPageCurrent;
     TeenyMenuItem* _menuItemCurrent;
-    byte getCurrentItemTopOffset() {
+    uint16_t getCurrentItemTopOffset() {
       return ((_menuPageCurrent->currentItemNum % _menuItemsPerScreen) * _menuItemHeight) +
               _menuFirstItemScreenTopOffset;
     }

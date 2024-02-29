@@ -95,24 +95,24 @@ char* getHeadingStr(const float degrees) {
   deg = max(0, deg);
   uint8_t headIdx = (uint8_t)(deg / 22.5);
   switch(headIdx) {
-    case  0: return "N";
-    case  1: return "NNE";
-    case  2: return "NE";
-    case  3: return "ENE";
-    case  4: return "E";
-    case  5: return "ESE";
-    case  6: return "SE";
-    case  7: return "SSE";
-    case  8: return "S";
-    case  9: return "SSW";
-    case 10: return "SW";
-    case 11: return "WSW";
-    case 12: return "W";
-    case 13: return "WNW";
-    case 14: return "NW";
-    case 15: return "NNW";
+    case  0: return (char*)"N";
+    case  1: return (char*)"NNE";
+    case  2: return (char*)"NE";
+    case  3: return (char*)"ENE";
+    case  4: return (char*)"E";
+    case  5: return (char*)"ESE";
+    case  6: return (char*)"SE";
+    case  7: return (char*)"SSE";
+    case  8: return (char*)"S";
+    case  9: return (char*)"SSW";
+    case 10: return (char*)"SW";
+    case 11: return (char*)"WSW";
+    case 12: return (char*)"W";
+    case 13: return (char*)"WNW";
+    case 14: return (char*)"NW";
+    case 15: return (char*)"NNW";
   }
-  return "";
+  return (char*)"";
 }
 
 /********************************************************************/
@@ -138,81 +138,97 @@ void display_refresh() {
         // main/idle display
       } else if(menu.isMenuPageCurrent(menuPageGPSRcvr)) {
         // RTC Clock
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 16);
+        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
         if(gps.isPacketValid()) {
+          sprintf(_dispStr, " UBLOX NAVPVT INFO");
+          displayPV.prt_str(_dispStr, 20, 0, 48);
           // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 32);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 64);
           // GPS Location
           if(gps.isLocationValid()) {
-            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 48);
-            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 48);
+            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 80);
+            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 80);
             sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
-            displayPV.prt_str(_dispStr, 8, 0, 64);
+            displayPV.prt_str(_dispStr, 8, 0, 96);
             sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 90, 64);
+            displayPV.prt_str(_dispStr, 8, 90, 96);
             sprintf(_dispStr, "VA=%03d", min(gps.getVAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 168, 64);
+            displayPV.prt_str(_dispStr, 8, 168, 96);
             sprintf(_dispStr, "H=%s", getHeadingStr(gps.getHeading()));
-            displayPV.prt_str(_dispStr, 5, 0, 80);
+            displayPV.prt_str(_dispStr, 5, 0, 112);
             sprintf(_dispStr, "F=%d", min(gps.getLocationFixType(), 9));
-            displayPV.prt_str(_dispStr, 3, 72, 80);
+            displayPV.prt_str(_dispStr, 3, 72, 112);
             sprintf(_dispStr, "S=%02d", min(gps.getNumSV(), 99));
-            displayPV.prt_str(_dispStr, 4, 114, 80);
-            displayPV.prt_str("PP=", 3, 168, 80);
-            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 80);
+            displayPV.prt_str(_dispStr, 4, 114, 112);
+            displayPV.prt_str("PP=", 3, 168, 112);
+            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 112);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
-            displayPV.prt_str(_dispStr, 19, 6, 56);
+            displayPV.prt_str(_dispStr, 19, 6, 88);
           }
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 56);
+          displayPV.prt_str(_dispStr, 20, 0, 64);
         }
         sprintf(_dispStr, "P%XL%XD%XT%X",
                 gps.isPacketValid(), gps.isLocationValid(),
                 gps.isDateValid(), gps.isTimeValid());
-        displayPV.prt_str(_dispStr, 20, 0, 96);
+        displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSLogr)) {
         // RTC Clock
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 16);
+        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
         if(gps.isPacketValid()) {
+          sprintf(_dispStr, " UBLOX NAVPVT INFO");
+          displayPV.prt_str(_dispStr, 20, 0, 48);
           // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 32);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 64);
           // GPS Location
           if(gps.isLocationValid()) {
-            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 48);
-            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 48);
+            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 80);
+            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 80);
+            sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
+            displayPV.prt_str(_dispStr, 8, 0, 96);
+            sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
+            displayPV.prt_str(_dispStr, 8, 90, 96);
+            sprintf(_dispStr, "VA=%03d", min(gps.getVAccEst(), 999));
+            displayPV.prt_str(_dispStr, 8, 168, 96);
             sprintf(_dispStr, "H=%s", getHeadingStr(gps.getHeading()));
-            displayPV.prt_str(_dispStr, 5, 0, 64);
+            displayPV.prt_str(_dispStr, 5, 0, 112);
             sprintf(_dispStr, "F=%d", min(gps.getLocationFixType(), 9));
-            displayPV.prt_str(_dispStr, 3, 72, 64);
+            displayPV.prt_str(_dispStr, 3, 72, 112);
             sprintf(_dispStr, "S=%02d", min(gps.getNumSV(), 99));
-            displayPV.prt_str(_dispStr, 4, 114, 64);
-            displayPV.prt_str("PP=", 3, 168, 64);
-            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 64);
+            displayPV.prt_str(_dispStr, 4, 114, 112);
+            displayPV.prt_str("PP=", 3, 168, 112);
+            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 112);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
-            displayPV.prt_str(_dispStr, 19, 6, 56);
+            displayPV.prt_str(_dispStr, 19, 6, 88);
           }
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 56);
+          displayPV.prt_str(_dispStr, 20, 0, 64);
         }
         if(ubxLoggingInProgress) {
-          sprintf(_dispStr, "  TP=%04d VP=%04d",
-                  min(ubxLoggingFileWriteCount, 9999),
+          sprintf(_dispStr, "  Total Pkts=%04d",
+                  min(ubxLoggingFileWriteCount, 9999));
+          displayPV.prt_str(_dispStr, 20, 0, 192);
+          sprintf(_dispStr, "  Valid Pkts=%04d",
                   min(ubxLoggingFileWriteValidCount, 9999));
-          displayPV.prt_str(_dispStr, 20, 0, 80);
+          displayPV.prt_str(_dispStr, 20, 0, 208);
         }
+        sprintf(_dispStr, "P%XL%XD%XT%X",
+                gps.isPacketValid(), gps.isLocationValid(),
+                gps.isDateValid(), gps.isTimeValid());
+        displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
         // RTC Clock
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 16);
+        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
         if(gps.isPacketValid()) {
           // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 32);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 40);
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 32);
+          displayPV.prt_str(_dispStr, 20, 0, 40);
         }
         // NAVSAT Data
         ubloxPacket_t navsatPacket;
@@ -220,23 +236,32 @@ void display_refresh() {
         gps.getNAVSATPacket(navsatPacket);
         gps.getNAVSATInfo(navsatInfo);
         if(navsatPacket.validPacket) {
-          for(uint8_t i=0; i<9; i++) {
+          sprintf(_dispStr, "   SATELLITE INFO");
+          displayPV.prt_str(_dispStr, 20, 0, 64);
+          sprintf(_dispStr, "Tracking=%02d", navsatInfo.numSvs);
+          displayPV.prt_str(_dispStr, 20, 0, 80);
+          sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
+          displayPV.prt_str(_dispStr, 20, 0, 96);
+          sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
+          displayPV.prt_str(_dispStr, 20, 0, 112);
+          displayPV.prt_str("Satellites(id/snr):", 20, 0, 134);
+          for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
             sprintf(_dispStr, "%d%02d/%02d",
                     navsatInfo.svSortList[i].gnssId,
                     navsatInfo.svSortList[i].svId,
                     navsatInfo.svSortList[i].cno);
-            displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+48);
+            displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
           }
         } else {
           sprintf(_dispStr, "** NO NAVSAT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 64);
+          displayPV.prt_str(_dispStr, 20, 0, 56);
         }
         sprintf(_dispStr, "P%XL%XD%XT%X P%XS%dH%dU%d",
                 gps.isPacketValid(), gps.isLocationValid(),
                 gps.isDateValid(), gps.isTimeValid(),
                 navsatPacket.validPacket, navsatInfo.numSvs,
                 navsatInfo.numSvsHealthy, navsatInfo.numSvsUsed);
-        displayPV.prt_str(_dispStr, 20, 0, 96);
+        displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
         if(menu_captRxPktInProgress) {
           sprintf(_dispStr, " File = %s", rxPktFileName);
@@ -246,24 +271,38 @@ void display_refresh() {
         }
       } else if(menu.isMenuPageCurrent(menuPageGPSStep)) {
       } else if(menu.isMenuPageCurrent(menuPageGPSEmul)) {
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 16);
+        sprintf(_dispStr, "   EMULATOR STATE");
+        displayPV.prt_str(_dispStr, 20, 0, 24);
+        sprintf(_dispStr, "BaudRate=%d", emulator.getBaudRate());
+        displayPV.prt_str(_dispStr, 20, 0, 40);
+        sprintf(_dispStr, "OutputUBX=%s", emulator.getOutputUBX() ? "true" : "false");
+        displayPV.prt_str(_dispStr, 20, 0, 56);
+        sprintf(_dispStr, "MeasureRate=%d", emulator.getMeasurementRate());
+        displayPV.prt_str(_dispStr, 20, 0, 72);
+        sprintf(_dispStr, "NavigationRate=%d", emulator.getNavigationRate());
+        displayPV.prt_str(_dispStr, 20, 0, 88);
+        sprintf(_dispStr, "AutoPVTRate=%d", emulator.getAutoPVTRate());
+        displayPV.prt_str(_dispStr, 20, 0, 104);
+        sprintf(_dispStr, "   PVT OUTPUT PKT");
+        displayPV.prt_str(_dispStr, 20, 0, 130);
+        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 146);
         ubxNAVPVTInfo_t _ubxNAVPVTInfo = emulator.getPVTPacketInfo();
-        displayPV.prt_str(getLatitudeStr((float)_ubxNAVPVTInfo.latitude * 1e-7), 10, 0, 32);
-        displayPV.prt_str(getLongitudeStr((float)_ubxNAVPVTInfo.longitude * 1e-7), 10, 120, 32);
+        displayPV.prt_str(getLatitudeStr((float)_ubxNAVPVTInfo.latitude * 1e-7), 10, 0, 162);
+        displayPV.prt_str(getLongitudeStr((float)_ubxNAVPVTInfo.longitude * 1e-7), 10, 120, 162);
         sprintf(_dispStr, "ALT=%03d", max(min(_ubxNAVPVTInfo.altitudeMSL / 1000, 999), -99));
-        displayPV.prt_str(_dispStr, 8, 0, 48);
+        displayPV.prt_str(_dispStr, 8, 0, 178);
         sprintf(_dispStr, "HA=%03d", min(_ubxNAVPVTInfo.hAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 90, 48);
+        displayPV.prt_str(_dispStr, 8, 90, 178);
         sprintf(_dispStr, "VA=%03d", min(_ubxNAVPVTInfo.vAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 168, 48);
+        displayPV.prt_str(_dispStr, 8, 168, 178);
         sprintf(_dispStr, "H=%s", getHeadingStr((float)_ubxNAVPVTInfo.headMot * 1e-5));
-        displayPV.prt_str(_dispStr, 5, 0, 64);
+        displayPV.prt_str(_dispStr, 5, 0, 194);
         sprintf(_dispStr, "F=%d", min(_ubxNAVPVTInfo.fixType, 9));
-        displayPV.prt_str(_dispStr, 3, 72, 64);
+        displayPV.prt_str(_dispStr, 3, 72, 194);
         sprintf(_dispStr, "S=%02d", min(_ubxNAVPVTInfo.numSV, 99));
-        displayPV.prt_str(_dispStr, 4, 114, 64);
-        displayPV.prt_str("PP=", 3, 168, 64);
-        displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 64);
+        displayPV.prt_str(_dispStr, 4, 114, 194);
+        displayPV.prt_str("PP=", 3, 168, 194);
+        displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 194);
       //sprintf(_dispStr, "RXP CL%02XID%02XPL%02dV%d",
       //        emulator.receivedPacket.messageClass,
       //        emulator.receivedPacket.messageID,

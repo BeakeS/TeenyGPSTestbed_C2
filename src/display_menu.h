@@ -5,12 +5,10 @@ bool displayEnabled;
 #include <Wire.h>
 #include <TeenyPrtVal.h>
 #include <TeenyMenu.h>
-//M5Display display = M5.Lcd;
-//TeenyPrtVal<M5Display> displayPV(display);
-//TeenyMenu<M5Display> menu(display, 12, 16, false, 16, 16, 6, 10, 11, 154, 6, 0, 20);
 TFT_eSprite display = TFT_eSprite(&M5.Lcd);
 TeenyPrtVal<TFT_eSprite> displayPV(display);
-TeenyMenu<TFT_eSprite> menu(display, 12, 16, false, 16, 16, 6, 10, 11, 154, 6, 0, 20);
+//TeenyMenu<TFT_eSprite> menu(display, 12, 16, false, 16, 16, 6, 10, 11, 154, 6, 0, 20);
+TeenyMenu<TFT_eSprite> menu(display, 12, 16, false, 24, 20, 14, 10, 11, 154, 6, 0, 20);
 
 /********************************************************************/
 // Display/Message Defines
@@ -62,6 +60,8 @@ TeenyMenuItem menuItemGPSLogrLabel1("");
 TeenyMenuItem menuItemGPSLogrLabel2("");
 TeenyMenuItem menuItemGPSLogrLabel3("");
 TeenyMenuItem menuItemGPSLogrLabel4("");
+TeenyMenuItem menuItemGPSLogrLabel5("");
+TeenyMenuItem menuItemGPSLogrLabel6("");
 void menu_startGPSLogrCB(); // forward declaration
 TeenyMenuItem menuItemGPSLogrStrtLog("Start PVT Logging", menu_startGPSLogrCB);
 void menu_stopGPSLogrCB(); // forward declaration
@@ -72,8 +72,8 @@ void menu_entrGPSNsatCB(); // forward declaration
 void menu_exitGPSNsatCB(); // forward declaration
 TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGPSNsatCB);
 TeenyMenuItem menuItemGPSNsat("*START GPS NAVSAT*", menuPageGPSNsat);
-TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
 TeenyMenuItem menuItemGPSNsatLabel0("");
+TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
 //
 // gps transceiver unit
 void menu_entrGPSCaptCB(); // forward declaration
@@ -156,43 +156,49 @@ void menu_getRTC_CB(); // forward declaration
 void menu_setRTC_CB(); // forward declaration
 TeenyMenuPage menuPageRTCSettings("RT CLOCK SETTINGS", menu_getRTC_CB);
 TeenyMenuItem menuItemRTCSettings("RT Clock Settings", menuPageRTCSettings);
+TeenyMenuItem menuItemRTCSettingsLabel0("");
+TeenyMenuItem menuItemRTCSettingsLabel1("");
+TeenyMenuItem menuItemRTCSettingsLabel2("");
 TeenyMenuItem menuItemRTCSettingsExit(false); // optional return menu item
 //
 // rtc year
 int16_t menuRTCYear = 2023;
 int16_t menuRTCYearMin = 2023;
 int16_t menuRTCYearMax = 2042;
-TeenyMenuItem menuItemRTCYear("RTC Year", menuRTCYear, menuRTCYearMin, menuRTCYearMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCYear("RTC Year", menuRTCYear, menuRTCYearMin, menuRTCYearMax);
 //
 // rtc month
 int16_t menuRTCMonth = 1;
 int16_t menuRTCMonthMin = 1;
 int16_t menuRTCMonthMax = 12;
-TeenyMenuItem menuItemRTCMonth("RTC Month", menuRTCMonth, menuRTCMonthMin, menuRTCMonthMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCMonth("RTC Month", menuRTCMonth, menuRTCMonthMin, menuRTCMonthMax);
 //
 // rtc day
 int16_t menuRTCDay = 1;
 int16_t menuRTCDayMin = 1;
 int16_t menuRTCDayMax = 31;
-TeenyMenuItem menuItemRTCDay("RTC Day", menuRTCDay, menuRTCDayMin, menuRTCDayMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCDay("RTC Day", menuRTCDay, menuRTCDayMin, menuRTCDayMax);
 //
 // rtc hour
 int16_t menuRTCHour = 0;
 int16_t menuRTCHourMin = 0;
 int16_t menuRTCHourMax = 23;
-TeenyMenuItem menuItemRTCHour("RTC Hour", menuRTCHour, menuRTCHourMin, menuRTCHourMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCHour("RTC Hour", menuRTCHour, menuRTCHourMin, menuRTCHourMax);
 //
 // rtc minute
 int16_t menuRTCMinute = 0;
 int16_t menuRTCMinuteMin = 0;
 int16_t menuRTCMinuteMax = 59;
-TeenyMenuItem menuItemRTCMinute("RTC Minute", menuRTCMinute, menuRTCMinuteMin, menuRTCMinuteMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCMinute("RTC Minute", menuRTCMinute, menuRTCMinuteMin, menuRTCMinuteMax);
 //
 // rtc second
 int16_t menuRTCSecond = 0;
 int16_t menuRTCSecondMin = 0;
 int16_t menuRTCSecondMax = 59;
-TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, menuRTCSecondMax, menu_setRTC_CB);
+TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, menuRTCSecondMax);
+//
+// rtc set date/time
+TeenyMenuItem menuItemRTCSetDateTime("Set Date/Time", menu_setRTC_CB);
 //
 // EMULATOR SETTINGS
 //
@@ -209,7 +215,7 @@ TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDS
 // display timeout
 int16_t menuDisplayTimeoutMin = 1;
 int16_t menuDisplayTimeoutMax = 20;
-TeenyMenuItem menuItemDisplayTimeout("Display Time", deviceState.DISPLAYTIMEOUT, menuDisplayTimeoutMin, menuDisplayTimeoutMax);
+TeenyMenuItem menuItemDisplayTimeout("Dsp Timeout", deviceState.DISPLAYTIMEOUT, menuDisplayTimeoutMin, menuDisplayTimeoutMax);
 //
 // status led
 TeenyMenuItem menuItemStatusLED("Status LED", deviceState.STATUSLED, nullptr, "OFF", "ON");
@@ -277,6 +283,8 @@ void menu_setup() {
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel2);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel3);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel4);
+  menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel5);
+  menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel6);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStrtLog);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStopLog);
   //menuPageGPSLogr.addMenuItem(menuItemGPSLogrExit);
@@ -325,6 +333,10 @@ void menu_setup() {
   menuPageRTCSettings.addMenuItem(menuItemRTCHour);
   menuPageRTCSettings.addMenuItem(menuItemRTCMinute);
   menuPageRTCSettings.addMenuItem(menuItemRTCSecond);
+  menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel0);
+  menuPageRTCSettings.addMenuItem(menuItemRTCSetDateTime);
+  menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel1);
+  menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel2);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
@@ -940,6 +952,7 @@ void menu_setRTC_CB() {
   setRTCTime(menuRTCHour, menuRTCMinute, menuRTCSecond,
              menuRTCDay, menuRTCMonth, menuRTCYear);
   clockTime_valid = true;
+  msg_update("RTC Clock Set");
 }
 
 /********************************************************************/

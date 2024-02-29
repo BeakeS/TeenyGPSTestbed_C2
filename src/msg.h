@@ -18,7 +18,7 @@ bool msg_update(const char* msgStr) {
       return true;
     }
     if(displayRefresh) {
-      displayPV.prt_str(_msgStr, 20, 0, 112);
+      displayPV.prt_str(_msgStr, 20, 0, 304);
     }
   }
   return false;
