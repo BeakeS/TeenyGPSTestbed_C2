@@ -1,6 +1,6 @@
 
 // When defined, displays button actions
-//#define DEBUG_BUTTON_PRESSES
+#define DEBUG_BUTTON_PRESSES
 
 /********************************************************************/
 // Buttons
@@ -23,7 +23,7 @@ void buttonA_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.SC.%d", ++count);
+    sprintf(_tempStr, "BtnA.Short.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -35,7 +35,7 @@ void buttonA_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.DC.%d", ++count);
+    sprintf(_tempStr, "BtnA.Double.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -47,7 +47,7 @@ void buttonA_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.LC.%d", ++count);
+    sprintf(_tempStr, "BtnA.Long.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -60,7 +60,7 @@ void buttonB_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.SC.%d", ++count);
+    sprintf(_tempStr, "BtnB.Short.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -73,7 +73,7 @@ void buttonB_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.DC.%d", ++count);
+    sprintf(_tempStr, "BtnB.Double.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -86,7 +86,7 @@ void buttonB_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.LC.%d", ++count);
+    sprintf(_tempStr, "BtnB.Long.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -99,7 +99,7 @@ void buttonC_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.SC.%d", ++count);
+    sprintf(_tempStr, "BtnC.Short.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -111,7 +111,7 @@ void buttonC_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.DC.%d", ++count);
+    sprintf(_tempStr, "BtnC.Double.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
@@ -123,7 +123,7 @@ void buttonC_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.LC.%d", ++count);
+    sprintf(_tempStr, "BtnC.Long.%d", ++count);
     msg_update(_tempStr);
 #endif
   }
