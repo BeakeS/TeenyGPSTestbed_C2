@@ -143,25 +143,27 @@ void display_refresh() {
           sprintf(_dispStr, " UBLOX NAVPVT INFO");
           displayPV.prt_str(_dispStr, 20, 0, 48);
           // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 64);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 66);
           // GPS Location
           if(gps.isLocationValid()) {
-            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 80);
-            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 80);
-            sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
-            displayPV.prt_str(_dispStr, 8, 0, 96);
-            sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 90, 96);
-            sprintf(_dispStr, "VA=%03d", min(gps.getVAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 168, 96);
-            sprintf(_dispStr, "H=%s", getHeadingStr(gps.getHeading()));
-            displayPV.prt_str(_dispStr, 5, 0, 112);
-            sprintf(_dispStr, "F=%d", min(gps.getLocationFixType(), 9));
-            displayPV.prt_str(_dispStr, 3, 72, 112);
-            sprintf(_dispStr, "S=%02d", min(gps.getNumSV(), 99));
-            displayPV.prt_str(_dispStr, 4, 114, 112);
-            displayPV.prt_str("PP=", 3, 168, 112);
-            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 112);
+            sprintf(_dispStr, "Lat:     %s", getLatitudeStr(gps.getLatitude()));
+            displayPV.prt_str(_dispStr, 20, 0, 84);
+            sprintf(_dispStr, "Lon:     %s", getLongitudeStr(gps.getLongitude()));
+            displayPV.prt_str(_dispStr, 20, 0, 102);
+            sprintf(_dispStr, "Alt:     %03d", max(min(gps.getAltitudeMSL(), 999), -99));
+            displayPV.prt_str(_dispStr, 20, 0, 120);
+            sprintf(_dispStr, "Heading: %s", getHeadingStr(gps.getHeading()));
+            displayPV.prt_str(_dispStr, 20, 0, 138);
+            sprintf(_dispStr, "HorAcc:  %03d", min(gps.getHAccEst(), 999));
+            displayPV.prt_str(_dispStr, 20, 0, 156);
+            sprintf(_dispStr, "VerAcc:  %03d", min(gps.getVAccEst(), 999));
+            displayPV.prt_str(_dispStr, 20, 0, 174);
+            sprintf(_dispStr, "Fix:     %dD", min(gps.getLocationFixType(), 9));
+            displayPV.prt_str(_dispStr, 20, 0, 192);
+            sprintf(_dispStr, "Sats:    %02d", min(gps.getNumSV(), 99));
+            displayPV.prt_str(_dispStr, 20, 0, 210);
+            displayPV.prt_str("PosDOP:  ", 9, 0, 228);
+            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 108, 228);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
             displayPV.prt_str(_dispStr, 19, 6, 88);
