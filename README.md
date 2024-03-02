@@ -15,7 +15,7 @@ Navigating the TeenyGPSTestbed_C2 menu pages on the Core2 utilizes the three tou
 TeenyGPSTestbed_C2 offers four modes of operation:
 
 Basic GPS Receiver - Displays PVT packet info including date, time, lat/lon/alt, heading, and postional accuracy data
-![PXL_20240229_005123955](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/14992ef4-b3e9-4dc5-b154-09b841a94eb5)
+![PXL_20240302_221455960](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/a9ff3750-82e0-4369-81fa-e7ea93ac93e3)
 
 GPS NAV-PVT Packet Logger - For logging PVT packets for analysis or emulation
 ![PXL_20240229_005227489](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/643b1f72-6256-4782-9dc7-c97059644c07)
