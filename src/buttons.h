@@ -199,8 +199,9 @@ void buttons_setup() {
   //M5.BtnA.set(240,  10, 40, 110); // For rotation=2
   //M5.BtnB.set(240, 130, 40,  70); // For rotation=2
   //M5.BtnC.set(240, 230, 40,  80); // For rotation=2
-  M5.BtnA.set(230,  10, 50, 110); // Slight extension into display area
-  M5.BtnB.set(230, 115, 50,  70); // Slight extension into display area
+  // Tuned using m5stackcore2_demo to identify off-screen touch coord.
+  M5.BtnA.set(230,  40, 50,  40); // Slight extension into display area
+  M5.BtnB.set(230, 120, 50,  80); // Slight extension into display area
   M5.BtnC.set(230, 220, 50,  80); // Slight extension into display area
   // Timing
   // Any gap between tapTime and longPressTime will cause a gap in touch recognition
