@@ -15,13 +15,13 @@ Navigating the TeenyGPSTestbed_C2 menu pages on the Core2 utilizes the three tou
 TeenyGPSTestbed_C2 offers four modes of operation:
 
 Basic GPS Receiver - Displays PVT packet info including date, time, lat/lon/alt, heading, and postional accuracy data
-![PXL_20240302_221455960](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/a9ff3750-82e0-4369-81fa-e7ea93ac93e3)
+![PXL_20240303_170936265](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/4e2b1242-d968-42f4-b2d3-a8b80f035e75)
 
 GPS NAV-PVT Packet Logger - For logging PVT packets for analysis or emulation
-![PXL_20240229_005227489](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/643b1f72-6256-4782-9dc7-c97059644c07)
+![PXL_20240303_171040320](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/937f2e26-c376-4e52-9304-112ede750657)
 
 GPS NAV-SAT Receiver - For testing satellite reception
-![PXL_20240229_004808554](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/2925be41-ba77-48f5-b0d4-116e8e58f64a)
+![PXL_20240303_171059576](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/e15d2d89-31d1-480e-90a5-53cbbd6d3d68)
 
 GPS Emulation - Replays PVT files from ROM or SDCARD with progressive date/time updates
 ![PXL_20240229_005625834](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/f4011f04-dae2-459f-9b68-648e4ca00ba4)
