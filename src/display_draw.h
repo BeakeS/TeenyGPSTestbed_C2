@@ -16,7 +16,7 @@ char* getRTCClockISO8601DateTimeStr() {
     rtc_datetime_t now = getRTCTime(); // get the RTC
     return getISO8601DateTimeStr(now);
   }
-  sprintf(_itdStr, "**  NO TIME FIX  **");
+  sprintf(_itdStr, "**  RTC NOT SET  **");
   return _itdStr;
 }
 
@@ -33,7 +33,7 @@ char* getGPSISO8601DateTimeStr() {
     dateTime.second = gps.getSecond();
     return getISO8601DateTimeStr(dateTime);
   }
-  sprintf(_itdStr, "* PVTTIME INVALID *");
+  sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;
 }
 
@@ -50,22 +50,24 @@ char* getPVTPacketISO8601DateTimeStr(ubxNAVPVTInfo_t _ubxNAVPVTInfo) {
     dateTime.second = _ubxNAVPVTInfo.second;
     return getISO8601DateTimeStr(dateTime);
   }
-  sprintf(_itdStr, "* PVTTIME INVALID *");
+  sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;
 }
 
 /********************************************************************/
 char* getLatitudeStr(const float latitude) {
+  // latitude range: -90 to 90
+  //latitude = 41.311589; // Bear Mountain
   static char _fStr[10];
   static char _lStr[11];
   if(latitude < 0.0) {
-    dtostrf(-latitude, -7, 5, _fStr);
+    dtostrf(-latitude, -9, 6, _fStr);
     sprintf(_lStr, "S%s", _fStr);
 //} else if(latitude == 0.0) {
-//  dtostrf(latitude, -7, 5, _fStr);
+//  dtostrf(latitude, -9, 6, _fStr);
 //  sprintf(_lStr, "%s", _fStr);
   } else {
-    dtostrf(latitude, -7, 5, _fStr);
+    dtostrf(latitude, -9, 6, _fStr);
     sprintf(_lStr, "N%s", _fStr);
   }
   return _lStr;
@@ -73,16 +75,18 @@ char* getLatitudeStr(const float latitude) {
 
 /********************************************************************/
 char* getLongitudeStr(const float longitude) {
-  static char _fStr[10];
-  static char _lStr[11];
+  // longitude range: -180 to 180
+  //longitude = -74.008019; // Bear Mountain
+  static char _fStr[11];
+  static char _lStr[12];
   if(longitude < 0.0) {
-    dtostrf(-longitude, -7, 5, _fStr);
+    dtostrf(-longitude, -10, 6, _fStr);
     sprintf(_lStr, "W%s", _fStr);
 //} else if(longitude == 0.0) {
-//  dtostrf(longitude, -7, 5, _fStr);
+//  dtostrf(longitude, -10, 6, _fStr);
 //  sprintf(_lStr, "%s", _fStr);
   } else {
-    dtostrf(longitude, -7, 5, _fStr);
+    dtostrf(longitude, -10, 6, _fStr);
     sprintf(_lStr, "E%s", _fStr);
   }
   return _lStr;
@@ -186,22 +190,24 @@ void display_refresh() {
           displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 64);
           // GPS Location
           if(gps.isLocationValid()) {
-            displayPV.prt_str(getLatitudeStr(gps.getLatitude()), 10, 0, 80);
-            displayPV.prt_str(getLongitudeStr(gps.getLongitude()), 10, 120, 80);
+            sprintf(_dispStr, "Lat=%s", getLatitudeStr(gps.getLatitude()));
+            displayPV.prt_str(_dispStr, 20, 0, 80);
+            sprintf(_dispStr, "Lon=%s", getLongitudeStr(gps.getLongitude()));
+            displayPV.prt_str(_dispStr, 20, 0, 96);
             sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
-            displayPV.prt_str(_dispStr, 8, 0, 96);
+            displayPV.prt_str(_dispStr, 8, 0, 112);
             sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 90, 96);
+            displayPV.prt_str(_dispStr, 8, 90, 112);
             sprintf(_dispStr, "VA=%03d", min(gps.getVAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 168, 96);
+            displayPV.prt_str(_dispStr, 8, 168, 112);
             sprintf(_dispStr, "H=%s", getHeadingStr(gps.getHeading()));
-            displayPV.prt_str(_dispStr, 5, 0, 112);
+            displayPV.prt_str(_dispStr, 5, 0, 128);
             sprintf(_dispStr, "F=%d", min(gps.getLocationFixType(), 9));
-            displayPV.prt_str(_dispStr, 3, 72, 112);
+            displayPV.prt_str(_dispStr, 3, 72, 128);
             sprintf(_dispStr, "S=%02d", min(gps.getNumSV(), 99));
-            displayPV.prt_str(_dispStr, 4, 114, 112);
-            displayPV.prt_str("PP=", 3, 168, 112);
-            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 112);
+            displayPV.prt_str(_dispStr, 4, 114, 128);
+            displayPV.prt_str("PP=", 3, 168, 128);
+            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 128);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
             displayPV.prt_str(_dispStr, 19, 6, 88);
@@ -289,22 +295,24 @@ void display_refresh() {
         displayPV.prt_str(_dispStr, 20, 0, 130);
         displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 146);
         ubxNAVPVTInfo_t _ubxNAVPVTInfo = emulator.getPVTPacketInfo();
-        displayPV.prt_str(getLatitudeStr((float)_ubxNAVPVTInfo.latitude * 1e-7), 10, 0, 162);
-        displayPV.prt_str(getLongitudeStr((float)_ubxNAVPVTInfo.longitude * 1e-7), 10, 120, 162);
+        sprintf(_dispStr, "Lat=%s", getLatitudeStr(gps.getLatitude()));
+        displayPV.prt_str(_dispStr, 20, 0, 162);
+        sprintf(_dispStr, "Lon=%s", getLongitudeStr(gps.getLongitude()));
+        displayPV.prt_str(_dispStr, 20, 0, 178);
         sprintf(_dispStr, "ALT=%03d", max(min(_ubxNAVPVTInfo.altitudeMSL / 1000, 999), -99));
-        displayPV.prt_str(_dispStr, 8, 0, 178);
+        displayPV.prt_str(_dispStr, 8, 0, 194);
         sprintf(_dispStr, "HA=%03d", min(_ubxNAVPVTInfo.hAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 90, 178);
+        displayPV.prt_str(_dispStr, 8, 90, 194);
         sprintf(_dispStr, "VA=%03d", min(_ubxNAVPVTInfo.vAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 168, 178);
+        displayPV.prt_str(_dispStr, 8, 168, 194);
         sprintf(_dispStr, "H=%s", getHeadingStr((float)_ubxNAVPVTInfo.headMot * 1e-5));
-        displayPV.prt_str(_dispStr, 5, 0, 194);
+        displayPV.prt_str(_dispStr, 5, 0, 210);
         sprintf(_dispStr, "F=%d", min(_ubxNAVPVTInfo.fixType, 9));
-        displayPV.prt_str(_dispStr, 3, 72, 194);
+        displayPV.prt_str(_dispStr, 3, 72, 210);
         sprintf(_dispStr, "S=%02d", min(_ubxNAVPVTInfo.numSV, 99));
-        displayPV.prt_str(_dispStr, 4, 114, 194);
-        displayPV.prt_str("PP=", 3, 168, 194);
-        displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 194);
+        displayPV.prt_str(_dispStr, 4, 114, 210);
+        displayPV.prt_str("PP=", 3, 168, 210);
+        displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 210);
       //sprintf(_dispStr, "RXP CL%02XID%02XPL%02dV%d",
       //        emulator.receivedPacket.messageClass,
       //        emulator.receivedPacket.messageID,
