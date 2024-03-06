@@ -213,9 +213,15 @@ int16_t menuColdStartPVTPktsMax = 60;
 TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, menuColdStartPVTPktsMin, menuColdStartPVTPktsMax);
 //
 // display timeout
-int16_t menuDisplayTimeoutMin = 1;
-int16_t menuDisplayTimeoutMax = 20;
-TeenyMenuItem menuItemDisplayTimeout("Dsp Timeout", deviceState.DISPLAYTIMEOUT, menuDisplayTimeoutMin, menuDisplayTimeoutMax);
+SelectOptionUint8t selectDisplayTimeoutOptions[] = {
+  {"NEVER", 99},
+  {"30",    30},
+  {"20",    20},
+  {"10",    10},
+  {"5",      5},
+  {"1",      1}};
+TeenyMenuSelect selectDisplayTimeout(sizeof(selectDisplayTimeoutOptions)/sizeof(SelectOptionUint8t), selectDisplayTimeoutOptions);
+TeenyMenuItem menuItemDisplayTimeout("Dsp Timeout", deviceState.DISPLAYTIMEOUT, selectDisplayTimeout);
 //
 // status led
 TeenyMenuItem menuItemStatusLED("Status LED", deviceState.STATUSLED, nullptr, "OFF", "ON");
@@ -399,6 +405,10 @@ void menu_exit() {
 
 /********************************************************************/
 void menu_idle_timer() {
+  if(deviceState.DISPLAYTIMEOUT == 99) {
+    menuDisplaySleepMode = false;
+    return;
+  }
   if((millis()-menuInputTime) > (uint32_t)(deviceState.DISPLAYTIMEOUT*MILLIS_PER_MIN)) {
     if(!menuDisplaySleepMode) {
       menuDisplaySleepMode = true;

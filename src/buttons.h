@@ -14,6 +14,10 @@ volatile bool buttonB_doubleClickEvent;
 volatile bool buttonC_singleClickEvent;
 volatile bool buttonC_longClickEvent;
 volatile bool buttonC_doubleClickEvent;
+#ifdef DEBUG_BUTTON_PRESSES
+volatile int16_t clickX;
+volatile int16_t clickY;
+#endif
 
 /********************************************************************/
 void buttonA_singleClick() {
@@ -23,7 +27,7 @@ void buttonA_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.SC.%d", ++count);
+    sprintf(_tempStr, "BtnA.SC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -36,7 +40,7 @@ void buttonA_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.LC.%d", ++count);
+    sprintf(_tempStr, "BtnA.LC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -48,7 +52,7 @@ void buttonA_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnA.DC.%d", ++count);
+    sprintf(_tempStr, "BtnA.DC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -61,7 +65,7 @@ void buttonB_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.SC.%d", ++count);
+    sprintf(_tempStr, "BtnB.SC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -74,7 +78,7 @@ void buttonB_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.LC.%d", ++count);
+    sprintf(_tempStr, "BtnB.LC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -87,7 +91,7 @@ void buttonB_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnB.DC.%d", ++count);
+    sprintf(_tempStr, "BtnB.DC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -100,7 +104,7 @@ void buttonC_singleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.SC.%d", ++count);
+    sprintf(_tempStr, "BtnC.SC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -113,7 +117,7 @@ void buttonC_longClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.LC.%d", ++count);
+    sprintf(_tempStr, "BtnC.LC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -125,7 +129,7 @@ void buttonC_doubleClick() {
 #ifdef DEBUG_BUTTON_PRESSES
     static uint16_t count=0;
     char _tempStr[22];
-    sprintf(_tempStr, "BtnC.DC.%d", ++count);
+    sprintf(_tempStr, "BtnC.DC.%d %d:%d", ++count, clickX, clickY);
     msg_update(_tempStr);
 #endif
   }
@@ -136,6 +140,15 @@ void buttonC_doubleClick() {
 void buttons_tick() {
   if(insideButtonsClick) return;
   M5.update();
+#ifdef DEBUG_BUTTON_PRESSES
+  if(M5.Touch.ispressed()) {
+    TouchPoint_t touchPt = M5.Touch.getPressPoint();
+    if(touchPt.x >=0) {
+      clickX = touchPt.x;
+      clickY = touchPt.y;
+    }
+  }
+#endif
   if(M5.BtnA.event==E_TAP)         buttonA_singleClickEvent=true;
   if(M5.BtnA.event==E_LONGPRESSED) buttonA_longClickEvent=true;
   if(M5.BtnA.event==E_DBLTAP)      buttonA_doubleClickEvent=true;
