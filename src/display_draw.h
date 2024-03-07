@@ -140,6 +140,10 @@ void display_refresh() {
       menu.drawMenu();
       if(menu.isMenuPageCurrent(menuPageMain)) {
         // main/idle display
+        sprintf(_dispStr, "Bat %d%% %s",
+                battery.getPercentage(),
+                battery.isCharging() ? "Charging" : "");
+        displayPV.prt_str(_dispStr, 20, 0, 270);
       } else if(menu.isMenuPageCurrent(menuPageGPSRcvr)) {
         // RTC Clock
         displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);

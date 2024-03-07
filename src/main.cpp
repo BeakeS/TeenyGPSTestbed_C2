@@ -73,6 +73,10 @@ HardwareSerial *emulatorSerial;
 #include "msg.h"
 
 /********************************************************************/
+// Battery
+#include "c2battery.h"
+
+/********************************************************************/
 // Buttons
 #include "buttons.h"
 
