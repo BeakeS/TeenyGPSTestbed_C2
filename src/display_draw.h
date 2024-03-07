@@ -170,16 +170,16 @@ void display_refresh() {
             displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 108, 228);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
-            displayPV.prt_str(_dispStr, 19, 6, 88);
+            displayPV.prt_str(_dispStr, 19, 6, 90);
           }
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 64);
+          displayPV.prt_str(_dispStr, 20, 0, 66);
         }
-        sprintf(_dispStr, "P%XL%XD%XT%X",
-                gps.isPacketValid(), gps.isLocationValid(),
-                gps.isDateValid(), gps.isTimeValid());
-        displayPV.prt_str(_dispStr, 20, 0, 284);
+      //sprintf(_dispStr, "P%XL%XD%XT%X",
+      //        gps.isPacketValid(), gps.isLocationValid(),
+      //        gps.isDateValid(), gps.isTimeValid());
+      //displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSLogr)) {
         // RTC Clock
         displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
@@ -187,47 +187,47 @@ void display_refresh() {
           sprintf(_dispStr, " UBLOX NAVPVT INFO");
           displayPV.prt_str(_dispStr, 20, 0, 48);
           // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 64);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 66);
           // GPS Location
           if(gps.isLocationValid()) {
             sprintf(_dispStr, "Lat=%s", getLatitudeStr(gps.getLatitude()));
-            displayPV.prt_str(_dispStr, 20, 0, 80);
+            displayPV.prt_str(_dispStr, 20, 0, 84);
             sprintf(_dispStr, "Lon=%s", getLongitudeStr(gps.getLongitude()));
-            displayPV.prt_str(_dispStr, 20, 0, 96);
+            displayPV.prt_str(_dispStr, 20, 0, 102);
             sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
-            displayPV.prt_str(_dispStr, 8, 0, 112);
+            displayPV.prt_str(_dispStr, 8, 0, 120);
             sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 90, 112);
+            displayPV.prt_str(_dispStr, 8, 90, 120);
             sprintf(_dispStr, "VA=%03d", min(gps.getVAccEst(), 999));
-            displayPV.prt_str(_dispStr, 8, 168, 112);
+            displayPV.prt_str(_dispStr, 8, 168, 120);
             sprintf(_dispStr, "H=%s", getHeadingStr(gps.getHeading()));
-            displayPV.prt_str(_dispStr, 5, 0, 128);
+            displayPV.prt_str(_dispStr, 5, 0, 138);
             sprintf(_dispStr, "F=%d", min(gps.getLocationFixType(), 9));
-            displayPV.prt_str(_dispStr, 3, 72, 128);
+            displayPV.prt_str(_dispStr, 3, 72, 138);
             sprintf(_dispStr, "S=%02d", min(gps.getNumSV(), 99));
-            displayPV.prt_str(_dispStr, 4, 114, 128);
-            displayPV.prt_str("PP=", 3, 168, 128);
-            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 128);
+            displayPV.prt_str(_dispStr, 4, 114, 138);
+            displayPV.prt_str("PP=", 3, 168, 138);
+            displayPV.prt_float(min(gps.getPDOP(), 9.9), 3, 1, 204, 138);
           } else {
             sprintf(_dispStr, "**  NO GNSS FIX  **");
-            displayPV.prt_str(_dispStr, 19, 6, 88);
+            displayPV.prt_str(_dispStr, 19, 6, 90);
           }
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 64);
+          displayPV.prt_str(_dispStr, 20, 0, 66);
         }
         if(ubxLoggingInProgress) {
           sprintf(_dispStr, "  Total Pkts=%04d",
                   min(ubxLoggingFileWriteCount, 9999));
-          displayPV.prt_str(_dispStr, 20, 0, 192);
+          displayPV.prt_str(_dispStr, 20, 0, 204);
           sprintf(_dispStr, "  Valid Pkts=%04d",
                   min(ubxLoggingFileWriteValidCount, 9999));
-          displayPV.prt_str(_dispStr, 20, 0, 208);
+          displayPV.prt_str(_dispStr, 20, 0, 222);
         }
-        sprintf(_dispStr, "P%XL%XD%XT%X",
-                gps.isPacketValid(), gps.isLocationValid(),
-                gps.isDateValid(), gps.isTimeValid());
-        displayPV.prt_str(_dispStr, 20, 0, 284);
+      //sprintf(_dispStr, "P%XL%XD%XT%X",
+      //        gps.isPacketValid(), gps.isLocationValid(),
+      //        gps.isDateValid(), gps.isTimeValid());
+      //displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
         // RTC Clock
         displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
@@ -262,14 +262,14 @@ void display_refresh() {
           }
         } else {
           sprintf(_dispStr, "** NO NAVSAT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 56);
+          displayPV.prt_str(_dispStr, 20, 0, 64);
         }
-        sprintf(_dispStr, "P%XL%XD%XT%X P%XS%dH%dU%d",
-                gps.isPacketValid(), gps.isLocationValid(),
-                gps.isDateValid(), gps.isTimeValid(),
-                navsatPacket.validPacket, navsatInfo.numSvs,
-                navsatInfo.numSvsHealthy, navsatInfo.numSvsUsed);
-        displayPV.prt_str(_dispStr, 20, 0, 284);
+      //sprintf(_dispStr, "P%XL%XD%XT%X P%XS%dH%dU%d",
+      //        gps.isPacketValid(), gps.isLocationValid(),
+      //        gps.isDateValid(), gps.isTimeValid(),
+      //        navsatPacket.validPacket, navsatInfo.numSvs,
+      //        navsatInfo.numSvsHealthy, navsatInfo.numSvsUsed);
+      //displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
         if(menu_captRxPktInProgress) {
           sprintf(_dispStr, " File = %s", rxPktFileName);

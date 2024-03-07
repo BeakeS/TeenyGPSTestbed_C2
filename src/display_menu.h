@@ -62,6 +62,7 @@ TeenyMenuItem menuItemGPSLogrLabel3("");
 TeenyMenuItem menuItemGPSLogrLabel4("");
 TeenyMenuItem menuItemGPSLogrLabel5("");
 TeenyMenuItem menuItemGPSLogrLabel6("");
+TeenyMenuItem menuItemGPSLogrLabel7("");
 void menu_startGPSLogrCB(); // forward declaration
 TeenyMenuItem menuItemGPSLogrStrtLog("Start PVT Logging", menu_startGPSLogrCB);
 void menu_stopGPSLogrCB(); // forward declaration
@@ -154,7 +155,7 @@ TeenyMenuItem menuItemTopLevelSettingsExit(false); // optional return menu item
 // rtc settings menu
 void menu_getRTC_CB(); // forward declaration
 void menu_setRTC_CB(); // forward declaration
-TeenyMenuPage menuPageRTCSettings("RT CLOCK SETTINGS", menu_getRTC_CB);
+TeenyMenuPage menuPageRTCSettings("REAL TIME CLOCK", menu_getRTC_CB);
 TeenyMenuItem menuItemRTCSettings("RT Clock Settings", menuPageRTCSettings);
 TeenyMenuItem menuItemRTCSettingsLabel0("");
 TeenyMenuItem menuItemRTCSettingsLabel1("");
@@ -224,7 +225,7 @@ TeenyMenuSelect selectDisplayTimeout(sizeof(selectDisplayTimeoutOptions)/sizeof(
 TeenyMenuItem menuItemDisplayTimeout("Dsp Timeout", deviceState.DISPLAYTIMEOUT, selectDisplayTimeout);
 //
 // status led
-TeenyMenuItem menuItemStatusLED("Status LED", deviceState.STATUSLED, nullptr, "OFF", "ON");
+//TeenyMenuItem menuItemStatusLED("Status LED", deviceState.STATUSLED, nullptr, "OFF", "ON");
 //
 // SAVE SETTINGS
 //
@@ -291,6 +292,7 @@ void menu_setup() {
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel4);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel5);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel6);
+  menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel7);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStrtLog);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStopLog);
   //menuPageGPSLogr.addMenuItem(menuItemGPSLogrExit);
@@ -348,7 +350,7 @@ void menu_setup() {
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemDisplayTimeout);
-  menuPageTopLevelSettings.addMenuItem(menuItemStatusLED);
+  //menuPageTopLevelSettings.addMenuItem(menuItemStatusLED);
   menuPageTopLevelSettings.addMenuItem(menuItemSaveSettings);
   menuPageSaveSettings.addMenuItem(menuItemConfirmSaveSettings);
   menuPageSaveSettings.addMenuItem(menuItemSaveSettingsExit);
