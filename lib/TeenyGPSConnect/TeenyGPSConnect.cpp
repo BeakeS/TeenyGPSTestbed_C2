@@ -64,8 +64,8 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
   gnss.setPortOutput(COM_PORT_UART1, COM_TYPE_UBX); //Set the UART port to output UBX only
   gnss.setMeasurementRate(1000);       //Produce a measurement every 1000ms
   gnss.setNavigationRate(1);           //Produce a navigation solution every measurement
-  gnss.setAutoNAVPVTrate(autoNAVPVTRate); //Include NAV-PVT reports 
-  gnss.setAutoNAVSATrate(autoNAVSATRate); //Include NAV-SAT reports 
+  gnss.setAutoNAVPVTRate(autoNAVPVTRate); //Include NAV-PVT reports 
+  gnss.setAutoNAVSATRate(autoNAVSATRate); //Include NAV-SAT reports 
 
   // Mark the fix items invalid to start
   data.packet_valid = false;

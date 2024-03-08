@@ -161,11 +161,11 @@ bool TeenyUbloxConnect::setNavigationRate(uint16_t rate_, uint16_t maxWait_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoNAVPVT(bool enable_, uint16_t maxWait_) {
-  return setAutoNAVPVTrate(enable_ ? 1 : 0, maxWait_);
+  return setAutoNAVPVTRate(enable_ ? 1 : 0, maxWait_);
 }
 
 /********************************************************************/
-bool TeenyUbloxConnect::setAutoNAVPVTrate(uint8_t rate_, uint16_t maxWait_) {
+bool TeenyUbloxConnect::setAutoNAVPVTRate(uint8_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_MSG;
   commandPacket.payloadLength = 3;
@@ -178,21 +178,21 @@ bool TeenyUbloxConnect::setAutoNAVPVTrate(uint8_t rate_, uint16_t maxWait_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoPVT(bool enable_, uint16_t maxWait_) {
-  return setAutoNAVPVTrate(enable_ ? 1 : 0, maxWait_);
+  return setAutoNAVPVTRate(enable_ ? 1 : 0, maxWait_);
 }
 
 /********************************************************************/
-bool TeenyUbloxConnect::setAutoPVTrate(uint8_t rate_, uint16_t maxWait_) {
-  return setAutoNAVPVTrate(rate_, maxWait_);
+bool TeenyUbloxConnect::setAutoPVTRate(uint8_t rate_, uint16_t maxWait_) {
+  return setAutoNAVPVTRate(rate_, maxWait_);
 }
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoNAVSAT(bool enable_, uint16_t maxWait_) {
-  return setAutoNAVSATrate(enable_ ? 1 : 0, maxWait_);
+  return setAutoNAVSATRate(enable_ ? 1 : 0, maxWait_);
 }
 
 /********************************************************************/
-bool TeenyUbloxConnect::setAutoNAVSATrate(uint8_t rate_, uint16_t maxWait_) {
+bool TeenyUbloxConnect::setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_MSG;
   commandPacket.payloadLength = 3;
@@ -540,48 +540,48 @@ bool TeenyUbloxConnect::processNAVPVTPacket() {
 
 /********************************************************************/
 void TeenyUbloxConnect::setNAVPVTPacketInfo() {
-  ubxNAVPVTInfo.year = ubloxNAVPVTPacketBuffer.payload[4];
-  ubxNAVPVTInfo.year |= ubloxNAVPVTPacketBuffer.payload[5] << 8;
-  ubxNAVPVTInfo.month = ubloxNAVPVTPacketBuffer.payload[6];
-  ubxNAVPVTInfo.day = ubloxNAVPVTPacketBuffer.payload[7];
-  ubxNAVPVTInfo.hour = ubloxNAVPVTPacketBuffer.payload[8];
-  ubxNAVPVTInfo.minute = ubloxNAVPVTPacketBuffer.payload[9];
-  ubxNAVPVTInfo.second = ubloxNAVPVTPacketBuffer.payload[10];
-  ubxNAVPVTInfo.dateValid = ubloxNAVPVTPacketBuffer.payload[11] & 0x01;
-  ubxNAVPVTInfo.timeValid = (ubloxNAVPVTPacketBuffer.payload[11] & 0x02) >> 1;
-  ubxNAVPVTInfo.tAcc = ubloxNAVPVTPacketBuffer.payload[12];
-  ubxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[13] << 8;
-  ubxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[14] << 16;
-  ubxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[15] << 24;
-  ubxNAVPVTInfo.fixType = ubloxNAVPVTPacketBuffer.payload[20];
-  ubxNAVPVTInfo.locationValid = ubloxNAVPVTPacketBuffer.payload[21] & 0x01;
-  ubxNAVPVTInfo.numSV = ubloxNAVPVTPacketBuffer.payload[23];
-  ubxNAVPVTInfo.longitude = ubloxNAVPVTPacketBuffer.payload[24];
-  ubxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[25] << 8;
-  ubxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[26] << 16;
-  ubxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[27] << 24;
-  ubxNAVPVTInfo.latitude = ubloxNAVPVTPacketBuffer.payload[28];
-  ubxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[29] << 8;
-  ubxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[30] << 16;
-  ubxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[31] << 24;
-  ubxNAVPVTInfo.altitudeMSL = ubloxNAVPVTPacketBuffer.payload[36];
-  ubxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[37] << 8;
-  ubxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[38] << 16;
-  ubxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[39] << 24;
-  ubxNAVPVTInfo.hAcc = ubloxNAVPVTPacketBuffer.payload[40];
-  ubxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[41] << 8;
-  ubxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[42] << 16;
-  ubxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[43] << 24;
-  ubxNAVPVTInfo.vAcc = ubloxNAVPVTPacketBuffer.payload[44];
-  ubxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[45] << 8;
-  ubxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[46] << 16;
-  ubxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[47] << 24;
-  ubxNAVPVTInfo.headMot = ubloxNAVPVTPacketBuffer.payload[64];
-  ubxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[65] << 8;
-  ubxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[66] << 16;
-  ubxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[67] << 24;
-  ubxNAVPVTInfo.pDOP = ubloxNAVPVTPacketBuffer.payload[76];
-  ubxNAVPVTInfo.pDOP |= ubloxNAVPVTPacketBuffer.payload[77] << 8;
+  ubloxNAVPVTInfo.year = ubloxNAVPVTPacketBuffer.payload[4];
+  ubloxNAVPVTInfo.year |= ubloxNAVPVTPacketBuffer.payload[5] << 8;
+  ubloxNAVPVTInfo.month = ubloxNAVPVTPacketBuffer.payload[6];
+  ubloxNAVPVTInfo.day = ubloxNAVPVTPacketBuffer.payload[7];
+  ubloxNAVPVTInfo.hour = ubloxNAVPVTPacketBuffer.payload[8];
+  ubloxNAVPVTInfo.minute = ubloxNAVPVTPacketBuffer.payload[9];
+  ubloxNAVPVTInfo.second = ubloxNAVPVTPacketBuffer.payload[10];
+  ubloxNAVPVTInfo.dateValid = ubloxNAVPVTPacketBuffer.payload[11] & 0x01;
+  ubloxNAVPVTInfo.timeValid = (ubloxNAVPVTPacketBuffer.payload[11] & 0x02) >> 1;
+  ubloxNAVPVTInfo.tAcc = ubloxNAVPVTPacketBuffer.payload[12];
+  ubloxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[13] << 8;
+  ubloxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[14] << 16;
+  ubloxNAVPVTInfo.tAcc |= ubloxNAVPVTPacketBuffer.payload[15] << 24;
+  ubloxNAVPVTInfo.fixType = ubloxNAVPVTPacketBuffer.payload[20];
+  ubloxNAVPVTInfo.locationValid = ubloxNAVPVTPacketBuffer.payload[21] & 0x01;
+  ubloxNAVPVTInfo.numSV = ubloxNAVPVTPacketBuffer.payload[23];
+  ubloxNAVPVTInfo.longitude = ubloxNAVPVTPacketBuffer.payload[24];
+  ubloxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[25] << 8;
+  ubloxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[26] << 16;
+  ubloxNAVPVTInfo.longitude |= ubloxNAVPVTPacketBuffer.payload[27] << 24;
+  ubloxNAVPVTInfo.latitude = ubloxNAVPVTPacketBuffer.payload[28];
+  ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[29] << 8;
+  ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[30] << 16;
+  ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[31] << 24;
+  ubloxNAVPVTInfo.altitudeMSL = ubloxNAVPVTPacketBuffer.payload[36];
+  ubloxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[37] << 8;
+  ubloxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[38] << 16;
+  ubloxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[39] << 24;
+  ubloxNAVPVTInfo.hAcc = ubloxNAVPVTPacketBuffer.payload[40];
+  ubloxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[41] << 8;
+  ubloxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[42] << 16;
+  ubloxNAVPVTInfo.hAcc |= ubloxNAVPVTPacketBuffer.payload[43] << 24;
+  ubloxNAVPVTInfo.vAcc = ubloxNAVPVTPacketBuffer.payload[44];
+  ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[45] << 8;
+  ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[46] << 16;
+  ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[47] << 24;
+  ubloxNAVPVTInfo.headMot = ubloxNAVPVTPacketBuffer.payload[64];
+  ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[65] << 8;
+  ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[66] << 16;
+  ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[67] << 24;
+  ubloxNAVPVTInfo.pDOP = ubloxNAVPVTPacketBuffer.payload[76];
+  ubloxNAVPVTInfo.pDOP |= ubloxNAVPVTPacketBuffer.payload[77] << 8;
 }
 
 /********************************************************************/
@@ -591,62 +591,62 @@ void TeenyUbloxConnect::getNAVPVTPacket(uint8_t *packet_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::getDateValid() {
-  return ubxNAVPVTInfo.dateValid;
+  return ubloxNAVPVTInfo.dateValid;
 }
 bool TeenyUbloxConnect::getTimeValid() {
-  return ubxNAVPVTInfo.timeValid;
+  return ubloxNAVPVTInfo.timeValid;
 }
 uint32_t TeenyUbloxConnect::getTimeAccEst() {
-  return ubxNAVPVTInfo.tAcc;
+  return ubloxNAVPVTInfo.tAcc;
 }
 uint16_t TeenyUbloxConnect::getYear() {
-  return ubxNAVPVTInfo.year;
+  return ubloxNAVPVTInfo.year;
 }
 uint8_t TeenyUbloxConnect::getMonth() {
-  return ubxNAVPVTInfo.month;
+  return ubloxNAVPVTInfo.month;
 }
 uint8_t TeenyUbloxConnect::getDay() {
-  return ubxNAVPVTInfo.day;
+  return ubloxNAVPVTInfo.day;
 }
 uint8_t TeenyUbloxConnect::getHour() {
-  return ubxNAVPVTInfo.hour;
+  return ubloxNAVPVTInfo.hour;
 }
 uint8_t TeenyUbloxConnect::getMinute() {
-  return ubxNAVPVTInfo.minute;
+  return ubloxNAVPVTInfo.minute;
 }
 uint8_t TeenyUbloxConnect::getSecond() {
-  return ubxNAVPVTInfo.second;
+  return ubloxNAVPVTInfo.second;
 }
 /********************************************************************/
 uint8_t TeenyUbloxConnect::getFixType() {
-  return ubxNAVPVTInfo.fixType;
+  return ubloxNAVPVTInfo.fixType;
 }
 bool TeenyUbloxConnect::getGnssFixOk() {
-  return ubxNAVPVTInfo.locationValid;
+  return ubloxNAVPVTInfo.locationValid;
 }
 uint8_t TeenyUbloxConnect::getSIV() {
-  return ubxNAVPVTInfo.numSV;
+  return ubloxNAVPVTInfo.numSV;
 }
 int32_t TeenyUbloxConnect::getLongitude() {
-  return ubxNAVPVTInfo.longitude;
+  return ubloxNAVPVTInfo.longitude;
 }
 int32_t TeenyUbloxConnect::getLatitude() {
-  return ubxNAVPVTInfo.latitude;
+  return ubloxNAVPVTInfo.latitude;
 }
 int32_t TeenyUbloxConnect::getAltitudeMSL() {
-  return ubxNAVPVTInfo.altitudeMSL;
+  return ubloxNAVPVTInfo.altitudeMSL;
 }
 uint32_t TeenyUbloxConnect::getHorizontalAccEst() {
-  return ubxNAVPVTInfo.hAcc;
+  return ubloxNAVPVTInfo.hAcc;
 }
 uint32_t TeenyUbloxConnect::getVerticalAccEst() {
-  return ubxNAVPVTInfo.vAcc;
+  return ubloxNAVPVTInfo.vAcc;
 }
 int32_t TeenyUbloxConnect::getHeading() {
-  return ubxNAVPVTInfo.headMot;
+  return ubloxNAVPVTInfo.headMot;
 }
 uint16_t TeenyUbloxConnect::getPDOP() {
-  return ubxNAVPVTInfo.pDOP;
+  return ubloxNAVPVTInfo.pDOP;
 }
 
 
@@ -675,35 +675,39 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 
 /********************************************************************/
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
-  ubxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
-  ubxNAVSATInfo.numSvsHealthy = 0;
-  ubxNAVSATInfo.numSvsUsed = 0;
+  ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
+  ubloxNAVSATInfo.numSvsHealthy = 0;
+  ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
   for(uint8_t i=0; i<32; i++) {
-    ubxNAVSATInfo.svSortList[i].gnssId = 0;
-    ubxNAVSATInfo.svSortList[i].svId = 0;
-    ubxNAVSATInfo.svSortList[i].cno = 0;
-    ubxNAVSATInfo.svSortList[i].healthy = false;
-    ubxNAVSATInfo.svSortList[i].svUsed = false;
+    ubloxNAVSATInfo.svSortList[i].gnssId = 0;
+    ubloxNAVSATInfo.svSortList[i].gnssIdType = '?';
+    ubloxNAVSATInfo.svSortList[i].svId = 0;
+    ubloxNAVSATInfo.svSortList[i].cno = 0;
+    ubloxNAVSATInfo.svSortList[i].healthy = false;
+    ubloxNAVSATInfo.svSortList[i].svUsed = false;
   }
   // Using cno to filter unusable or filtered svs
   // Zero out cno of satellites with no signal or unknown/unhealthy signal
-  for(uint8_t i=0; i<ubxNAVSATInfo.numSvs; i++) {
+  for(uint8_t i=0; i<ubloxNAVSATInfo.numSvs; i++) {
     if((ubloxNAVSATPacketBuffer.payload[(i*12)+16] & 0x30) != 0x10) {
       ubloxNAVSATPacketBuffer.payload[(i*12)+10] = 0;
     }
   }
   // Find and sort up to 32 usable satellites
+  char gnssIdTypeMap[9]={'G','S','E','B','I','Q','R','N','?'};
   for(uint8_t i=0; i<32; i++) {
     bool foundSat = false;
     uint8_t foundSatIndex;
     ubloxNAVSATSVInfo_t foundSatInfo, compareSatInfo; 
-    for(uint8_t j=0; j<ubxNAVSATInfo.numSvs; j++) {
+    for(uint8_t j=0; j<ubloxNAVSATInfo.numSvs; j++) {
       if(ubloxNAVSATPacketBuffer.payload[(j*12)+10]) {
         if(!foundSat) {
           foundSat = true;
           foundSatIndex = j;
           foundSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
+          if(foundSatInfo.gnssId > 7) foundSatInfo.gnssId = 8;
+          foundSatInfo.gnssIdType = gnssIdTypeMap[foundSatInfo.gnssId];
           foundSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
           foundSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
           foundSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
@@ -711,6 +715,8 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
         } else {
           // compare all the fields to see which is a 'better' satellite and replace if better
           compareSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
+          if(compareSatInfo.gnssId > 7) compareSatInfo.gnssId = 8;
+          compareSatInfo.gnssIdType = gnssIdTypeMap[compareSatInfo.gnssId];
           compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
           compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
           compareSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
@@ -727,9 +733,9 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     if(foundSat) {
       // remove satellite from buffer
       ubloxNAVSATPacketBuffer.payload[(foundSatIndex*12)+10] = 0;
-      ubxNAVSATInfo.svSortList[i] = foundSatInfo;
-      ubxNAVSATInfo.numSvsHealthy++;
-      if(foundSatInfo.svUsed) ubxNAVSATInfo.numSvsUsed++;
+      ubloxNAVSATInfo.svSortList[i] = foundSatInfo;
+      ubloxNAVSATInfo.numSvsHealthy++;
+      if(foundSatInfo.svUsed) ubloxNAVSATInfo.numSvsUsed++;
     } else {
       break;
     }
@@ -743,6 +749,6 @@ void TeenyUbloxConnect::getNAVSATPacket(ubloxPacket_t &packet_) {
 
 /********************************************************************/
 void TeenyUbloxConnect::getNAVSATInfo(ubloxNAVSATInfo_t &info_) {
-  info_ = ubxNAVSATInfo;
+  info_ = ubloxNAVSATInfo;
 }
 

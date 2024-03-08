@@ -250,7 +250,7 @@ void display_refresh() {
         if(navsatPacket.validPacket) {
           sprintf(_dispStr, "   SATELLITE INFO");
           displayPV.prt_str(_dispStr, 20, 0, 64);
-          sprintf(_dispStr, "Tracking=%02d", navsatInfo.numSvs);
+          sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
           displayPV.prt_str(_dispStr, 20, 0, 80);
           sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
           displayPV.prt_str(_dispStr, 20, 0, 96);
@@ -258,8 +258,8 @@ void display_refresh() {
           displayPV.prt_str(_dispStr, 20, 0, 112);
           displayPV.prt_str("Satellites(id/snr):", 20, 0, 134);
           for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
-            sprintf(_dispStr, "%d%02d/%02d",
-                    navsatInfo.svSortList[i].gnssId,
+            sprintf(_dispStr, "%c%02d/%02d",
+                    navsatInfo.svSortList[i].gnssIdType,
                     navsatInfo.svSortList[i].svId,
                     navsatInfo.svSortList[i].cno);
             displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);

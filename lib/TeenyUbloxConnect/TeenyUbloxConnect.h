@@ -131,13 +131,13 @@ typedef struct {
 /********************************************************************/
 typedef struct {
   uint8_t  gnssId;
+  char     gnssIdType;
   uint8_t  svId;
   uint8_t  cno;
   bool     healthy;
   bool     svUsed;
   uint8_t  pad00a;
   uint8_t  pad00b;
-  uint8_t  pad00c;
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {
@@ -189,11 +189,11 @@ class TeenyUbloxConnect {
     bool setMeasurementRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setNavigationRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setAutoNAVPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoNAVPVTrate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool setAutoNAVPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setAutoPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVT
-    bool setAutoPVTrate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTrate
+    bool setAutoPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTRate
     bool setAutoNAVSAT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoNAVSATrate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
     // Ublox packet requests
     bool pollNAVPVT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoPVT is disabled
     bool pollNAVSAT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSAT is disabled
@@ -238,10 +238,10 @@ class TeenyUbloxConnect {
     ubloxACKNAKPacket_t acknowledgePacket;
     ubloxPacket_t       ubloxNAVPVTPacketBuffer;
     uint8_t             ubloxNAVPVTPacket[UBX_NAV_PVT_PACKETLENGTH];
-    ubloxNAVPVTInfo_t   ubxNAVPVTInfo;
+    ubloxNAVPVTInfo_t   ubloxNAVPVTInfo;
     ubloxPacket_t       ubloxNAVSATPacketBuffer;
     ubloxPacket_t       ubloxNAVSATPacket;
-    ubloxNAVSATInfo_t   ubxNAVSATInfo;
+    ubloxNAVSATInfo_t   ubloxNAVSATInfo;
 
   private:
     Stream   *serialPort;
