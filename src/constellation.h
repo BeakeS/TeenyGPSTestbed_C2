@@ -75,7 +75,7 @@ uint8_t drawSatConstellation() {
     // Sat ring color based on SNR
     if(navsatInfo.svSortList[i].cno >= 35) {
       satRingColor = WHITE;
-    } else if(navsatInfo.svSortList[i].cno >=35) {
+    } else if(navsatInfo.svSortList[i].cno >=20) {
       satRingColor = YELLOW;
     } else {
       satRingColor = ORANGE;
