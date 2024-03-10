@@ -233,49 +233,52 @@ void display_refresh() {
       //        gps.isDateValid(), gps.isTimeValid());
       //displayPV.prt_str(_dispStr, 20, 0, 284);
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
-        // RTC Clock
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 24);
+        // GPS Clock
         if(gps.isPacketValid()) {
-          // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 40);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 20);
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 40);
+          displayPV.prt_str(_dispStr, 20, 0, 20);
         }
-        // NAVSAT Data
-        ubloxPacket_t navsatPacket;
-        ubloxNAVSATInfo_t navsatInfo;
-        gps.getNAVSATPacket(navsatPacket);
-        gps.getNAVSATInfo(navsatInfo);
-        if(navsatPacket.validPacket) {
-          sprintf(_dispStr, "   SATELLITE INFO");
-          displayPV.prt_str(_dispStr, 20, 0, 64);
-          sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
-          displayPV.prt_str(_dispStr, 20, 0, 80);
-          sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
-          displayPV.prt_str(_dispStr, 20, 0, 96);
-          sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
-          displayPV.prt_str(_dispStr, 20, 0, 112);
-          displayPV.prt_str("Satellites(id/snr):", 20, 0, 134);
-          for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
-            sprintf(_dispStr, "%c%02d/%02d",
-                    navsatInfo.svSortList[i].gnssIdType,
-                    navsatInfo.svSortList[i].svId,
-                    navsatInfo.svSortList[i].cno);
-            displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
-          }
-        //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 8); i++) {
-        //  sprintf(_dispStr, "%c%02d/%02d/%02d/%03d",
-        //          navsatInfo.svSortList[i].gnssIdType,
-        //          navsatInfo.svSortList[i].svId,
-        //          navsatInfo.svSortList[i].cno,
-        //          navsatInfo.svSortList[i].elevation,
-        //          navsatInfo.svSortList[i].azimuth);
-        //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+150);
-        //}
+        if(menu_GPSNsatDisplayMap) {
+          // NAVSAT Map
+          drawSatConstellation();
         } else {
-          sprintf(_dispStr, "** NO NAVSAT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 64);
+          // NAVSAT Data
+          ubloxPacket_t navsatPacket;
+          ubloxNAVSATInfo_t navsatInfo;
+          gps.getNAVSATPacket(navsatPacket);
+          gps.getNAVSATInfo(navsatInfo);
+          if(navsatPacket.validPacket) {
+            sprintf(_dispStr, "   SATELLITE INFO");
+            displayPV.prt_str(_dispStr, 20, 0, 64);
+            sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
+            displayPV.prt_str(_dispStr, 20, 0, 80);
+            sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
+            displayPV.prt_str(_dispStr, 20, 0, 96);
+            sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
+            displayPV.prt_str(_dispStr, 20, 0, 112);
+            displayPV.prt_str("Satellites(id/snr):", 20, 0, 134);
+            for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
+              sprintf(_dispStr, "%c%02d/%02d",
+                      navsatInfo.svSortList[i].gnssIdType,
+                      navsatInfo.svSortList[i].svId,
+                      navsatInfo.svSortList[i].cno);
+              displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
+            }
+          //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 8); i++) {
+          //  sprintf(_dispStr, "%c%02d/%02d/%02d/%03d",
+          //          navsatInfo.svSortList[i].gnssIdType,
+          //          navsatInfo.svSortList[i].svId,
+          //          navsatInfo.svSortList[i].cno,
+          //          navsatInfo.svSortList[i].elevation,
+          //          navsatInfo.svSortList[i].azimuth);
+          //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+150);
+          //}
+          } else {
+            sprintf(_dispStr, "** NO NAVSAT DATA **");
+            displayPV.prt_str(_dispStr, 20, 0, 64);
+          }
         }
       //sprintf(_dispStr, "P%XL%XD%XT%X P%XS%dH%dU%d",
       //        gps.isPacketValid(), gps.isLocationValid(),

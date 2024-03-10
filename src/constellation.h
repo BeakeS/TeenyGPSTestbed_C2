@@ -14,9 +14,9 @@ uint8_t drawSatConstellation() {
   uint8_t  numSats = 0;
   int16_t  satX;
   int16_t  satY;
-  int16_t  satRadius = 12;
+  int16_t  satRadius = 10;
   uint32_t satColor;
-  int16_t  satRingRadius = 14;
+  int16_t  satRingRadius = 12;
   uint32_t satRingColor;
   char _dispStr[4];
 
@@ -65,14 +65,6 @@ uint8_t drawSatConstellation() {
     satY = cos(radians(navsatInfo.svSortList[i].azimuth + 180)) *
            map(navsatInfo.svSortList[i].elevation, 0, 90, mapSatRadius, 1);
 
-    // Sat color based on svUsed vs just svHealth
-    if(i < navsatInfo.numSvsUsed) {
-      satColor = BLUE;
-    } else {
-      satColor = RED;
-    }
-    display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRadius, satColor);
-
     // Sat ring color based on SNR
     if(navsatInfo.svSortList[i].cno >= 35) {
       satRingColor = WHITE;
@@ -81,8 +73,15 @@ uint8_t drawSatConstellation() {
     } else {
       satRingColor = ORANGE;
     }
-    display.drawCircle(satX + mapCenterX, satY + mapCenterY, satRingRadius, satRingColor);
-    display.drawCircle(satX + mapCenterX, satY + mapCenterY, satRingRadius-1, satRingColor);
+    display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRingRadius, satRingColor);
+
+    // Sat color based on svUsed vs just svHealth
+    if(i < navsatInfo.numSvsUsed) {
+      satColor = BLUE;
+    } else {
+      satColor = RED;
+    }
+    display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRadius, satColor);
 
     // Sat label
     sprintf(_dispStr, "%c%02d",

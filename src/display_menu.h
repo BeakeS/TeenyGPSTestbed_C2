@@ -72,7 +72,10 @@ TeenyMenuItem menuItemGPSLogrStopLog("Stop PVT Logging", menu_stopGPSLogrCB);
 // gps navsat unit
 void menu_entrGPSNsatCB(); // forward declaration
 void menu_exitGPSNsatCB(); // forward declaration
-TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGPSNsatCB);
+bool menu_GPSNsatDisplayMap = false;
+void menu_GPSNsatKeyUpCB(); // forward declaration
+void menu_GPSNsatKeyDnCB(); // forward declaration
+TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGPSNsatCB, menu_GPSNsatKeyUpCB, menu_GPSNsatKeyDnCB);
 TeenyMenuItem menuItemGPSNsat("*START GPS NAVSAT*", menuPageGPSNsat);
 TeenyMenuItem menuItemGPSNsatLabel0("");
 TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
@@ -599,6 +602,19 @@ void menu_exitGPSLogrCB() {
 void menu_entrGPSNsatCB() {
   deviceState.DEVICE_MODE = DM_GPSNSAT;
   deviceMode_init();
+  menu_GPSNsatDisplayMap = false;
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_GPSNsatKeyUpCB() {
+  menu_GPSNsatDisplayMap = !menu_GPSNsatDisplayMap;
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_GPSNsatKeyDnCB() {
+  menu_GPSNsatDisplayMap = !menu_GPSNsatDisplayMap;
   displayRefresh = true;
 }
 
