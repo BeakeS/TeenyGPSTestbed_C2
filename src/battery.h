@@ -1,22 +1,20 @@
 
 /********************************************************************/
-// Core2 Battery
+// Battery
 
-#ifndef Core2BatteryStatus_h
-#define Core2BatteryStatus_h
-
-#include <M5Core2.h>
+#ifndef BatteryStatus_h
+#define BatteryStatus_h
 
 /********************************************************************/
-class Core2BatteryStatus {
+class BatteryStatus {
 
   public:
 
     // Constructor / destructor / disallow copy and move
-    Core2BatteryStatus() {}
-    virtual ~Core2BatteryStatus() {}
-    Core2BatteryStatus(const Core2BatteryStatus&);
-    Core2BatteryStatus& operator=(const Core2BatteryStatus&);
+    BatteryStatus() {}
+    virtual ~BatteryStatus() {}
+    BatteryStatus(const BatteryStatus&);
+    BatteryStatus& operator=(const BatteryStatus&);
 
     void readStatus() {
       uint32_t _nowMS = millis();
@@ -56,9 +54,9 @@ class Core2BatteryStatus {
 
 };
 
-#endif //Core2BatteryStatus_h
+#endif //BatteryStatus_h
 
 /********************************************************************/
 // Battery instance
-Core2BatteryStatus battery;
+BatteryStatus battery;
 

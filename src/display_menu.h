@@ -34,6 +34,7 @@ SelectOptionUint8t selectMenuModeOptions[] = {
   {"GPSRCV", DM_GPSRCVR},
   {"GPSLOG", DM_GPSLOGR},
   {"GPSSAT", DM_GPSNSAT},
+  {"GPSMAP", DM_GPSSMAP},
 //{"GPSCPT", DM_GPSCAPT},
 //{"GPSSST", DM_GPSSSTP},
   {"GPSEMU", DM_GPSEMUL}};
@@ -75,6 +76,14 @@ TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGP
 TeenyMenuItem menuItemGPSNsat("*START GPS NAVSAT*", menuPageGPSNsat);
 TeenyMenuItem menuItemGPSNsatLabel0("");
 TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
+//
+// gps satellite constellation map unit
+void menu_entrGPSSmapCB(); // forward declaration
+void menu_exitGPSSmapCB(); // forward declaration
+TeenyMenuPage menuPageGPSSmap("CONSTELLATION MAP", menu_entrGPSSmapCB, menu_exitGPSSmapCB);
+TeenyMenuItem menuItemGPSSmap("*START GPS SATMAP*", menuPageGPSSmap);
+TeenyMenuItem menuItemGPSSmapLabel0("");
+TeenyMenuItem menuItemGPSSmapExit(false); // optional return menu item
 //
 // gps transceiver unit
 void menu_entrGPSCaptCB(); // forward declaration
@@ -299,6 +308,9 @@ void menu_setup() {
   menuPageMain.addMenuItem(menuItemGPSNsat);
   menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel0);
   //menuPageGPSNsat.addMenuItem(menuItemGPSNsatExit);
+  menuPageMain.addMenuItem(menuItemGPSSmap);
+  menuPageGPSSmap.addMenuItem(menuItemGPSSmapLabel0);
+  //menuPageGPSSmap.addMenuItem(menuItemGPSSmapExit);
   menuPageMain.addMenuItem(menuItemGPSCapt);
   menuPageGPSCapt.addMenuItem(menuItemGPSCaptLabel0);
   menuPageGPSCapt.addMenuItem(menuItemGPSCaptStrtRxPkt);
@@ -371,7 +383,10 @@ void menu_setup() {
       menu.linkMenuPage(menuPageGPSLogr);
       break;
     case DM_GPSNSAT:
-      menu.linkMenuPage(menuPageGPSLogr);
+      menu.linkMenuPage(menuPageGPSNsat);
+      break;
+    case DM_GPSSMAP:
+      menu.linkMenuPage(menuPageGPSSmap);
       break;
     case DM_GPSCAPT:
       menu.linkMenuPage(menuPageGPSCapt);
@@ -432,6 +447,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
@@ -441,6 +457,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.show();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
@@ -450,6 +467,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.show();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
@@ -461,6 +479,17 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.show();
+      menuItemGPSSmap.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSCapt.hide();
+      menuItemGPSEmul.hide();
+      menuItemLabel2.hide();
+      break;
+    case DM_GPSSMAP:
+      menuItemGPSRcvr.hide();
+      menuItemGPSLogr.hide();
+      menuItemGPSNsat.hide();
+      menuItemGPSSmap.show();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
@@ -470,6 +499,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.show();
       menuItemGPSEmul.hide();
@@ -481,6 +511,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.show();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
@@ -490,6 +521,7 @@ void menu_menuModeCB() {
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.show();
@@ -572,6 +604,20 @@ void menu_entrGPSNsatCB() {
 
 /********************************************************************/
 void menu_exitGPSNsatCB() {
+  deviceMode_end();
+  menu.exitToParentMenuPage();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_entrGPSSmapCB() {
+  deviceState.DEVICE_MODE = DM_GPSSMAP;
+  deviceMode_init();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_exitGPSSmapCB() {
   deviceMode_end();
   menu.exitToParentMenuPage();
   displayRefresh = true;
@@ -1026,7 +1072,8 @@ bool display_setup() {
   //M5.Lcd.setRotation(1); // M5Display.cpp default
   M5.Lcd.setRotation(2);
   display.setPsram(true); // Use psram
-  display.setColorDepth(1); // Monochrome
+  //display.setColorDepth(1); // Monochrome
+  display.setColorDepth(8);
   display.setTextSize(2); // font is 12x16
   display.setTextColor(WHITE);
   display.createSprite(240, 320); //320x240 rotated 90 degrees

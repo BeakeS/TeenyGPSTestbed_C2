@@ -48,6 +48,20 @@ void deviceMode_init() {
         msg_update("ERROR - GPS Missing");
       }
       break;
+    case DM_GPSSMAP:
+      //statusLED.pulse_repeat(1);
+      gpsSerial = &Serial2;
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, 1, 10)) {
+        gpsEnabled = true;
+        sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
+                gps.getProtocolVersionHigh(),
+                gps.getProtocolVersionLow());
+        msg_update(_dispStr);
+      } else {
+        gpsEnabled = false;
+        msg_update("ERROR - GPS Missing");
+      }
+      break;
     case DM_GPSCAPT:
       //statusLED.pulse_repeat(1);
       gpsSerial = &Serial2;
@@ -86,6 +100,10 @@ void deviceMode_end() {
     case DM_GPSNSAT:
       gpsEnabled = false;
       msg_update("GPS NAVSAT Stopped");
+      break;
+    case DM_GPSSMAP:
+      gpsEnabled = false;
+      msg_update("GPS SATMAP Stopped");
       break;
     case DM_GPSCAPT:
       msg_update("Capture Mode Stopped");

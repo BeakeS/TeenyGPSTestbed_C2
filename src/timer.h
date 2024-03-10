@@ -20,6 +20,7 @@ void itimer0_handler() {
     if(deviceState.DEVICE_MODE==DM_GPSRCVR) gps.gnss_checkUblox(); //update every 10ms
     if(deviceState.DEVICE_MODE==DM_GPSLOGR) gps.gnss_checkUblox(); //update every 10ms
     if(deviceState.DEVICE_MODE==DM_GPSNSAT) gps.gnss_checkUblox(); //update every 10ms
+    if(deviceState.DEVICE_MODE==DM_GPSSMAP) gps.gnss_checkUblox(); //update every 10ms
   }
 //if(deviceState.STATUSLED) statusLED.tick(); //update every 10ms
   switch(newClockSubTickCount%4) {

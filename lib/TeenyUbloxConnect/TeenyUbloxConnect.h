@@ -134,10 +134,13 @@ typedef struct {
   char     gnssIdType;
   uint8_t  svId;
   uint8_t  cno;
+  int8_t   elevation;
+  uint8_t  pad00a;
+  int16_t  azimuth;
   bool     healthy;
   bool     svUsed;
-  uint8_t  pad00a;
-  uint8_t  pad00b;
+  uint8_t  pad01a;
+  uint8_t  pad01b;
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {

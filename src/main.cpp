@@ -29,6 +29,7 @@ enum device_mode_t : int {
   DM_GPSRCVR,
   DM_GPSLOGR,
   DM_GPSNSAT,
+  DM_GPSSMAP,
   DM_GPSCAPT,
   DM_GPSSSTP,
   DM_GPSEMUL
@@ -73,8 +74,12 @@ HardwareSerial *emulatorSerial;
 #include "msg.h"
 
 /********************************************************************/
+// Satellite Constellation
+#include "constellation.h"
+
+/********************************************************************/
 // Battery
-#include "c2battery.h"
+#include "battery.h"
 
 /********************************************************************/
 // Buttons
@@ -233,6 +238,18 @@ void loop() {
       }
       break;
     case DM_GPSNSAT:
+      if(gps.getNAVPVT()) {
+        if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
+          setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),
+                     gps.getDay(), gps.getMonth(), gps.getYear());
+          clockTime_valid = true;
+        }
+        displayRefresh = true;
+      } else if(gps.getNAVSAT()) {
+        displayRefresh = true;
+      }
+      break;
+    case DM_GPSSMAP:
       if(gps.getNAVPVT()) {
         if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
           setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),

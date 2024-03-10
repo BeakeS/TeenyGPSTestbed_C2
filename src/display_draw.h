@@ -264,6 +264,15 @@ void display_refresh() {
                     navsatInfo.svSortList[i].cno);
             displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
           }
+        //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 8); i++) {
+        //  sprintf(_dispStr, "%c%02d/%02d/%02d/%03d",
+        //          navsatInfo.svSortList[i].gnssIdType,
+        //          navsatInfo.svSortList[i].svId,
+        //          navsatInfo.svSortList[i].cno,
+        //          navsatInfo.svSortList[i].elevation,
+        //          navsatInfo.svSortList[i].azimuth);
+        //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+150);
+        //}
         } else {
           sprintf(_dispStr, "** NO NAVSAT DATA **");
           displayPV.prt_str(_dispStr, 20, 0, 64);
@@ -274,6 +283,15 @@ void display_refresh() {
       //        navsatPacket.validPacket, navsatInfo.numSvs,
       //        navsatInfo.numSvsHealthy, navsatInfo.numSvsUsed);
       //displayPV.prt_str(_dispStr, 20, 0, 284);
+      } else if(menu.isMenuPageCurrent(menuPageGPSSmap)) {
+        if(gps.isPacketValid()) {
+          // GPS Clock
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 20);
+        } else {
+          sprintf(_dispStr, "** NO NAVPVT DATA **");
+          displayPV.prt_str(_dispStr, 20, 0, 20);
+        }
+        drawSatConstellation();
       } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
         if(menu_captRxPktInProgress) {
           sprintf(_dispStr, " File = %s", rxPktFileName);
