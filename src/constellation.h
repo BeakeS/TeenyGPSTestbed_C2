@@ -8,7 +8,7 @@ uint8_t drawSatConstellation() {
   ubloxNAVSATInfo_t navsatInfo;
 
   int16_t  mapRadius = 118;
-  int16_t  mapSatRadius = 107; // Keep sat graphics inside map
+  int16_t  mapSatRadius = 106; // Keep sat graphics inside map
   int16_t  mapCenterX = 120;
   int16_t  mapCenterY = 180;
   uint8_t  numSats = 0;
