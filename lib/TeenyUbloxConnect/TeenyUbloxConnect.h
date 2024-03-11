@@ -137,17 +137,17 @@ typedef struct {
   int8_t   elevation;
   uint8_t  pad00a;
   int16_t  azimuth;
+  bool     elevAzimValid;
   bool     healthy;
   bool     svUsed;
   uint8_t  pad01a;
-  uint8_t  pad01b;
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {
   uint8_t  numSvs;
   uint8_t  numSvsHealthy;
+  uint8_t  numSvsTracked; // healthy && elevAzimValid
   uint8_t  numSvsUsed;
-  uint8_t  pad00a;
   ubloxNAVSATSVInfo_t svSortList[32];
 } ubloxNAVSATInfo_t;
 

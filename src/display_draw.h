@@ -254,7 +254,8 @@ void display_refresh() {
             displayPV.prt_str(_dispStr, 20, 0, 64);
             sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
             displayPV.prt_str(_dispStr, 20, 0, 80);
-            sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
+            sprintf(_dispStr, "Tracking=%02d/%02d",
+                    navsatInfo.numSvsTracked, navsatInfo.numSvsHealthy);
             displayPV.prt_str(_dispStr, 20, 0, 96);
             sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
             displayPV.prt_str(_dispStr, 20, 0, 112);

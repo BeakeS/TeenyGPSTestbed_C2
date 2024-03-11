@@ -677,6 +677,7 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
   ubloxNAVSATInfo.numSvsHealthy = 0;
+  ubloxNAVSATInfo.numSvsTracked = 0;
   ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
   for(uint8_t i=0; i<32; i++) {
@@ -684,6 +685,9 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     ubloxNAVSATInfo.svSortList[i].gnssIdType = '?';
     ubloxNAVSATInfo.svSortList[i].svId = 0;
     ubloxNAVSATInfo.svSortList[i].cno = 0;
+    ubloxNAVSATInfo.svSortList[i].elevation = -91;
+    ubloxNAVSATInfo.svSortList[i].azimuth = 0;
+    ubloxNAVSATInfo.svSortList[i].elevAzimValid = false;
     ubloxNAVSATInfo.svSortList[i].healthy = false;
     ubloxNAVSATInfo.svSortList[i].svUsed = false;
   }
@@ -695,52 +699,48 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     }
   }
   // Find and sort up to 32 usable satellites
-  char gnssIdTypeMap[9]={'G','S','E','B','I','Q','R','N','?'};
+  char gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
   for(uint8_t i=0; i<32; i++) {
     bool foundSat = false;
     uint8_t foundSatIndex;
     ubloxNAVSATSVInfo_t foundSatInfo, compareSatInfo; 
     for(uint8_t j=0; j<ubloxNAVSATInfo.numSvs; j++) {
       if(ubloxNAVSATPacketBuffer.payload[(j*12)+10]) {
-        if(!foundSat) {
+        // compare all the fields to see which is a 'better' satellite and replace if better
+        compareSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
+        if(compareSatInfo.gnssId > 7) {
+          compareSatInfo.gnssIdType = '?';
+        } else {
+          compareSatInfo.gnssIdType = gnssIdTypeMap[foundSatInfo.gnssId];
+        }
+        compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
+        compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
+        compareSatInfo.elevation = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
+        compareSatInfo.azimuth = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
+        compareSatInfo.azimuth |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
+        compareSatInfo.elevAzimValid = (compareSatInfo.elevation >= -90) && (compareSatInfo.elevation <= 90);
+        compareSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
+        compareSatInfo.svUsed = (ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x08) ? true : false;
+        if((!foundSat) ||
+           (compareSatInfo.svUsed && (!foundSatInfo.svUsed)) ||
+           ((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
+            ((compareSatInfo.healthy && compareSatInfo.elevAzimValid) &&
+             (foundSatInfo.healthy && (!foundSatInfo.elevAzimValid))) ||
+            (compareSatInfo.healthy && (!foundSatInfo.healthy)) ||
+            ((compareSatInfo.healthy == foundSatInfo.healthy) &&
+             (compareSatInfo.cno > foundSatInfo.cno)))) {
           foundSat = true;
           foundSatIndex = j;
-          foundSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
-          if(foundSatInfo.gnssId > 7) foundSatInfo.gnssId = 8;
-          foundSatInfo.gnssIdType = gnssIdTypeMap[foundSatInfo.gnssId];
-          foundSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
-          foundSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
-          foundSatInfo.elevation = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
-          foundSatInfo.azimuth = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
-          foundSatInfo.azimuth |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
-          foundSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
-          foundSatInfo.svUsed = (ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x08) ? true : false;
-        } else {
-          // compare all the fields to see which is a 'better' satellite and replace if better
-          compareSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
-          if(compareSatInfo.gnssId > 7) compareSatInfo.gnssId = 8;
-          compareSatInfo.gnssIdType = gnssIdTypeMap[compareSatInfo.gnssId];
-          compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
-          compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
-          compareSatInfo.elevation = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
-          compareSatInfo.azimuth = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
-          compareSatInfo.azimuth |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
-          compareSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
-          compareSatInfo.svUsed = (ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x08) ? true : false;
-          if((compareSatInfo.svUsed && (!foundSatInfo.svUsed)) ||
-             ((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
-              (compareSatInfo.cno > foundSatInfo.cno))) {
-            foundSatIndex = j;
-            foundSatInfo = compareSatInfo;
-          }
+          foundSatInfo = compareSatInfo;
         }
       }
     }
     if(foundSat) {
-      // remove satellite from buffer
+      // remove satellite from buffer sort
       ubloxNAVSATPacketBuffer.payload[(foundSatIndex*12)+10] = 0;
       ubloxNAVSATInfo.svSortList[i] = foundSatInfo;
-      ubloxNAVSATInfo.numSvsHealthy++;
+      if(foundSatInfo.healthy) ubloxNAVSATInfo.numSvsHealthy++;
+      if(foundSatInfo.healthy && foundSatInfo.elevAzimValid) ubloxNAVSATInfo.numSvsTracked++;
       if(foundSatInfo.svUsed) ubloxNAVSATInfo.numSvsUsed++;
     } else {
       break;

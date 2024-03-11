@@ -52,7 +52,7 @@ uint8_t drawSatConstellation() {
   display.setTextSize(1); // font is 6x8
 
   // draw the positions of the sats
-  for(int16_t i = navsatInfo.numSvsHealthy -1; i >= 0; i--) {
+  for(int16_t i = navsatInfo.numSvsTracked -1; i >= 0; i--) {
     if((navsatInfo.svSortList[i].elevation < -90) ||
        (navsatInfo.svSortList[i].elevation > 90)) {
       continue;
@@ -75,8 +75,8 @@ uint8_t drawSatConstellation() {
     }
     display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRingRadius, satRingColor);
 
-    // Sat color based on svUsed vs just svHealth
-    if(i < navsatInfo.numSvsUsed) {
+    // Sat color based on svUsed
+    if(navsatInfo.svSortList[i].svUsed) {
       satColor = BLUE;
     } else {
       satColor = RED;
