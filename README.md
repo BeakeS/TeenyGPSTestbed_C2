@@ -23,8 +23,8 @@ GPSLOG: NAV-PVT Packet Logger - For logging PVT packets for analysis or emulatio
 GPSSAT: NAV-SAT Receiver - For testing satellite reception.  Displays a list of tracked satellites sorted by signal strength.
 ![PXL_20240308_224714124](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/3de865b5-92e7-4fd6-8090-d8b94a51ce38)
 
-GPSMAP: Satellite Constellation Map - View of satellite position data including usedForNav (color blue=true/red=false) and signal strength (ring white>=35db,yellow>20db,orange<20db).
-![PXL_20240310_163546313](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/459200ef-6d56-4f04-88d8-24f82e0a6b73)
+GPSMAP: Satellite Constellation Map - View of satellite position data including usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>20db,orange<20db).
+![IMG_1043](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/0a825537-1c38-4cab-9103-e406b6bcbade)
 
 GPSEMU: GPS Emulation - Emulates Beitian BN-880Q GPS module including replay of PVT packets from ROM or SDCARD with progressive date/time updates.
 ![PXL_20240229_005625834](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/f4011f04-dae2-459f-9b68-648e4ca00ba4)
