@@ -53,7 +53,8 @@ uint8_t drawSatConstellation() {
 
   // draw the positions of the sats
   for(int16_t i = navsatInfo.numSvsHealthy -1; i >= 0; i--) {
-    if(!navsatInfo.svSortList[i].elevValid) {
+    if((!navsatInfo.svSortList[i].elevValid) ||
+       (navsatInfo.svSortList[i].elev < 0)) {
       continue;
     }
 

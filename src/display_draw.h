@@ -266,13 +266,16 @@ void display_refresh() {
                       navsatInfo.svSortList[i].cno);
               displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
             }
-          //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 8); i++) {
-          //  sprintf(_dispStr, "%c%02d/%02d/%02d/%03d",
+          //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 9); i++) {
+          //  sprintf(_dispStr, "%c%02d/%02d %d%d%d %02d/%03d",
           //          navsatInfo.svSortList[i].gnssIdType,
           //          navsatInfo.svSortList[i].svId,
           //          navsatInfo.svSortList[i].cno,
-          //          navsatInfo.svSortList[i].elevation,
-          //          navsatInfo.svSortList[i].azimuth);
+          //          navsatInfo.svSortList[i].healthy,
+          //          navsatInfo.svSortList[i].elevValid,
+          //          navsatInfo.svSortList[i].svUsed,
+          //          navsatInfo.svSortList[i].elev,
+          //          navsatInfo.svSortList[i].azim);
           //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+150);
           //}
           } else {

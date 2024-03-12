@@ -726,9 +726,9 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
         if((!foundSat) ||
            (compareSatInfo.svUsed && (!foundSatInfo.svUsed)) ||
            ((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
-            (compareSatInfo.healthy && (!foundSatInfo.healthy)) ||
-            ((compareSatInfo.healthy == foundSatInfo.healthy) &&
-             (compareSatInfo.cno > foundSatInfo.cno)))) {
+            ((compareSatInfo.healthy && (!foundSatInfo.healthy)) ||
+             ((compareSatInfo.healthy == foundSatInfo.healthy) &&
+              (compareSatInfo.cno > foundSatInfo.cno))))) {
           foundSat = true;
           foundSatIndex = j;
           foundSatInfo = compareSatInfo;
