@@ -52,18 +52,17 @@ uint8_t drawSatConstellation() {
   display.setTextSize(1); // font is 6x8
 
   // draw the positions of the sats
-  for(int16_t i = navsatInfo.numSvsTracked -1; i >= 0; i--) {
-    if((navsatInfo.svSortList[i].elevation < -90) ||
-       (navsatInfo.svSortList[i].elevation > 90)) {
+  for(int16_t i = navsatInfo.numSvsHealthy -1; i >= 0; i--) {
+    if(!navsatInfo.svSortList[i].elevValid) {
       continue;
     }
 
     // Sat position
     numSats ++;
-    satX = -sin(radians(navsatInfo.svSortList[i].azimuth + 180)) *
-           map(navsatInfo.svSortList[i].elevation, 0, 90, mapSatRadius, 1);
-    satY = cos(radians(navsatInfo.svSortList[i].azimuth + 180)) *
-           map(navsatInfo.svSortList[i].elevation, 0, 90, mapSatRadius, 1);
+    satX = -sin(radians(navsatInfo.svSortList[i].azim + 180)) *
+           map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1);
+    satY = cos(radians(navsatInfo.svSortList[i].azim + 180)) *
+           map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1);
 
     // Sat ring color based on SNR
     if(navsatInfo.svSortList[i].cno >= 35) {

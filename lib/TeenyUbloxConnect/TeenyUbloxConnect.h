@@ -134,20 +134,19 @@ typedef struct {
   char     gnssIdType;
   uint8_t  svId;
   uint8_t  cno;
-  int8_t   elevation;
-  uint8_t  pad00a;
-  int16_t  azimuth;
-  bool     elevAzimValid;
+  int8_t   elev;
+  bool     elevValid;
   bool     healthy;
   bool     svUsed;
-  uint8_t  pad01a;
+  int16_t  azim;
+  int16_t  prRes;
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {
   uint8_t  numSvs;
   uint8_t  numSvsHealthy;
-  uint8_t  numSvsTracked; // healthy && elevAzimValid
   uint8_t  numSvsUsed;
+  uint8_t  pad00a;
   ubloxNAVSATSVInfo_t svSortList[32];
 } ubloxNAVSATInfo_t;
 

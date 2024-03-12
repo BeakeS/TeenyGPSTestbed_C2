@@ -677,7 +677,6 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
   ubloxNAVSATInfo.numSvsHealthy = 0;
-  ubloxNAVSATInfo.numSvsTracked = 0;
   ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
   for(uint8_t i=0; i<32; i++) {
@@ -685,9 +684,10 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     ubloxNAVSATInfo.svSortList[i].gnssIdType = '?';
     ubloxNAVSATInfo.svSortList[i].svId = 0;
     ubloxNAVSATInfo.svSortList[i].cno = 0;
-    ubloxNAVSATInfo.svSortList[i].elevation = -91;
-    ubloxNAVSATInfo.svSortList[i].azimuth = 0;
-    ubloxNAVSATInfo.svSortList[i].elevAzimValid = false;
+    ubloxNAVSATInfo.svSortList[i].elev = -91;
+    ubloxNAVSATInfo.svSortList[i].azim = 0;
+    ubloxNAVSATInfo.svSortList[i].prRes = 0;
+    ubloxNAVSATInfo.svSortList[i].elevValid = false;
     ubloxNAVSATInfo.svSortList[i].healthy = false;
     ubloxNAVSATInfo.svSortList[i].svUsed = false;
   }
@@ -715,17 +715,17 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
         }
         compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
         compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
-        compareSatInfo.elevation = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
-        compareSatInfo.azimuth = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
-        compareSatInfo.azimuth |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
-        compareSatInfo.elevAzimValid = (compareSatInfo.elevation >= -90) && (compareSatInfo.elevation <= 90);
+        compareSatInfo.elev = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
+        compareSatInfo.elevValid = (compareSatInfo.elev >= -90) && (compareSatInfo.elev <= 90);
+        compareSatInfo.azim = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
+        compareSatInfo.azim |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
+        compareSatInfo.prRes = ubloxNAVSATPacketBuffer.payload[(j*12)+14];
+        compareSatInfo.prRes |= ubloxNAVSATPacketBuffer.payload[(j*12)+15] << 8;
         compareSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
         compareSatInfo.svUsed = (ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x08) ? true : false;
         if((!foundSat) ||
            (compareSatInfo.svUsed && (!foundSatInfo.svUsed)) ||
            ((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
-            ((compareSatInfo.healthy && compareSatInfo.elevAzimValid) &&
-             (foundSatInfo.healthy && (!foundSatInfo.elevAzimValid))) ||
             (compareSatInfo.healthy && (!foundSatInfo.healthy)) ||
             ((compareSatInfo.healthy == foundSatInfo.healthy) &&
              (compareSatInfo.cno > foundSatInfo.cno)))) {
@@ -738,11 +738,13 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     if(foundSat) {
       // remove satellite from buffer sort
       ubloxNAVSATPacketBuffer.payload[(foundSatIndex*12)+10] = 0;
+      // add found satellite to sort list
       ubloxNAVSATInfo.svSortList[i] = foundSatInfo;
+      // update satellites stats
       if(foundSatInfo.healthy) ubloxNAVSATInfo.numSvsHealthy++;
-      if(foundSatInfo.healthy && foundSatInfo.elevAzimValid) ubloxNAVSATInfo.numSvsTracked++;
       if(foundSatInfo.svUsed) ubloxNAVSATInfo.numSvsUsed++;
     } else {
+      // no more satellites with cno > 0
       break;
     }
   }
