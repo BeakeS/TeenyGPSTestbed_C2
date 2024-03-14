@@ -235,10 +235,10 @@ void display_refresh() {
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
         // GPS Clock
         if(gps.isPacketValid()) {
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 20);
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 24);
         } else {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 20);
+          displayPV.prt_str(_dispStr, 20, 0, 24);
         }
         if(menu_GPSNsatDisplayMap) {
           // NAVSAT Map
@@ -251,32 +251,34 @@ void display_refresh() {
           gps.getNAVSATInfo(navsatInfo);
           if(navsatPacket.validPacket) {
             sprintf(_dispStr, "   SATELLITE INFO");
-            displayPV.prt_str(_dispStr, 20, 0, 64);
+            displayPV.prt_str(_dispStr, 20, 0, 48);
             sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
-            displayPV.prt_str(_dispStr, 20, 0, 80);
-            sprintf(_dispStr, "Healthy=%02d", navsatInfo.numSvsHealthy);
-            displayPV.prt_str(_dispStr, 20, 0, 96);
+            displayPV.prt_str(_dispStr, 20, 0, 68);
+            sprintf(_dispStr, "HealthySignal=%02d", navsatInfo.numSvsHealthy);
+            displayPV.prt_str(_dispStr, 20, 0, 86);
+            sprintf(_dispStr, "EphemerisValid=%02d", navsatInfo.numSvsEphValid);
+            displayPV.prt_str(_dispStr, 20, 0, 104);
             sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
-            displayPV.prt_str(_dispStr, 20, 0, 112);
-            displayPV.prt_str("Satellites(id/snr):", 20, 0, 134);
+            displayPV.prt_str(_dispStr, 20, 0, 122);
+            displayPV.prt_str("Satellites(id/snr):", 20, 0, 146);
             for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
               sprintf(_dispStr, "%c%02d/%02d",
                       navsatInfo.svSortList[i].gnssIdType,
                       navsatInfo.svSortList[i].svId,
                       navsatInfo.svSortList[i].cno);
-              displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+150);
+              displayPV.prt_str(_dispStr, 6, (i%3)*84, ((i/3)*16)+166);
             }
-          //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 9); i++) {
+          //for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 8); i++) {
           //  sprintf(_dispStr, "%c%02d/%02d %d%d%d %02d/%03d",
           //          navsatInfo.svSortList[i].gnssIdType,
           //          navsatInfo.svSortList[i].svId,
           //          navsatInfo.svSortList[i].cno,
           //          navsatInfo.svSortList[i].healthy,
-          //          navsatInfo.svSortList[i].elevValid,
+          //          navsatInfo.svSortList[i].ephValid,
           //          navsatInfo.svSortList[i].svUsed,
           //          navsatInfo.svSortList[i].elev,
           //          navsatInfo.svSortList[i].azim);
-          //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+150);
+          //  displayPV.prt_str(_dispStr, 20, 0, (i*16)+166);
           //}
           } else {
             sprintf(_dispStr, "** NO NAVSAT DATA **");

@@ -155,11 +155,21 @@ TeenyMenuItem menuItemGPSEmulExit(false); // optional return menu item
 TeenyMenuItem menuItemGPSEmulLabel0("");
 TeenyMenuItem menuItemGPSEmulLabel1("");
 //
+// gps reset
+void menu_GPSResetCB(); // forward declaration
+SelectOptionUint8t selectGPSResetOptions[] = {
+  {"NO",   GPS_NORESET},
+  {"HOT",  GPS_HOTSTART},
+  {"WARM", GPS_WARMSTART},
+  {"COLD", GPS_COLDSTART}};
+TeenyMenuSelect selectGPSReset(sizeof(selectGPSResetOptions)/sizeof(SelectOptionUint8t), selectGPSResetOptions);
+TeenyMenuItem menuItemGPSReset("GPS Reset", deviceState.GPSRESET, selectGPSReset, menu_GPSResetCB);
+//
 // TEENYGPSEMULATOR SETTINGS
 //
 // settings menu
 TeenyMenuPage menuPageTopLevelSettings("SETTINGS MENU");
-TeenyMenuItem menuItemTopLevelSettings("Settings", menuPageTopLevelSettings);
+TeenyMenuItem menuItemTopLevelSettings("Device Settings", menuPageTopLevelSettings);
 TeenyMenuItem menuItemTopLevelSettingsExit(false); // optional return menu item
 //
 // RTC SETTINGS
@@ -283,6 +293,9 @@ TeenyMenuItem menuItemLabel0("");
 TeenyMenuItem menuItemLabel1("");
 TeenyMenuItem menuItemLabel2("");
 TeenyMenuItem menuItemLabel3("");
+TeenyMenuItem menuItemLabel4("");
+TeenyMenuItem menuItemLabel5("");
+TeenyMenuItem menuItemLabel6("");
 //
 // menu variables
 uint32_t menuInputTime;
@@ -344,10 +357,14 @@ void menu_setup() {
   menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel0);
   menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel1);
   //menuPageGPSEmul.addMenuItem(menuItemGPSEmulExit);
+  menuPageMain.addMenuItem(menuItemGPSReset);
   menuPageMain.addMenuItem(menuItemLabel1);
-  menuPageMain.addMenuItem(menuItemMenuMode);
   menuPageMain.addMenuItem(menuItemLabel2);
   menuPageMain.addMenuItem(menuItemLabel3);
+  menuPageMain.addMenuItem(menuItemMenuMode);
+  menuPageMain.addMenuItem(menuItemLabel4);
+  menuPageMain.addMenuItem(menuItemLabel5);
+  menuPageMain.addMenuItem(menuItemLabel6);
   menuPageMain.addMenuItem(menuItemTopLevelSettings);
   menuPageTopLevelSettings.addMenuItem(menuItemRTCSettings);
   menuPageRTCSettings.addMenuItem(menuItemRTCYear);
@@ -451,30 +468,36 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.show();
+      menuItemLabel3.show();
       break;
     case DM_GPSRCVR:
       menuItemGPSRcvr.show();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.show();
+      menuItemLabel2.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       break;
     case DM_GPSLOGR:
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.show();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.show();
+      menuItemLabel2.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       menuItemGPSLogrStrtLog.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogrStopLog.hide(ubxLoggingInProgress ? false : true);
       break;
@@ -483,30 +506,36 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.show();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.show();
+      menuItemLabel2.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       break;
     case DM_GPSSMAP:
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.show();
+      menuItemGPSReset.show();
+      menuItemLabel2.hide();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       break;
     case DM_GPSCAPT:
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
       menuItemGPSStep.hide();
       menuItemGPSCapt.show();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       menuItemGPSCaptStrtRxPkt.hide(menu_captRxPktInProgress ? true : false);
       menuItemGPSCaptStopRxPkt.hide(menu_captRxPktInProgress ? false : true);
       break;
@@ -515,20 +544,24 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
       menuItemGPSStep.show();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       break;
     case DM_GPSEMUL:
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
       menuItemGPSStep.hide();
       menuItemGPSCapt.hide();
       menuItemGPSEmul.show();
-      menuItemLabel2.hide();
+      menuItemLabel3.hide();
       break;
   }
   if(MENU_MODE==DM_IDLE) {
@@ -537,6 +570,11 @@ void menu_menuModeCB() {
     menuItemMenuMode.setTitle("Change Mode");
     menu.resetMenu();
   }
+}
+
+/********************************************************************/
+void menu_GPSResetCB() {
+  menu.resetMenu();
 }
 
 /********************************************************************/

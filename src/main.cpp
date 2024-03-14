@@ -24,7 +24,7 @@ void device_reset() {
 
 /********************************************************************/
 // Device Modes
-enum device_mode_t : int {
+enum device_mode_t : int16_t {
   DM_IDLE = 0,
   DM_GPSRCVR,
   DM_GPSLOGR,
@@ -36,13 +36,22 @@ enum device_mode_t : int {
 };
 
 /********************************************************************/
+// GPS startup Modes
+enum gpsReset_mode_t : uint8_t {
+  GPS_NORESET = 0,
+  GPS_HOTSTART,
+  GPS_WARMSTART,
+  GPS_COLDSTART
+};
+
+/********************************************************************/
 // Device State
 typedef struct {
   int16_t  DEVICE_MODE = DM_IDLE;
   int16_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
   int16_t  DISPLAYTIMEOUT = 10;
   bool     STATUSLED = true;
-  uint8_t  pad0;
+  uint8_t  GPSRESET = GPS_NORESET;
 } device_state_t;
 device_state_t deviceState;
 

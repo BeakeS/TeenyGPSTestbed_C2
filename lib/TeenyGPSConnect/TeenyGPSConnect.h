@@ -125,7 +125,7 @@ class TeenyGPSConnect {
     //void end();
 
     // GPS setup
-    bool gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t autoNAVPVTRate=1, uint8_t autoNAVSATRate=0);
+    bool gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode=0, uint8_t autoNAVPVTRate=1, uint8_t autoNAVSATRate=0);
 
     // GPS process data
     void gnss_checkUblox();

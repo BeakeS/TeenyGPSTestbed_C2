@@ -30,18 +30,10 @@ TeenyUbloxConnect::~TeenyUbloxConnect() { }
 /********************************************************************/
 bool TeenyUbloxConnect::begin(Stream &serialPort_, uint16_t maxWait_) {
   serialPort = &serialPort_;
-  commandPacket.messageClass = UBX_CLASS_CFG;
-  commandPacket.messageID = UBX_CFG_PRT;
-  commandPacket.payloadLength = 1;
-  commandPacket.payload[0] = COM_PORT_UART1;
-  commandPacket.validPacket = true;
   // Try three times
-  while(serialPort->available()) serialPort->read();
-  if(sendCommandPacket(true, true, maxWait_)) return true;
-  while(serialPort->available()) serialPort->read();
-  if(sendCommandPacket(true, true, maxWait_)) return true;
-  while(serialPort->available()) serialPort->read();
-  if(sendCommandPacket(true, true, maxWait_)) return true;
+  if(pollUART1Port(maxWait_)) return true;
+  if(pollUART1Port(maxWait_)) return true;
+  if(pollUART1Port(maxWait_)) return true;
   return false;
 }
 
@@ -49,6 +41,17 @@ bool TeenyUbloxConnect::begin(Stream &serialPort_, uint16_t maxWait_) {
 /********************************************************************/
 // ublox commands
 /********************************************************************/
+/********************************************************************/
+bool TeenyUbloxConnect::pollUART1Port(uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_PRT;
+  commandPacket.payloadLength = 1;
+  commandPacket.payload[0] = COM_PORT_UART1;
+  commandPacket.validPacket = true;
+  while(serialPort->available()) serialPort->read();
+  return sendCommandPacket(true, true, maxWait_);
+}
+
 /********************************************************************/
 void TeenyUbloxConnect::setSerialRate(uint32_t baudrate_, uint8_t uartPort_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
@@ -65,6 +68,36 @@ void TeenyUbloxConnect::setSerialRate(uint32_t baudrate_, uint8_t uartPort_, uin
     commandPacket.validPacket = true;
     sendCommandPacket(false, true, maxWait_);
   }
+}
+
+/********************************************************************/
+void TeenyUbloxConnect::coldStart() {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_RST;
+  commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
+  memcpy(commandPacket.payload, UBX_CFG_RST_COLDSTART_PAYLOAD, UBX_CFG_RST_PAYLOADLENGTH);
+  commandPacket.validPacket = true;
+  sendCommandPacket(false, false, 0);
+}
+
+/********************************************************************/
+void TeenyUbloxConnect::warmStart() {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_RST;
+  commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
+  memcpy(commandPacket.payload, UBX_CFG_RST_WARMSTART_PAYLOAD, UBX_CFG_RST_PAYLOADLENGTH);
+  commandPacket.validPacket = true;
+  sendCommandPacket(false, false, 0);
+}
+
+/********************************************************************/
+void TeenyUbloxConnect::hotStart() {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_RST;
+  commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
+  memcpy(commandPacket.payload, UBX_CFG_RST_HOTSTART_PAYLOAD, UBX_CFG_RST_PAYLOADLENGTH);
+  commandPacket.validPacket = true;
+  sendCommandPacket(false, false, 0);
 }
 
 /********************************************************************/
@@ -677,6 +710,8 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
   ubloxNAVSATInfo.numSvsHealthy = 0;
+  ubloxNAVSATInfo.numSvsEphValid = 0;
+  ubloxNAVSATInfo.numSvsHealthyAndEphValid = 0;
   ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
   for(uint8_t i=0; i<32; i++) {
@@ -687,7 +722,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     ubloxNAVSATInfo.svSortList[i].elev = -91;
     ubloxNAVSATInfo.svSortList[i].azim = 0;
     ubloxNAVSATInfo.svSortList[i].prRes = 0;
-    ubloxNAVSATInfo.svSortList[i].elevValid = false;
+    ubloxNAVSATInfo.svSortList[i].ephValid = false;
     ubloxNAVSATInfo.svSortList[i].healthy = false;
     ubloxNAVSATInfo.svSortList[i].svUsed = false;
   }
@@ -716,19 +751,32 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
         compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
         compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
         compareSatInfo.elev = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
-        compareSatInfo.elevValid = (compareSatInfo.elev >= -90) && (compareSatInfo.elev <= 90);
+        compareSatInfo.ephValid = (compareSatInfo.elev >= -90) && (compareSatInfo.elev <= 90);
         compareSatInfo.azim = ubloxNAVSATPacketBuffer.payload[(j*12)+12];
         compareSatInfo.azim |= ubloxNAVSATPacketBuffer.payload[(j*12)+13] << 8;
         compareSatInfo.prRes = ubloxNAVSATPacketBuffer.payload[(j*12)+14];
         compareSatInfo.prRes |= ubloxNAVSATPacketBuffer.payload[(j*12)+15] << 8;
         compareSatInfo.healthy = ((ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x30) == 0x10) ? true : false;
         compareSatInfo.svUsed = (ubloxNAVSATPacketBuffer.payload[(j*12)+16] & 0x08) ? true : false;
-        if((!foundSat) ||
-           (compareSatInfo.svUsed && (!foundSatInfo.svUsed)) ||
-           ((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
-            ((compareSatInfo.healthy && (!foundSatInfo.healthy)) ||
-             ((compareSatInfo.healthy == foundSatInfo.healthy) &&
-              (compareSatInfo.cno > foundSatInfo.cno))))) {
+        bool updateFoundSat = false;
+        if(!foundSat) {
+          updateFoundSat = true;
+        } else if(compareSatInfo.svUsed && (!foundSatInfo.svUsed)) {
+          updateFoundSat = true;
+        } else if((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
+                  (compareSatInfo.ephValid && (!foundSatInfo.ephValid))) {
+          updateFoundSat = true;
+        } else if((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
+                  (compareSatInfo.ephValid == foundSatInfo.ephValid) &&
+                  (compareSatInfo.healthy && (!foundSatInfo.healthy))) {
+          updateFoundSat = true;
+        } else if((compareSatInfo.svUsed == foundSatInfo.svUsed) &&
+                  (compareSatInfo.ephValid == foundSatInfo.ephValid) &&
+                  (compareSatInfo.healthy == foundSatInfo.healthy) &&
+                  (compareSatInfo.cno > foundSatInfo.cno)) {
+          updateFoundSat = true;
+        }
+        if(updateFoundSat) {
           foundSat = true;
           foundSatIndex = j;
           foundSatInfo = compareSatInfo;
@@ -742,6 +790,8 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
       ubloxNAVSATInfo.svSortList[i] = foundSatInfo;
       // update satellites stats
       if(foundSatInfo.healthy) ubloxNAVSATInfo.numSvsHealthy++;
+      if(foundSatInfo.ephValid) ubloxNAVSATInfo.numSvsEphValid++;
+      if(foundSatInfo.healthy && foundSatInfo.ephValid) ubloxNAVSATInfo.numSvsHealthyAndEphValid++;
       if(foundSatInfo.svUsed) ubloxNAVSATInfo.numSvsUsed++;
     } else {
       // no more satellites with cno > 0

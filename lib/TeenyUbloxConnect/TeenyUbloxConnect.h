@@ -42,6 +42,8 @@ const uint8_t  UBX_CLASS_CFG = 0x06;
 const uint8_t    UBX_CFG_PRT   = 0x00;
 const uint16_t   UBX_CFG_PRT_PAYLOADLENGTH = 20;
 const uint8_t    UBX_CFG_MSG   = 0x01;
+const uint8_t    UBX_CFG_RST   = 0x04;
+const uint16_t   UBX_CFG_RST_PAYLOADLENGTH = 4;
 const uint8_t    UBX_CFG_RATE  = 0x08;
 const uint16_t   UBX_CFG_RATE_PAYLOADLENGTH = 6;
 const uint8_t    UBX_CFG_CFG   = 0x09;
@@ -134,21 +136,38 @@ typedef struct {
   char     gnssIdType;
   uint8_t  svId;
   uint8_t  cno;
-  int8_t   elev;
-  bool     elevValid;
-  bool     healthy;
-  bool     svUsed;
   int16_t  azim;
   int16_t  prRes;
+  int8_t   elev;
+  bool     healthy;
+  bool     ephValid;
+  bool     svUsed;
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {
   uint8_t  numSvs;
   uint8_t  numSvsHealthy;
+  uint8_t  numSvsEphValid;
+  uint8_t  numSvsHealthyAndEphValid;
   uint8_t  numSvsUsed;
   uint8_t  pad00a;
+  uint8_t  pad00b;
+  uint8_t  pad00c;
   ubloxNAVSATSVInfo_t svSortList[32];
 } ubloxNAVSATInfo_t;
+
+/********************************************************************/
+// UBX-CFG-RST Payloads
+/********************************************************************/
+const uint8_t UBX_CFG_RST_COLDSTART_PAYLOAD[UBX_CFG_RST_PAYLOADLENGTH] = {
+  0xFF,0xFF,0x01,0x00
+};
+const uint8_t UBX_CFG_RST_WARMSTART_PAYLOAD[UBX_CFG_RST_PAYLOADLENGTH] = {
+  0x01,0x00,0x01,0x00
+};
+const uint8_t UBX_CFG_RST_HOTSTART_PAYLOAD[UBX_CFG_RST_PAYLOADLENGTH] = {
+  0x00,0x00,0x01,0x00
+};
 
 /********************************************************************/
 // TeenyUbloxConnect Class
@@ -169,38 +188,44 @@ class TeenyUbloxConnect {
 #endif
 
     // Ublox setup
-    bool begin(Stream &serialPort_, uint16_t maxWait_ = defaultMaxWait);
+    bool    begin(Stream &serialPort_, uint16_t maxWait_ = defaultMaxWait);
+
+    // Ublox command methods
+    bool    pollUART1Port(uint16_t maxWait_ = defaultMaxWait);
+    void    setSerialRate(uint32_t baudrate_, uint8_t uartPort_ = COM_PORT_UART1, uint16_t maxWait_ = defaultMaxWait);
+    void    coldStart();
+    void    warmStart();
+    void    hotStart();
+    bool    saveConfiguration(uint16_t maxWait_ = defaultMaxWait);
+    bool    getProtocolVersion(uint16_t maxWait_ = defaultMaxWait);
+    uint8_t getProtocolVersionHigh(uint16_t maxWait_ = defaultMaxWait);
+    uint8_t getProtocolVersionLow(uint16_t maxWait_ = defaultMaxWait);
+    bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setMeasurementRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setNavigationRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoNAVPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoNAVPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVT
+    bool    setAutoPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTRate
+    bool    setAutoNAVSAT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
 
     // Host methods for process incoming responses/acknowledges from ublox receiver
     // can do in ISR - depends on serial read hardware queue
-    void checkUblox();
+    void    checkUblox();
 
     // Get the latest Position/Velocity/Time solution and fill all global variables
-    bool getNAVPVT(); // Use only when autoNAVPVT is enabled
-    bool getPVT();    // Same as getNAVPVT() (Kept for SparkFun compatability)
+    // Returns true when a packet has been received
+    bool    getNAVPVT(); // Use only when autoNAVPVTRate > 0
+    bool    getPVT();    // Same as getNAVPVT() (Kept for SparkFun compatability)
+    bool    pollNAVPVT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoPVTRate = 0
+
     // Get the latest satellite information
-    bool getNAVSAT(); // Use only when autoNAVSAT is enabled
+    //Returns true when a packet has been received
+    bool    getNAVSAT(); // Use only when autoNAVSATRate > 0
+    bool    pollNAVSAT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSATRate = 0
 
-    // Ublox command methods
-    void setSerialRate(uint32_t baudrate_, uint8_t uartPort_ = COM_PORT_UART1, uint16_t maxWait_ = defaultMaxWait);
-    bool saveConfiguration(uint16_t maxWait_ = defaultMaxWait);
-    bool getProtocolVersion(uint16_t maxWait_ = defaultMaxWait);
-    uint8_t getProtocolVersionHigh(uint16_t maxWait_ = defaultMaxWait);
-    uint8_t getProtocolVersionLow(uint16_t maxWait_ = defaultMaxWait);
-    bool setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
-    bool setMeasurementRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
-    bool setNavigationRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoNAVPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoNAVPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVT
-    bool setAutoPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTRate
-    bool setAutoNAVSAT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
-    bool setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
-    // Ublox packet requests
-    bool pollNAVPVT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoPVT is disabled
-    bool pollNAVSAT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSAT is disabled
-
-    // Ublox pvt data access
+    // Ublox navpvt data access
     void     getNAVPVTPacket(uint8_t *packet_); // Get the full NAV-PVT packet
     uint16_t getYear();
     uint8_t  getMonth();
@@ -222,7 +247,7 @@ class TeenyUbloxConnect {
     int32_t  getHeading();
     uint16_t getPDOP();
 
-    // Ublox pvt data access
+    // Ublox navsat data access
     void     getNAVSATPacket(ubloxPacket_t &packet_); // Get the full NAV-SAT packet
     void     getNAVSATInfo(ubloxNAVSATInfo_t &info_); // summary and sorted sat details
 
@@ -231,8 +256,9 @@ class TeenyUbloxConnect {
     uint8_t  getLostNAVPVTPacketCount();
     uint8_t  getLostNAVSATPacketCount();
 
-  protected:
-    // PROTECTED FOR DEBUG - so we can display contents 
+  private:
+    Stream   *serialPort;
+
     ubloxPacket_t       commandPacket;
     ubloxPacket_t       incomingPacket;
     ubloxPacket_t       receivedPacket;
@@ -245,14 +271,12 @@ class TeenyUbloxConnect {
     ubloxPacket_t       ubloxNAVSATPacket;
     ubloxNAVSATInfo_t   ubloxNAVSATInfo;
 
-  private:
-    Stream   *serialPort;
     void     calcCommandPacketChecksum();
     bool     sendCommandPacket(bool expectResp_, bool expectAck_, uint16_t maxWait_);
     volatile bool processingUbloxCommand;
     void     checkUbloxInternal();
     void     processIncomingByte(uint8_t incomingByte_);
-    // Do not call in ISR - uses serial read and write
+    // Do not call processIncomingPacket() in ISR - uses serial.write
     void     processIncomingPacket(uint8_t requestedClass_ = 0, uint8_t requestedID_ = 0);
     uint8_t  lostRxPacketCount;
     uint8_t  protocolVersionHigh;

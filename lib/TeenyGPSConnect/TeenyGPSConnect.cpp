@@ -48,13 +48,27 @@ TeenyGPSConnect::~TeenyGPSConnect() {
 // GPS INIT PROCS
 
 /********************************************************************/
-bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t autoNAVPVTRate, uint8_t autoNAVSATRate) {
+bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode, uint8_t autoNAVPVTRate, uint8_t autoNAVSATRate) {
 
   // Assign serial port
   serialPort = &serialPort_;
 
   // Set gnss/gps baudRate
   if(!gnss_setSerialRate(baudRate_)) return false;
+
+  // Optional startup mode
+  if(startMode > 0) {
+    switch(startMode) {
+      case 1: gnss.hotStart();  break;
+      case 2: gnss.warmStart(); break;
+      case 3: gnss.coldStart(); break;
+    }
+    // Re-establish comms after hot/warm/cold start and software reset
+    int32_t startTime = millis();
+    while((millis() - startTime) < 1000) {
+      if(gnss.pollUART1Port()) break;
+    }
+  }
 
   // Get protocol version
   gnss_getProtocolVersion();
@@ -88,7 +102,7 @@ bool TeenyGPSConnect::gnss_setSerialRate(uint32_t baudRate_) {
       delay(100);
       serialPort->begin(baudRate_);
       if(gnss.begin(*serialPort)) {
-        gnss.saveConfiguration();
+        //gnss.saveConfiguration();
       } else {
         return false;
       }

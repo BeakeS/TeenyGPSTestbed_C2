@@ -9,12 +9,13 @@ void deviceMode_init() {
     case DM_GPSRCVR:
       //statusLED.pulse_repeat(1);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
                 gps.getProtocolVersionLow());
         msg_update(_dispStr);
+        deviceState.GPSRESET = GPS_NORESET;
       } else {
         gpsEnabled = false;
         msg_update("ERROR - GPS Missing");
@@ -23,12 +24,13 @@ void deviceMode_init() {
     case DM_GPSLOGR:
       //statusLED.pulse_repeat(1);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
                 gps.getProtocolVersionLow());
         msg_update(_dispStr);
+        deviceState.GPSRESET = GPS_NORESET;
       } else {
         gpsEnabled = false;
         msg_update("ERROR - GPS Missing");
@@ -37,12 +39,13 @@ void deviceMode_init() {
     case DM_GPSNSAT:
       //statusLED.pulse_repeat(1);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, 1, 10)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET, 1, 10)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
                 gps.getProtocolVersionLow());
         msg_update(_dispStr);
+        deviceState.GPSRESET = GPS_NORESET;
       } else {
         gpsEnabled = false;
         msg_update("ERROR - GPS Missing");
@@ -51,12 +54,13 @@ void deviceMode_init() {
     case DM_GPSSMAP:
       //statusLED.pulse_repeat(1);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, 1, 10)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET, 1, 10)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
                 gps.getProtocolVersionLow());
         msg_update(_dispStr);
+        deviceState.GPSRESET = GPS_NORESET;
       } else {
         gpsEnabled = false;
         msg_update("ERROR - GPS Missing");
