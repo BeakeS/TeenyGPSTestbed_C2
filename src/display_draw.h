@@ -1,20 +1,10 @@
 
 /********************************************************************/
-char* getISO8601DateTimeStr(rtc_datetime_t _dateTime) {
-  //e.g. "2020-06-25T15:29:37"
-  static char _itdStr[20];
-  sprintf(_itdStr, "%u-%02d-%02dT%02d:%02d:%02d",
-          _dateTime.year, _dateTime.month, _dateTime.day,
-          _dateTime.hour, _dateTime.minute, _dateTime.second);
-  return _itdStr;
-}
-
-/********************************************************************/
 char* getRTCClockISO8601DateTimeStr() {
   static char _itdStr[20];
-  if(clockTime_valid) {
-    rtc_datetime_t now = getRTCTime(); // get the RTC
-    return getISO8601DateTimeStr(now);
+  if(rtc.isValid()) {
+    rtc_datetime_t now = rtc.getLocalTime(deviceState.TIMEZONE); // get the RTC
+    return rtc.getISO8601DateTimeStr(now);
   }
   sprintf(_itdStr, "**  RTC NOT SET  **");
   return _itdStr;
@@ -31,7 +21,7 @@ char* getGPSISO8601DateTimeStr() {
     dateTime.hour   = gps.getHour();
     dateTime.minute = gps.getMinute();
     dateTime.second = gps.getSecond();
-    return getISO8601DateTimeStr(dateTime);
+    return rtc.getISO8601DateTimeStr(rtc.getLocalTime(dateTime, deviceState.TIMEZONE));
   }
   sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;
@@ -48,7 +38,7 @@ char* getPVTPacketISO8601DateTimeStr(ubxNAVPVTInfo_t _ubxNAVPVTInfo) {
     dateTime.hour   = _ubxNAVPVTInfo.hour;
     dateTime.minute = _ubxNAVPVTInfo.minute;
     dateTime.second = _ubxNAVPVTInfo.second;
-    return getISO8601DateTimeStr(dateTime);
+    return rtc.getISO8601DateTimeStr(rtc.getLocalTime(dateTime, deviceState.TIMEZONE));
   }
   sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;
@@ -242,7 +232,7 @@ void display_refresh() {
         }
         if(menu_GPSNsatDisplayMap) {
           // NAVSAT Map
-          drawSatConstellation();
+          drawSatConstellation(mapCompAngle);
         } else {
           // NAVSAT Data
           ubloxPacket_t navsatPacket;
@@ -299,7 +289,7 @@ void display_refresh() {
           sprintf(_dispStr, "** NO NAVPVT DATA **");
           displayPV.prt_str(_dispStr, 20, 0, 20);
         }
-        drawSatConstellation();
+        drawSatConstellation(0);
       } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
         if(menu_captRxPktInProgress) {
           sprintf(_dispStr, " File = %s", rxPktFileName);

@@ -46,6 +46,7 @@ class BatteryStatus {
     }
 
   private:
+
     uint32_t samplePeriod = 1000;   // sample once a second
     uint32_t lastSampleTime = millis() - 1000;
     float   voltage;

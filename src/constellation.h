@@ -1,8 +1,8 @@
 
 /********************************************************************/
-// Satellite Constellation
+// Satellite Constellation Map Generator
 
-uint8_t drawSatConstellation() {
+uint8_t drawSatConstellation(int16_t compAngle) {
 
   ubloxPacket_t navsatPacket;
   ubloxNAVSATInfo_t navsatInfo;
@@ -12,8 +12,8 @@ uint8_t drawSatConstellation() {
   int16_t  mapCenterX = 120;
   int16_t  mapCenterY = 180;
   uint8_t  numSats = 0;
-  int16_t  satX;
-  int16_t  satY;
+  int16_t  xCoord;
+  int16_t  yCoord;
   int16_t  satRadius = 10;
   uint32_t satColor;
   int16_t  satRingRadius = 12;
@@ -25,21 +25,23 @@ uint8_t drawSatConstellation() {
   display.drawCircle(mapCenterX, mapCenterY, 60, WHITE);
 
   // draw lines at 0, 45, 90, 135 etc degrees azimuth
-  for (int16_t i = 0; i < 8; i++) {
-    int16_t satX = sin(radians((i * 45) + 90)) * mapRadius;
-    int16_t satY = cos(radians((i * 45) + 90)) * mapRadius;
-    display.drawLine(mapCenterX, mapCenterY, satX + mapCenterX, satY + mapCenterY, WHITE);
+  for (int16_t i = 0; i <= 7; i++) {
+    xCoord = round(-sin(radians((i * 45) + 180 + compAngle)) * mapRadius);
+    yCoord = round(cos(radians((i * 45) + 180 + compAngle)) * mapRadius);
+    display.drawLine(mapCenterX, mapCenterY, xCoord + mapCenterX, yCoord + mapCenterY, WHITE);
+    if(i % 2) continue;
+    xCoord = round(-sin(radians((i * 45) + 180 + compAngle)) * (mapRadius - 8));
+    yCoord = round(cos(radians((i * 45) + 180 + compAngle)) * (mapRadius - 8));
+    display.fillCircle(xCoord + mapCenterX, yCoord + mapCenterY, 12, BLACK);
+    char label;
+    switch(i) {
+      case 0: label = 'N'; break;
+      case 2: label = 'E'; break;
+      case 4: label = 'S'; break;
+      case 6: label = 'W'; break;
+    }
+    display.drawChar(xCoord + mapCenterX - 5, yCoord + mapCenterY - 7, label, WHITE, BLACK, 2);
   }
-
-  // Add map labels
-  display.fillRect(mapCenterX - 9, mapCenterY - mapRadius, 18, 17, BLACK);
-  displayPV.prt_char('N', 1, mapCenterX - 5, mapCenterY - mapRadius);
-  display.fillRect(mapCenterX - 9, mapCenterY + mapRadius - 16, 18, 17, BLACK);
-  displayPV.prt_char('S', 1, mapCenterX - 5, mapCenterY + mapRadius - 13);
-  display.fillRect(mapCenterX + mapRadius - 15, mapCenterY - 11, 16, 22, BLACK);
-  displayPV.prt_char('E', 1, mapCenterX + mapRadius - 10, mapCenterY - 7);
-  display.fillRect(mapCenterX - mapRadius, mapCenterY - 11, 16, 22, BLACK);
-  displayPV.prt_char('W', 1, mapCenterX - mapRadius, mapCenterY - 7);
 
   // Check NAVSAT Packet
   gps.getNAVSATPacket(navsatPacket);
@@ -60,10 +62,10 @@ uint8_t drawSatConstellation() {
 
     // Sat position
     numSats ++;
-    satX = -sin(radians(navsatInfo.svSortList[i].azim + 180)) *
-           map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1);
-    satY = cos(radians(navsatInfo.svSortList[i].azim + 180)) *
-           map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1);
+    xCoord = round(-sin(radians(navsatInfo.svSortList[i].azim + 180 + compAngle)) *
+                   map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1));
+    yCoord = round(cos(radians(navsatInfo.svSortList[i].azim + 180 + compAngle)) *
+                   map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1));
 
     // Sat ring color based on SNR
     if(navsatInfo.svSortList[i].cno >= 35) {
@@ -73,7 +75,7 @@ uint8_t drawSatConstellation() {
     } else {
       satRingColor = ORANGE;
     }
-    display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRingRadius, satRingColor);
+    display.fillCircle(xCoord + mapCenterX, yCoord + mapCenterY, satRingRadius, satRingColor);
 
     // Sat color based on svUsed
     if(navsatInfo.svSortList[i].svUsed) {
@@ -83,13 +85,13 @@ uint8_t drawSatConstellation() {
     } else {
       satColor = BLACK;
     }
-    display.fillCircle(satX + mapCenterX, satY + mapCenterY, satRadius, satColor);
+    display.fillCircle(xCoord + mapCenterX, yCoord + mapCenterY, satRadius, satColor);
 
     // Sat label
     sprintf(_dispStr, "%c%02d",
             navsatInfo.svSortList[i].gnssIdType,
             navsatInfo.svSortList[i].svId);
-    displayPV.prt_str(_dispStr, 3, satX + mapCenterX - 8, satY + mapCenterY - 3);
+    displayPV.prt_str(_dispStr, 3, xCoord + mapCenterX - 8, yCoord + mapCenterY - 3);
   }
 
   // Restore text size

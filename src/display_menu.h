@@ -223,6 +223,21 @@ TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, m
 // rtc set date/time
 TeenyMenuItem menuItemRTCSetDateTime("Set Date/Time", menu_setRTC_CB);
 //
+// TIME ZONE
+//
+// time zone menu
+SelectOptionInt16t selectTimeZoneOptions[] = {
+  {"-12:00",-720}, {"-11:00",-660}, {"-10:00",-600}, {"-09:30",-570}, {"-09:00",-540},
+  {"-08:00",-480}, {"-07:00",-420}, {"-06:00",-360}, {"-05:00",-300}, {"-04:00",-240},
+  {"-03:30",-210}, {"-03:00",-180}, {"-02:30",-150}, {"-02:00",-120}, {"-01:00",-060},
+  { "00:00", 000}, { "01:00", 060}, { "02:00", 120}, { "03:00", 180}, { "03:30", 210},
+  { "04:00", 240}, { "04:30", 270}, { "05:00", 300}, { "05:30", 330}, { "05:45", 345},
+  { "06:00", 360}, { "06:30", 390}, { "07:00", 420}, { "08:00", 480}, { "08:45", 525},
+  { "09:00", 540}, { "09:30", 570}, { "10:00", 600}, { "10:30", 630}, { "11:00", 660},
+  { "12:00", 720}, { "12:45", 765}, { "13:00", 780}, { "13:45", 825}, { "14:00", 840}};
+TeenyMenuSelect selectTimeZone(sizeof(selectTimeZoneOptions)/sizeof(SelectOptionInt16t), selectTimeZoneOptions);
+TeenyMenuItem menuItemTimeZone("Time Zone", deviceState.TIMEZONE, selectTimeZone, nullptr, 2);
+//
 // EMULATOR SETTINGS
 //
 // emulator settings menu
@@ -378,6 +393,7 @@ void menu_setup() {
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel1);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel2);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsExit); // optional return menu item
+  menuPageTopLevelSettings.addMenuItem(menuItemTimeZone);
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
@@ -1048,8 +1064,8 @@ void menu_exitGPSEmulCB() {
 
 /********************************************************************/
 void menu_getRTC_CB() {
-  if(clockTime_valid) {
-    rtc_datetime_t now = getRTCTime(); // get the RTC
+  if(rtc.isValid()) {
+    rtc_datetime_t now = rtc.getRTCTime(); // get the RTC
     menuRTCYear    = now.year;
     menuRTCMonth   = now.month;
     menuRTCDay     = now.day;
@@ -1061,9 +1077,8 @@ void menu_getRTC_CB() {
 
 /********************************************************************/
 void menu_setRTC_CB() {
-  setRTCTime(menuRTCHour, menuRTCMinute, menuRTCSecond,
-             menuRTCDay, menuRTCMonth, menuRTCYear);
-  clockTime_valid = true;
+  rtc.setRTCTime(menuRTCYear, menuRTCMonth, menuRTCDay,
+                 menuRTCHour, menuRTCMinute, menuRTCSecond);
   msg_update("RTC Clock Set");
 }
 

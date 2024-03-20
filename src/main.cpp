@@ -47,11 +47,14 @@ enum gpsReset_mode_t : uint8_t {
 /********************************************************************/
 // Device State
 typedef struct {
+  int16_t  TIMEZONE = 0;
   int16_t  DEVICE_MODE = DM_IDLE;
   int16_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
   int16_t  DISPLAYTIMEOUT = 10;
   bool     STATUSLED = true;
   uint8_t  GPSRESET = GPS_NORESET;
+  uint8_t  spare00;
+  uint8_t  spare01;
 } device_state_t;
 device_state_t deviceState;
 
@@ -85,6 +88,11 @@ HardwareSerial *emulatorSerial;
 /********************************************************************/
 // Satellite Constellation
 #include "constellation.h"
+
+// **DEBUG** map compensation angle **DEBUG**
+uint32_t mapCompAngleTime = millis();
+int16_t mapCompAngle = 0;
+// **DEBUG** map compensation angle **DEBUG**
 
 /********************************************************************/
 // Battery
@@ -147,7 +155,7 @@ void setup() {
   }
 
   //Setup rtc
-  rtc_setup();
+  rtc.setup();
   if(displayEnabled) {
     displayPV.prt_str("- Setup RTC", 20, 0, 32);
     display_display();
@@ -186,6 +194,11 @@ void setup() {
     display_display();
   }
 
+// **DEBUG** map compensation angle **DEBUG**
+  mapCompAngleTime = millis();
+  mapCompAngle = 0;
+// **DEBUG** map compensation angle **DEBUG**
+
   // setup and init menu
   if(displayEnabled) {
     menu_setup(); // must be done after device_state_restore()
@@ -199,15 +212,19 @@ void setup() {
 /********************************************************************/
 void loop() {
 
+  uint32_t _nowMS = millis();
+
 #ifdef DEBUG_LOOP_TIMING
   char _msgStr[22];
-  uint32_t _nowMS = millis();
-  static uint32_t max_loop_time=0;
   static uint32_t max_loop_check=_nowMS;
+  static uint32_t min_loop_time=999;
+  static uint32_t max_loop_time=0;
+  static uint32_t sum_loop_time=0;
+  static uint32_t sum_loop_count=0;
 #endif
 
   // Update clock
-  rtc_datetime_t _rtcTime = getRTCTime(); // get the RTC
+  rtc_datetime_t _rtcTime = rtc.getRTCTime(); // get the RTC
   uint32_t _clockTime = (uint32_t)(_rtcTime.hour*3600) + (uint32_t)(_rtcTime.minute*60) + _rtcTime.second;
   static uint32_t _prevClockTime = 86400; // This is 24hr rollover seconds so it will never match _clockTime
   bool _clockTick_1sec = false;
@@ -221,20 +238,18 @@ void loop() {
   switch(deviceState.DEVICE_MODE) {
     case DM_GPSRCVR:
       if(gps.getNAVPVT()) {
-        if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
-          setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),
-                     gps.getDay(), gps.getMonth(), gps.getYear());
-          clockTime_valid = true;
+        if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
+          rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
+                         gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         displayRefresh = true;
       }
       break;
     case DM_GPSLOGR:
       if(gps.getNAVPVT()) {
-        if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
-          setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),
-                     gps.getDay(), gps.getMonth(), gps.getYear());
-          clockTime_valid = true;
+        if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
+          rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
+                         gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         if(ubxLoggingInProgress) {
           uint8_t pvtPacket[UBX_NAV_PVT_PACKETLENGTH];
@@ -248,22 +263,33 @@ void loop() {
       break;
     case DM_GPSNSAT:
       if(gps.getNAVPVT()) {
-        if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
-          setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),
-                     gps.getDay(), gps.getMonth(), gps.getYear());
-          clockTime_valid = true;
+        if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
+          rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
+                         gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         displayRefresh = true;
       } else if(gps.getNAVSAT()) {
         displayRefresh = true;
+
+// **DEBUG** map compensation angle **DEBUG**
+      } else if(menu_GPSNsatDisplayMap &&
+                ((_nowMS - mapCompAngleTime) >= DISPLAY_REFRESH_PERIOD)) {
+        if((_nowMS - mapCompAngleTime) > (DISPLAY_REFRESH_PERIOD * 2)) {
+          mapCompAngleTime = _nowMS;
+        } else {
+          mapCompAngleTime += DISPLAY_REFRESH_PERIOD;
+        }
+        mapCompAngle = (++mapCompAngle) % 360;
+        displayRefresh = true;
+// **DEBUG** map compensation angle **DEBUG**
+
       }
       break;
     case DM_GPSSMAP:
       if(gps.getNAVPVT()) {
-        if((!clockTime_valid) && gps.isDateValid() && gps.isTimeValid()) {
-          setRTCTime(gps.getHour(), gps.getMinute(), gps.getSecond(),
-                     gps.getDay(), gps.getMonth(), gps.getYear());
-          clockTime_valid = true;
+        if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
+          rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
+                         gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         displayRefresh = true;
       } else if(gps.getNAVSAT()) {
@@ -289,7 +315,7 @@ void loop() {
       static uint8_t _coldPVTPacketCount = 0;
       if(_clockTick_1sec &&
          (emulator.isAutoPVTEnabled() || emulator.isPVTPacketRequested())) {
-        if(!clockTime_valid) {
+        if(!rtc.isValid()) {
           if(_coldPVTPacketCount < deviceState.EMUL_NUMCOLDSTARTPVTPACKETS) {
             _coldPVTPacketCount++;
             emulator.setPVTColdPacket();
@@ -304,9 +330,8 @@ void loop() {
             }
             _ubxNAVPVTInfo = emulator.getPVTPacketInfo();
             if(_ubxNAVPVTInfo.dateValid && _ubxNAVPVTInfo.timeValid) {
-              setRTCTime(_ubxNAVPVTInfo.hour, _ubxNAVPVTInfo.minute, _ubxNAVPVTInfo.second,
-                         _ubxNAVPVTInfo.day, _ubxNAVPVTInfo.month, _ubxNAVPVTInfo.year);
-              clockTime_valid = true;
+              rtc.setRTCTime(_ubxNAVPVTInfo.year, _ubxNAVPVTInfo.month, _ubxNAVPVTInfo.day,
+                             _ubxNAVPVTInfo.hour, _ubxNAVPVTInfo.minute, _ubxNAVPVTInfo.second);
               _prevClockTime = (uint32_t)(_ubxNAVPVTInfo.hour*3600) +
                                (uint32_t)(_ubxNAVPVTInfo.minute*60) +
                                _ubxNAVPVTInfo.second;
@@ -345,12 +370,19 @@ void loop() {
 #ifdef DEBUG_LOOP_TIMING
   if(_nowMS-max_loop_check > DEBUG_LOOP_PERIOD) {
     max_loop_check = _nowMS;
+    min_loop_time=999;
     max_loop_time = 0;
+    sum_loop_time=0;
+    sum_loop_count=0;
   }
   if(millis()-_nowMS > max_loop_time) {
+    min_loop_time = min(min_loop_time, millis()-_nowMS);
     max_loop_time = max(max_loop_time, millis()-_nowMS);
+    sum_loop_time += millis()-_nowMS;
+    sum_loop_count++;
     char _tempStr[22];
-    sprintf(_tempStr, "maxloop=%d", max_loop_time);
+    sprintf(_tempStr, "LoopTime %d/%d/%d",
+            min_loop_time, sum_loop_time/sum_loop_count, max_loop_time);
     msg_update(_tempStr);
   }
 #endif

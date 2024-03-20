@@ -120,7 +120,7 @@ void deviceMode_end() {
       msg_update("Emulator Stopped");
       break;
   }
-  clockTime_valid = false;
+  rtc.setValid(false);
   deviceState.DEVICE_MODE = DM_IDLE;
   //statusLED.pulse_repeat(1, 20);
 }
