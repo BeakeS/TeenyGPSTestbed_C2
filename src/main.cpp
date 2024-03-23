@@ -215,7 +215,6 @@ void loop() {
   uint32_t _nowMS = millis();
 
 #ifdef DEBUG_LOOP_TIMING
-  char _msgStr[22];
   static uint32_t max_loop_check=_nowMS;
   static uint32_t min_loop_time=999;
   static uint32_t max_loop_time=0;

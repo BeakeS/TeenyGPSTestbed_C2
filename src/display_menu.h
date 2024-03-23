@@ -32,9 +32,9 @@ void menu_menuModeCB(); // forward declaration
 SelectOptionUint8t selectMenuModeOptions[] = {
   {"IDLE",   DM_IDLE},
   {"GPSRCV", DM_GPSRCVR},
-  {"GPSLOG", DM_GPSLOGR},
-  {"GPSSAT", DM_GPSNSAT},
-  {"GPSMAP", DM_GPSSMAP},
+  {"PVTLOG", DM_GPSLOGR},
+  {"NAVSAT", DM_GPSNSAT},
+  {"SATMAP", DM_GPSSMAP},
 //{"GPSCPT", DM_GPSCAPT},
 //{"GPSSST", DM_GPSSSTP},
   {"GPSEMU", DM_GPSEMUL}};
@@ -172,57 +172,6 @@ TeenyMenuPage menuPageTopLevelSettings("SETTINGS MENU");
 TeenyMenuItem menuItemTopLevelSettings("Device Settings", menuPageTopLevelSettings);
 TeenyMenuItem menuItemTopLevelSettingsExit(false); // optional return menu item
 //
-// RTC SETTINGS
-//
-// rtc settings menu
-void menu_getRTC_CB(); // forward declaration
-void menu_setRTC_CB(); // forward declaration
-TeenyMenuPage menuPageRTCSettings("REAL TIME CLOCK", menu_getRTC_CB);
-TeenyMenuItem menuItemRTCSettings("RT Clock Settings", menuPageRTCSettings);
-TeenyMenuItem menuItemRTCSettingsLabel0("");
-TeenyMenuItem menuItemRTCSettingsLabel1("");
-TeenyMenuItem menuItemRTCSettingsLabel2("");
-TeenyMenuItem menuItemRTCSettingsExit(false); // optional return menu item
-//
-// rtc year
-int16_t menuRTCYear = 2023;
-int16_t menuRTCYearMin = 2023;
-int16_t menuRTCYearMax = 2042;
-TeenyMenuItem menuItemRTCYear("RTC Year", menuRTCYear, menuRTCYearMin, menuRTCYearMax);
-//
-// rtc month
-int16_t menuRTCMonth = 1;
-int16_t menuRTCMonthMin = 1;
-int16_t menuRTCMonthMax = 12;
-TeenyMenuItem menuItemRTCMonth("RTC Month", menuRTCMonth, menuRTCMonthMin, menuRTCMonthMax);
-//
-// rtc day
-int16_t menuRTCDay = 1;
-int16_t menuRTCDayMin = 1;
-int16_t menuRTCDayMax = 31;
-TeenyMenuItem menuItemRTCDay("RTC Day", menuRTCDay, menuRTCDayMin, menuRTCDayMax);
-//
-// rtc hour
-int16_t menuRTCHour = 0;
-int16_t menuRTCHourMin = 0;
-int16_t menuRTCHourMax = 23;
-TeenyMenuItem menuItemRTCHour("RTC Hour", menuRTCHour, menuRTCHourMin, menuRTCHourMax);
-//
-// rtc minute
-int16_t menuRTCMinute = 0;
-int16_t menuRTCMinuteMin = 0;
-int16_t menuRTCMinuteMax = 59;
-TeenyMenuItem menuItemRTCMinute("RTC Minute", menuRTCMinute, menuRTCMinuteMin, menuRTCMinuteMax);
-//
-// rtc second
-int16_t menuRTCSecond = 0;
-int16_t menuRTCSecondMin = 0;
-int16_t menuRTCSecondMax = 59;
-TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, menuRTCSecondMax);
-//
-// rtc set date/time
-TeenyMenuItem menuItemRTCSetDateTime("Set Date/Time", menu_setRTC_CB);
-//
 // TIME ZONE
 //
 // time zone menu
@@ -237,6 +186,57 @@ SelectOptionInt16t selectTimeZoneOptions[] = {
   { "12:00", 720}, { "12:45", 765}, { "13:00", 780}, { "13:45", 825}, { "14:00", 840}};
 TeenyMenuSelect selectTimeZone(sizeof(selectTimeZoneOptions)/sizeof(SelectOptionInt16t), selectTimeZoneOptions);
 TeenyMenuItem menuItemTimeZone("Time Zone", deviceState.TIMEZONE, selectTimeZone, nullptr, 2);
+//
+// RTC SETTINGS
+//
+// rtc settings menu
+void menu_getRTC_CB(); // forward declaration
+void menu_setRTC_CB(); // forward declaration
+TeenyMenuPage menuPageRTCSettings("REAL TIME CLOCK", menu_getRTC_CB);
+TeenyMenuItem menuItemRTCSettings("RT Clock Settings", menuPageRTCSettings);
+TeenyMenuItem menuItemRTCSettingsLabel0("");
+TeenyMenuItem menuItemRTCSettingsLabel1("");
+TeenyMenuItem menuItemRTCSettingsLabel2("");
+TeenyMenuItem menuItemRTCSettingsExit(false); // optional return menu item
+//
+// rtc year
+int16_t menuRTCYear = 2024;
+int16_t menuRTCYearMin = 2024;
+int16_t menuRTCYearMax = 2042;
+TeenyMenuItem menuItemRTCYear("RTC Year", menuRTCYear, menuRTCYearMin, menuRTCYearMax);
+//
+// rtc month
+uint8_t menuRTCMonth = 1;
+uint8_t menuRTCMonthMin = 1;
+uint8_t menuRTCMonthMax = 12;
+TeenyMenuItem menuItemRTCMonth("RTC Month", menuRTCMonth, menuRTCMonthMin, menuRTCMonthMax);
+//
+// rtc day
+uint8_t menuRTCDay = 1;
+uint8_t menuRTCDayMin = 1;
+uint8_t menuRTCDayMax = 31;
+TeenyMenuItem menuItemRTCDay("RTC Day", menuRTCDay, menuRTCDayMin, menuRTCDayMax);
+//
+// rtc hour
+uint8_t menuRTCHour = 0;
+uint8_t menuRTCHourMin = 0;
+uint8_t menuRTCHourMax = 23;
+TeenyMenuItem menuItemRTCHour("RTC Hour", menuRTCHour, menuRTCHourMin, menuRTCHourMax);
+//
+// rtc minute
+uint8_t menuRTCMinute = 0;
+uint8_t menuRTCMinuteMin = 0;
+uint8_t menuRTCMinuteMax = 59;
+TeenyMenuItem menuItemRTCMinute("RTC Minute", menuRTCMinute, menuRTCMinuteMin, menuRTCMinuteMax);
+//
+// rtc second
+uint8_t menuRTCSecond = 0;
+uint8_t menuRTCSecondMin = 0;
+uint8_t menuRTCSecondMax = 59;
+TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, menuRTCSecondMax);
+//
+// rtc set date/time
+TeenyMenuItem menuItemRTCSetDateTime("Set Date/Time", menu_setRTC_CB);
 //
 // EMULATOR SETTINGS
 //
@@ -381,6 +381,7 @@ void menu_setup() {
   menuPageMain.addMenuItem(menuItemLabel5);
   menuPageMain.addMenuItem(menuItemLabel6);
   menuPageMain.addMenuItem(menuItemTopLevelSettings);
+  menuPageTopLevelSettings.addMenuItem(menuItemTimeZone);
   menuPageTopLevelSettings.addMenuItem(menuItemRTCSettings);
   menuPageRTCSettings.addMenuItem(menuItemRTCYear);
   menuPageRTCSettings.addMenuItem(menuItemRTCMonth);
@@ -393,7 +394,6 @@ void menu_setup() {
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel1);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel2);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsExit); // optional return menu item
-  menuPageTopLevelSettings.addMenuItem(menuItemTimeZone);
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
@@ -1065,7 +1065,7 @@ void menu_exitGPSEmulCB() {
 /********************************************************************/
 void menu_getRTC_CB() {
   if(rtc.isValid()) {
-    rtc_datetime_t now = rtc.getRTCTime(); // get the RTC
+    rtc_datetime_t now = rtc.getRTCTime(deviceState.TIMEZONE); // get the RTC
     menuRTCYear    = now.year;
     menuRTCMonth   = now.month;
     menuRTCDay     = now.day;
@@ -1078,7 +1078,8 @@ void menu_getRTC_CB() {
 /********************************************************************/
 void menu_setRTC_CB() {
   rtc.setRTCTime(menuRTCYear, menuRTCMonth, menuRTCDay,
-                 menuRTCHour, menuRTCMinute, menuRTCSecond);
+                 menuRTCHour, menuRTCMinute, menuRTCSecond,
+                 -deviceState.TIMEZONE);
   msg_update("RTC Clock Set");
 }
 

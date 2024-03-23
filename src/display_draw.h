@@ -3,8 +3,7 @@
 char* getRTCClockISO8601DateTimeStr() {
   static char _itdStr[20];
   if(rtc.isValid()) {
-    rtc_datetime_t now = rtc.getLocalTime(deviceState.TIMEZONE); // get the RTC
-    return rtc.getISO8601DateTimeStr(now);
+    return rtc.getRTCISO8601DateTimeStr(deviceState.TIMEZONE);
   }
   sprintf(_itdStr, "**  RTC NOT SET  **");
   return _itdStr;
@@ -21,7 +20,7 @@ char* getGPSISO8601DateTimeStr() {
     dateTime.hour   = gps.getHour();
     dateTime.minute = gps.getMinute();
     dateTime.second = gps.getSecond();
-    return rtc.getISO8601DateTimeStr(rtc.getLocalTime(dateTime, deviceState.TIMEZONE));
+    return rtc.getISO8601DateTimeStr(dateTime, deviceState.TIMEZONE);
   }
   sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;
@@ -38,7 +37,7 @@ char* getPVTPacketISO8601DateTimeStr(ubxNAVPVTInfo_t _ubxNAVPVTInfo) {
     dateTime.hour   = _ubxNAVPVTInfo.hour;
     dateTime.minute = _ubxNAVPVTInfo.minute;
     dateTime.second = _ubxNAVPVTInfo.second;
-    return rtc.getISO8601DateTimeStr(rtc.getLocalTime(dateTime, deviceState.TIMEZONE));
+    return rtc.getISO8601DateTimeStr(dateTime, deviceState.TIMEZONE);
   }
   sprintf(_itdStr, "* NO DATETIME FIX *");
   return _itdStr;

@@ -1,7 +1,7 @@
 # TeenyGPSTestbed_C2
 
 TeenyGPSTestbed_C2 is an application for testing Ublox GPS modules.  This application runs on the M5Stack Core2 ESP32 IoT Development Kit.
-The application was developed to test Beitian Ublox GPS modules connected to the Core2's Serial2 interface.  The application also has a GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
+The application was developed to test Ublox GPS modules connected to the Core2's Serial2 interface.  The application also has a Ublox GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
 TeenyGPSTestbed_C2 utilizes the TeenyMenu library for menu/page navigation via a three button interface.  The TeenyMenu library was derived from the GEM (Good Enough Menu) Arduino library back in 2021 to use with the Adafruit 128x64 OLED Feather (and its three button interface).
 
 Navigating the TeenyGPSTestbed_C2 menu pages on the Core2 utilizes the Core2's three touch buttons adjacent to the display as follows:
@@ -17,13 +17,13 @@ TeenyGPSTestbed_C2 offers five modes of operation:
 GPSRCV: Basic GPS Receiver - Displays PVT packet info including date/time, lat/lon/alt, heading, and positional accuracy data.
 ![PXL_20240303_170936265](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/4e2b1242-d968-42f4-b2d3-a8b80f035e75)
 
-GPSLOG: NAV-PVT Packet Logger - For logging PVT packets for analysis or emulation.
+PVTLOG: UBX-NAV-PVT Packet Logger - For logging PVT packets for analysis and/or emulation.
 ![PXL_20240303_171040320](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/937f2e26-c376-4e52-9304-112ede750657)
 
-GPSSAT: NAV-SAT Receiver - For testing satellite reception.  Displays a list of tracked satellites sorted by signal strength.
+NAVSAT: UBX-NAV-SAT Receiver - For testing satellite reception.  Displays a list of tracked satellites sorted by signal strength.
 ![PXL_20240308_224714124](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/3de865b5-92e7-4fd6-8090-d8b94a51ce38)
 
-GPSMAP: Satellite Constellation Map - View of satellite position data including usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>20db,orange<20db).
+SATMAP: Satellite Constellation Map - View of satellite position data including individual satellite status - usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>=20db,orange<20db).
 ![IMG_1043](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/0a825537-1c38-4cab-9103-e406b6bcbade)
 
 GPSEMU: GPS Emulation - Emulates Beitian BN-880Q GPS module including replay of PVT packets from ROM or SDCARD with progressive date/time updates.

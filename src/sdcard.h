@@ -51,7 +51,9 @@ bool sdcard_deviceStateSave() {
 /********************************************************************/
 bool sdcard_deviceStateRestore() {
   if((!sdcardEnabled) || (!SD.exists("/TEENYGPS.cfg"))) {
+    deviceState.TIMEZONE = 0;
     deviceState.DEVICE_MODE = DM_IDLE;
+    deviceState.EMUL_NUMCOLDSTARTPVTPACKETS = 10;
     deviceState.DISPLAYTIMEOUT = 10;
     deviceState.STATUSLED = true;
     deviceState.GPSRESET = GPS_NORESET;
