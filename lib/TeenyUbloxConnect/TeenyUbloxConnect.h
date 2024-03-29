@@ -19,11 +19,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TeenyUbloxConnect_h
 
 /********************************************************************/
+// GNSS Satellite Key
+/********************************************************************/
+// GNSS      gnssId  Type  #ofSats  isMajor  Ublox_M8_Compatible
+// ----      ------  ----  -------  -------  -------------------
+// GPS       0       G     31       YES      YES
+// SBAS      1       S     WEB      NO       YES
+// Galileo   2       E     27       YES      YES
+// BeiDou    3       B     44       YES      YES
+// IMES      4       I     0        NO       NO
+// QZSS      5       Q     4        NO       YES
+// GLONASS   6       R     24       YES      YES
+// NAVIC     7       N     5        ?        NO
+/********************************************************************/
+// Ublox M8 GNSS Configuration
+/********************************************************************/
+// The Ublox 8 series (M8) supports reception from satellites on 3
+// different frequency bands:
+//   a) GPS+SBAS+GALILEO+QZSS (L1)
+//   b) GLONASS (L1)
+//   c) BEIDOU (B1I)
+// ...BUT...
+// M8 can only process 2 frequency bands concurrently.
+// ...So...
+// You can't enable GPS, GLONASS and BEIDOU at the same time (and the
+// M8 module wouldn't let you if you tried).
+//
+// You need to choose which 2 (or 1) out of 3 groups (a, b, c) to
+// enable in your M8 module.
+// Notes:
+// - Choosing your major GNSS (GPS, Galileo, BeiDou, GLONASS) should
+//   based on your region.
+// - Minor GNSS (SBAS, QZSS) choice should also be region-based.
+//
+// Example opinion from 'clive1' on ublox forum regarding M8 GNSS
+// configuration for CONUS (continental US) with emphasis on power savings:
+// - I wouldn't bother tracking QZSS within the CONUS, just grinding gears.
+// - I'd suppose having many constellations to speed TTFF and your
+//   ability to turn-off the receiver more quickly is where energy
+//   would get saved. GALILEO tends to be slow to acquire on these designs.
+// - Only SBAS covers CONUS, SBAS Only provides data for GPS Satellites
+// - Skeptical of the overall value of SBAS in this scenario.
+// - I'd perhaps lean to GPS+GLO.
+
+/********************************************************************/
 // UBX Packet Frame Defines
 /********************************************************************/
 const uint8_t  COM_PORT_UART1 = 1;
 const uint8_t  COM_TYPE_UBX = 1;
-const uint16_t UBX_MAXPAYLOADLENGTH = 872; // NAV-SAT message with 72 satellites
+//const uint16_t UBX_MAXPAYLOADLENGTH = 872; // NAV-SAT message with 72 satellites
+const uint16_t UBX_MAXPAYLOADLENGTH = 392; // NAV-SAT message with 32 tracking channels
 const uint8_t  UBX_SYNCH_1 = 0xB5;
 const uint8_t  UBX_SYNCH_2 = 0x62;
 const uint8_t  UBX_CLASS_NAV = 0x01;
@@ -49,9 +94,14 @@ const uint16_t   UBX_CFG_RATE_PAYLOADLENGTH = 6;
 const uint8_t    UBX_CFG_CFG   = 0x09;
 const uint8_t    UBX_CFG_NAVX5 = 0x23;
 const uint16_t   UBX_CFG_NAVX5_PAYLOADLENGTH = 40;
+const uint8_t    UBX_CFG_GNSS  = 0x3E;
+const uint16_t   UBX_CFG_GNSS_MINPAYLOADLENGTH = 4;
+const uint16_t   UBX_CFG_GNSS_MAXPAYLOADLENGTH = 68;
 const uint8_t  UBX_CLASS_MON = 0x0A;
 const uint8_t    UBX_MON_VER   = 0x04;
 const uint16_t   UBX_MON_VER_PAYLOADLENGTH = 160;
+const uint8_t    UBX_MON_GNSS   = 0x28;
+const uint16_t   UBX_MON_GNSS_PAYLOADLENGTH = 8;
 
 /********************************************************************/
 // UBX Packet Struct
@@ -96,6 +146,38 @@ typedef struct {
   bool     validPacket;
   uint8_t  pad02a;
 } ubloxACKNAKPacket_t;
+
+/********************************************************************/
+// UBX-CFG-GNSS Info Struct
+/********************************************************************/
+typedef struct {
+  uint8_t  gnssId;
+  char     gnssIdType;
+  uint8_t  resTrkCh;
+  uint8_t  maxTrkCh;
+  uint8_t  enable;
+  uint8_t  sigCfgMask;
+  uint8_t  pad00;
+  uint8_t  pad01;
+} ubloxCFGGNSSConfigBlock_t;
+/********************************************************************/
+typedef struct {
+  uint8_t  numTrkChHw;
+  uint8_t  numTrkChUse;
+  uint8_t  numConfigBlocks;
+  uint8_t  pad00;
+  ubloxCFGGNSSConfigBlock_t configBlockList[8];
+} ubloxCFGGNSSInfo_t;
+
+/********************************************************************/
+// UBX-MON-GNSS Info Struct
+/********************************************************************/
+typedef struct {
+  uint8_t  supportedGNSS;
+  uint8_t  defaultGNSS;
+  uint8_t  enabledGNSS;
+  uint8_t  simultaneousGNSS;
+} ubloxMONGNSSInfo_t;
 
 /********************************************************************/
 // UBX-NAV-PVT Info Struct
@@ -192,15 +274,18 @@ class TeenyUbloxConnect {
 
     // Ublox command methods
     bool    pollUART1Port(uint16_t maxWait_ = defaultMaxWait);
+    bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
     void    setSerialRate(uint32_t baudrate_, uint8_t uartPort_ = COM_PORT_UART1, uint16_t maxWait_ = defaultMaxWait);
     void    coldStart();
     void    warmStart();
     void    hotStart();
-    bool    saveConfiguration(uint16_t maxWait_ = defaultMaxWait);
-    bool    getProtocolVersion(uint16_t maxWait_ = defaultMaxWait);
+    bool    saveConfiguration(uint32_t configMask = 0xFFFF, uint16_t maxWait_ = defaultMaxWait);
+    bool    pollProtocolVersion(uint16_t maxWait_ = defaultMaxWait);
     uint8_t getProtocolVersionHigh(uint16_t maxWait_ = defaultMaxWait);
     uint8_t getProtocolVersionLow(uint16_t maxWait_ = defaultMaxWait);
-    bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
+    bool    pollGNSSSelectionInfo(uint16_t maxWait_ = defaultMaxWait);
+    bool    pollGNSSConfigInfo(uint16_t maxWait_ = defaultMaxWait);
+    bool    setGNSSConfig(uint8_t gnssId, bool enable, uint16_t maxWait_ = defaultMaxWait);
     bool    setMeasurementRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool    setNavigationRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool    setAutoNAVPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
@@ -224,6 +309,10 @@ class TeenyUbloxConnect {
     //Returns true when a packet has been received
     bool    getNAVSAT(); // Use only when autoNAVSATRate > 0
     bool    pollNAVSAT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSATRate = 0
+
+    // Ublox GNSS info data access
+    ubloxMONGNSSInfo_t getGNSSSelectionInfo();
+    ubloxCFGGNSSInfo_t getGNSSConfigInfo();
 
     // Ublox navpvt data access
     void     getNAVPVTPacket(uint8_t *packet_); // Get the full NAV-PVT packet
@@ -253,6 +342,7 @@ class TeenyUbloxConnect {
 
     // Access lost packet counts
     uint8_t  getLostRxPacketCount();
+    uint8_t  getUnknownRxPacketCount();
     uint8_t  getLostNAVPVTPacketCount();
     uint8_t  getLostNAVSATPacketCount();
 
@@ -264,6 +354,8 @@ class TeenyUbloxConnect {
     ubloxPacket_t       receivedPacket;
     ubloxPacket_t       responsePacket;
     ubloxACKNAKPacket_t acknowledgePacket;
+    ubloxMONGNSSInfo_t  ubloxMONGNSSInfo;
+    ubloxCFGGNSSInfo_t  ubloxCFGGNSSInfo;
     ubloxPacket_t       ubloxNAVPVTPacketBuffer;
     uint8_t             ubloxNAVPVTPacket[UBX_NAV_PVT_PACKETLENGTH];
     ubloxNAVPVTInfo_t   ubloxNAVPVTInfo;
@@ -279,6 +371,7 @@ class TeenyUbloxConnect {
     // Do not call processIncomingPacket() in ISR - uses serial.write
     void     processIncomingPacket(uint8_t requestedClass_ = 0, uint8_t requestedID_ = 0);
     uint8_t  lostRxPacketCount;
+    uint8_t  unknownRxPacketCount;
     uint8_t  protocolVersionHigh;
     uint8_t  protocolVersionLow;
     uint8_t  lostNAVPVTPacketCount;

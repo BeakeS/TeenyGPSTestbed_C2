@@ -26,12 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /********************************************************************/
-TeenyGPSConnect::TeenyGPSConnect()
-{
-}
+TeenyGPSConnect::TeenyGPSConnect() { }
 
-TeenyGPSConnect::~TeenyGPSConnect() {
-}
+TeenyGPSConnect::~TeenyGPSConnect() { }
 
 /********************************************************************/
 // Direct serialPort commands
@@ -124,6 +121,49 @@ void TeenyGPSConnect::gnss_getProtocolVersion() {
 /********************************************************************/
 void TeenyGPSConnect::gnss_checkUblox() {
   gnss.checkUblox();
+}
+
+/********************************************************************/
+bool TeenyGPSConnect::pollGNSSSelectionInfo() {
+  return gnss.pollGNSSSelectionInfo();
+}
+
+/********************************************************************/
+ubloxMONGNSSInfo_t TeenyGPSConnect::getGNSSSelectionInfo() {
+  return gnss.getGNSSSelectionInfo();
+}
+
+/********************************************************************/
+bool TeenyGPSConnect::pollGNSSConfigInfo() {
+  return gnss.pollGNSSConfigInfo();
+}
+
+/********************************************************************/
+ubloxCFGGNSSInfo_t TeenyGPSConnect::getGNSSConfigInfo() {
+  return gnss.getGNSSConfigInfo();
+}
+
+/********************************************************************/
+bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
+  if(gnss.setGNSSConfig(gnssId, enable)) {
+    //Applying the GNSS system configuration takes some time.
+    //After issuing UBXCFG-GNSS, wait first for the acknowledgement
+    //from the receiver and then 0.5 seconds before sending the next command.
+    delay(500);
+    //If Galileo is enabled, UBX-CFG-GNSS must be followed by
+    //UBX-CFG-CFG to save current configuration to BBR and then
+    // by UBX-CFG-RST with resetMode set to Hardware reset.
+    if(gnss.saveConfiguration(0x00000010)) {
+      gnss.coldStart();
+      // Re-establish comms after cold start and software reset
+      int32_t startTime = millis();
+      while((millis() - startTime) < 1000) {
+        if(gnss.pollUART1Port()) break;
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 /********************************************************************/
@@ -349,7 +389,7 @@ bool TeenyGPSConnect::gnss_ss_saveConfiguration() {
 
 /********************************************************************/
 bool TeenyGPSConnect::gnss_ss_getProtocolVersion() {
-  return gnss.getProtocolVersion();
+  return gnss.pollProtocolVersion();
 }
 
 /********************************************************************/

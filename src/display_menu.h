@@ -35,6 +35,7 @@ SelectOptionUint8t selectMenuModeOptions[] = {
   {"PVTLOG", DM_GPSLOGR},
   {"NAVSAT", DM_GPSNSAT},
   {"SATMAP", DM_GPSSMAP},
+  {"SATCFG", DM_GPSSCFG},
 //{"GPSCPT", DM_GPSCAPT},
 //{"GPSSST", DM_GPSSSTP},
   {"GPSEMU", DM_GPSEMUL}};
@@ -42,6 +43,7 @@ TeenyMenuSelect selectMenuMode(sizeof(selectMenuModeOptions)/sizeof(SelectOption
 TeenyMenuItem menuItemMenuMode("Device Mode", MENU_MODE, selectMenuMode, menu_menuModeCB);
 //
 // gps receiver unit
+//
 void menu_entrGPSRcvrCB(); // forward declaration
 void menu_exitGPSRcvrCB(); // forward declaration
 TeenyMenuPage menuPageGPSRcvr("GPS RECEIVER MODE", menu_entrGPSRcvrCB, menu_exitGPSRcvrCB);
@@ -51,6 +53,7 @@ TeenyMenuItem menuItemGPSRcvrLabel0("");
 TeenyMenuItem menuItemGPSRcvrLabel1("");
 //
 // gps logging unit
+//
 void menu_entrGPSLogrCB(); // forward declaration
 void menu_exitGPSLogrCB(); // forward declaration
 TeenyMenuPage menuPageGPSLogr("GPS LOGGING MODE", menu_entrGPSLogrCB, menu_exitGPSLogrCB);
@@ -70,6 +73,7 @@ void menu_stopGPSLogrCB(); // forward declaration
 TeenyMenuItem menuItemGPSLogrStopLog("Stop PVT Logging", menu_stopGPSLogrCB);
 //
 // gps navsat unit
+//
 void menu_entrGPSNsatCB(); // forward declaration
 void menu_exitGPSNsatCB(); // forward declaration
 bool menu_GPSNsatDisplayMap = false;
@@ -81,6 +85,7 @@ TeenyMenuItem menuItemGPSNsatLabel0("");
 TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
 //
 // gps satellite constellation map unit
+//
 void menu_entrGPSSmapCB(); // forward declaration
 void menu_exitGPSSmapCB(); // forward declaration
 TeenyMenuPage menuPageGPSSmap("CONSTELLATION MAP", menu_entrGPSSmapCB, menu_exitGPSSmapCB);
@@ -88,7 +93,64 @@ TeenyMenuItem menuItemGPSSmap("*START GPS SATMAP*", menuPageGPSSmap);
 TeenyMenuItem menuItemGPSSmapLabel0("");
 TeenyMenuItem menuItemGPSSmapExit(false); // optional return menu item
 //
+// gps satellite config unit
+//
+void menu_entrGPSScfgCB(); // forward declaration
+void menu_exitGPSScfgCB(); // forward declaration
+TeenyMenuPage menuPageGPSScfg("GNSS CONFIG TOOLS", menu_entrGPSScfgCB, menu_exitGPSScfgCB);
+TeenyMenuItem menuItemGPSScfg("*START GPS SATCFG*", menuPageGPSScfg);
+TeenyMenuItem menuItemGPSScfgLabel0("");
+TeenyMenuItem menuItemGPSScfgLabel1("");
+TeenyMenuItem menuItemGPSScfgLabel2("");
+TeenyMenuItem menuItemGPSScfgExit(false); // optional return menu item
+//
+// gnss satellite select info
+void menu_pollGNSSSelInfoCB(); // forward declaration
+TeenyMenuPage menuPageGNSSSelInfo("GNSS SELECT INFO", menu_pollGNSSSelInfoCB);
+TeenyMenuItem menuItemGNSSSelInfo("GNSS Select Info", menuPageGNSSSelInfo);
+TeenyMenuItem menuItemGNSSSelInfoLabel0("");
+TeenyMenuItem menuItemGNSSSelInfoLabel1("");
+TeenyMenuItem menuItemGNSSSelInfoLabel2("");
+TeenyMenuItem menuItemGNSSSelInfoLabel3("");
+TeenyMenuItem menuItemGNSSSelInfoLabel4("");
+TeenyMenuItem menuItemGNSSSelInfoExit(false); // optional return menu item
+//
+// gnss satellite config info
+void menu_pollGNSSCfgInfoCB(); // forward declaration
+TeenyMenuPage menuPageGNSSCfgInfo("GNSS CONFIG INFO", menu_pollGNSSCfgInfoCB);
+TeenyMenuItem menuItemGNSSCfgInfo("GNSS Config Info", menuPageGNSSCfgInfo);
+TeenyMenuItem menuItemGNSSCfgInfoLabel0("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel1("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel2("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel3("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel4("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel5("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel6("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel7("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel8("");
+TeenyMenuItem menuItemGNSSCfgInfoLabel9("");
+TeenyMenuItem menuItemGNSSCfgInfoExit(false); // optional return menu item
+//
+// gnss satellite Galileo enable/disable
+void menu_gnssCfgGalileoEnableCB(); // forward declaration
+void menu_gnssCfgGalileoDisableCB(); // forward declaration
+TeenyMenuItem menuItemGNSSCfgGalileoEnable("Galileo Enable", menu_gnssCfgGalileoEnableCB);
+TeenyMenuItem menuItemGNSSCfgGalileoDisable("Galileo Disable", menu_gnssCfgGalileoDisableCB);
+//
+// gnss satellite BeiDou enable/disable
+void menu_gnssCfgBeiDouEnableCB(); // forward declaration
+void menu_gnssCfgBeiDouDisableCB(); // forward declaration
+TeenyMenuItem menuItemGNSSCfgBeiDouEnable("BeiDou Enable", menu_gnssCfgBeiDouEnableCB);
+TeenyMenuItem menuItemGNSSCfgBeiDouDisable("BeiDou Disable", menu_gnssCfgBeiDouDisableCB);
+//
+// gnss satellite GLONASS enable/disable
+void menu_gnssCfgGLONASSEnableCB(); // forward declaration
+void menu_gnssCfgGLONASSDisableCB(); // forward declaration
+TeenyMenuItem menuItemGNSSCfgGLONASSEnable("GLONASS Enable", menu_gnssCfgGLONASSEnableCB);
+TeenyMenuItem menuItemGNSSCfgGLONASSDisable("GLONASS Disable", menu_gnssCfgGLONASSDisableCB);
+//
 // gps transceiver unit
+//
 void menu_entrGPSCaptCB(); // forward declaration
 void menu_exitGPSCaptCB(); // forward declaration
 TeenyMenuPage menuPageGPSCapt("GPS CAPTURE MODE", menu_entrGPSCaptCB, menu_exitGPSCaptCB);
@@ -102,6 +164,7 @@ void menu_captStopRxPktCB(); // forward declaration
 TeenyMenuItem menuItemGPSCaptStopRxPkt("Save RX PKT", menu_captStopRxPktCB);
 //
 // gps single step unit
+//
 void menu_entrGPSStepCB(); // forward declaration
 void menu_exitGPSStepCB(); // forward declaration
 TeenyMenuPage menuPageGPSStep("GPS SINGLESTEP MODE", menu_entrGPSStepCB, menu_exitGPSStepCB);
@@ -147,6 +210,7 @@ void menu_sstReqNavPvtCB(); // forward declaration
 TeenyMenuItem menuItemGPSStepReqNavPvt("reqNavPvt_CMD", menu_sstReqNavPvtCB);
 //
 // gps emulator unit
+//
 void menu_entrGPSEmulCB(); // forward declaration
 void menu_exitGPSEmulCB(); // forward declaration
 TeenyMenuPage menuPageGPSEmul("GPS EMULATOR MODE", menu_entrGPSEmulCB, menu_exitGPSEmulCB);
@@ -156,6 +220,7 @@ TeenyMenuItem menuItemGPSEmulLabel0("");
 TeenyMenuItem menuItemGPSEmulLabel1("");
 //
 // gps reset
+//
 void menu_GPSResetCB(); // forward declaration
 SelectOptionUint8t selectGPSResetOptions[] = {
   {"NO",   GPS_NORESET},
@@ -342,6 +407,36 @@ void menu_setup() {
   menuPageMain.addMenuItem(menuItemGPSSmap);
   menuPageGPSSmap.addMenuItem(menuItemGPSSmapLabel0);
   //menuPageGPSSmap.addMenuItem(menuItemGPSSmapExit);
+  menuPageMain.addMenuItem(menuItemGPSScfg);
+  menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel0);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSSelInfo);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel0);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel1);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel2);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel3);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel4);
+  menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoExit);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgInfo);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel0);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel1);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel2);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel3);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel4);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel5);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel6);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel7);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel8);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel9);
+  menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoExit);
+  menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel1);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoEnable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoDisable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouEnable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouDisable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSEnable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSDisable);
+  menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
+  menuPageGPSScfg.addMenuItem(menuItemGPSScfgExit);
   menuPageMain.addMenuItem(menuItemGPSCapt);
   menuPageGPSCapt.addMenuItem(menuItemGPSCaptLabel0);
   menuPageGPSCapt.addMenuItem(menuItemGPSCaptStrtRxPkt);
@@ -424,6 +519,9 @@ void menu_setup() {
     case DM_GPSSMAP:
       menu.linkMenuPage(menuPageGPSSmap);
       break;
+    case DM_GPSSCFG:
+      menu.linkMenuPage(menuPageGPSScfg);
+      break;
     case DM_GPSCAPT:
       menu.linkMenuPage(menuPageGPSCapt);
       break;
@@ -484,6 +582,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
       menuItemGPSStep.hide();
@@ -496,6 +595,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
       menuItemGPSStep.hide();
@@ -508,6 +608,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.show();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
       menuItemGPSStep.hide();
@@ -522,6 +623,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.show();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
       menuItemGPSStep.hide();
@@ -534,6 +636,20 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.show();
+      menuItemGPSScfg.hide();
+      menuItemGPSReset.show();
+      menuItemLabel2.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSCapt.hide();
+      menuItemGPSEmul.hide();
+      menuItemLabel3.hide();
+      break;
+    case DM_GPSSCFG:
+      menuItemGPSRcvr.hide();
+      menuItemGPSLogr.hide();
+      menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
+      menuItemGPSScfg.show();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
       menuItemGPSStep.hide();
@@ -546,6 +662,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
       menuItemGPSStep.hide();
@@ -560,6 +677,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
       menuItemGPSStep.show();
@@ -572,6 +690,7 @@ void menu_menuModeCB() {
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
       menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
       menuItemGPSStep.hide();
@@ -688,6 +807,92 @@ void menu_entrGPSSmapCB() {
 
 /********************************************************************/
 void menu_exitGPSSmapCB() {
+  deviceMode_end();
+  menu.exitToParentMenuPage();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_entrGPSScfgCB() {
+  deviceState.DEVICE_MODE = DM_GPSSCFG;
+  deviceMode_init();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_pollGNSSSelInfoCB() {
+  char _msgStr[22];
+  bool rcode = gps.pollGNSSSelectionInfo();
+  sprintf(_msgStr, "Poll MON-GNSS rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_pollGNSSCfgInfoCB() {
+  char _msgStr[22];
+  bool rcode = gps.pollGNSSConfigInfo();
+  sprintf(_msgStr, "Poll CFG-GNSS rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgGalileoEnableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x02, true);
+  sprintf(_msgStr, "Enable Galileo rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgGalileoDisableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x02, false);
+  sprintf(_msgStr, "Disable Galileo rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgBeiDouEnableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x03, true);
+  sprintf(_msgStr, "Enable BeiDou rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgBeiDouDisableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x03, false);
+  sprintf(_msgStr, "Disable BeiDou rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgGLONASSEnableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x06, true);
+  sprintf(_msgStr, "Enable GLONASS rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgGLONASSDisableCB() {
+  char _msgStr[22];
+  bool rcode = gps.setGNSSConfig(0x06, false);
+  sprintf(_msgStr, "Disable GLONASS rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_exitGPSScfgCB() {
   deviceMode_end();
   menu.exitToParentMenuPage();
   displayRefresh = true;

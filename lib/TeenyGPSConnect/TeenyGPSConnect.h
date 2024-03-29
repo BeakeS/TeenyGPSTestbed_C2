@@ -129,17 +129,28 @@ class TeenyGPSConnect {
 
     // GPS process data
     void gnss_checkUblox();
+    bool pollGNSSSelectionInfo();
+    bool pollGNSSConfigInfo();
+    bool setGNSSConfig(uint8_t gnssId, bool enable);
     bool getNAVPVT();
     bool pollNAVPVT();
     bool getNAVSAT();
     bool pollNAVSAT();
 
     // GPS read data
-    // full packets
-    void getNAVPVTPacket(uint8_t* packet);
-    void getNAVSATPacket(ubloxPacket_t &packet_);
-    void getNAVSATInfo(ubloxNAVSATInfo_t &info_);
 
+    // GPS protocol version
+    byte getProtocolVersionHigh();
+    byte getProtocolVersionLow();
+
+    // GNSS config info
+    ubloxMONGNSSInfo_t getGNSSSelectionInfo();
+    ubloxCFGGNSSInfo_t getGNSSConfigInfo();
+
+    // full NAVPVT packet
+    void getNAVPVTPacket(uint8_t* packet);
+
+    // NAVPVT packet info
     // Valid packet
     bool isPacketValid();
     // location fix
@@ -164,9 +175,11 @@ class TeenyGPSConnect {
     uint8_t getHour();
     uint8_t getMinute();
     uint8_t getSecond();
-    // GPS protocol version
-    byte getProtocolVersionHigh();
-    byte getProtocolVersionLow();
+
+    // full NAVSAT packet
+    void getNAVSATPacket(ubloxPacket_t &packet_);
+    // NAVSAT packet info
+    void getNAVSATInfo(ubloxNAVSATInfo_t &info_);
 
     // Single Step Commands (for capturing host transmit packets on emulator side)
     bool gnss_ss_begin(Stream &serialPort_);
@@ -187,17 +200,7 @@ class TeenyGPSConnect {
     uint32_t baudRate;
     HardwareSerial *serialPort;
     TeenyUbloxConnect gnss;
-
-    // ** FIX FOR SFE_UBLOX_GNSS SIZE ERROR **
-    uint32_t padding0;
-    uint32_t padding1;
-    uint32_t padding2;
-    uint32_t padding3;
-    uint32_t padding4;
-    uint32_t padding5;
-    uint32_t padding6;
-    uint32_t padding7;
-    volatile GnssData data; // ** THIS WAS CORRUPTED BY SFE_UBLOX_GNSS::begin() **
+    volatile GnssData data;
 
     // NAV-SAT data
     ubloxPacket_t navsatPacket;

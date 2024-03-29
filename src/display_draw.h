@@ -289,6 +289,46 @@ void display_refresh() {
           displayPV.prt_str(_dispStr, 20, 0, 20);
         }
         drawSatConstellation(0);
+      } else if(menu.isMenuPageCurrent(menuPageGPSScfg)) {
+      } else if(menu.isMenuPageCurrent(menuPageGNSSSelInfo)) {
+        ubloxMONGNSSInfo_t gnssSelectInfo = gps.getGNSSSelectionInfo();
+        sprintf(_dispStr, "Supported:%s%s%s%s",
+                (gnssSelectInfo.supportedGNSS & 0x01) ? " G" : "",
+                (gnssSelectInfo.supportedGNSS & 0x02) ? " R" : "",
+                (gnssSelectInfo.supportedGNSS & 0x04) ? " B" : "",
+                (gnssSelectInfo.supportedGNSS & 0x08) ? " E" : "");
+        displayPV.prt_str(_dispStr, 20, 0, 24);
+        sprintf(_dispStr, "Default:%s%s%s%s",
+                (gnssSelectInfo.defaultGNSS & 0x01) ? " G" : "",
+                (gnssSelectInfo.defaultGNSS & 0x02) ? " R" : "",
+                (gnssSelectInfo.defaultGNSS & 0x04) ? " B" : "",
+                (gnssSelectInfo.defaultGNSS & 0x08) ? " E" : "");
+        displayPV.prt_str(_dispStr, 20, 0, 44);
+        sprintf(_dispStr, "Enabled:%s%s%s%s",
+                (gnssSelectInfo.enabledGNSS & 0x01) ? " G" : "",
+                (gnssSelectInfo.enabledGNSS & 0x02) ? " R" : "",
+                (gnssSelectInfo.enabledGNSS & 0x04) ? " B" : "",
+                (gnssSelectInfo.enabledGNSS & 0x08) ? " E" : "");
+        displayPV.prt_str(_dispStr, 20, 0, 64);
+        sprintf(_dispStr, "Simultaneous=%02d", gnssSelectInfo.simultaneousGNSS);
+        displayPV.prt_str(_dispStr, 20, 0, 84);
+      } else if(menu.isMenuPageCurrent(menuPageGNSSCfgInfo)) {
+        ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();
+        sprintf(_dispStr, "numTrkChHw=%02d", gnssConfigInfo.numTrkChHw);
+        displayPV.prt_str(_dispStr, 20, 0, 24);
+        sprintf(_dispStr, "numTrkChUse=%02d", gnssConfigInfo.numTrkChUse);
+        displayPV.prt_str(_dispStr, 20, 0, 44);
+        sprintf(_dispStr, "numConfigBlocks=%02d", gnssConfigInfo.numConfigBlocks);
+        displayPV.prt_str(_dispStr, 20, 0, 64);
+        for(uint8_t i=0; i<min(gnssConfigInfo.numConfigBlocks, 8); i++) {
+          sprintf(_dispStr, "S=%c E=%c C=%02d/%02d M=%02X",
+                  gnssConfigInfo.configBlockList[i].gnssIdType,
+                  gnssConfigInfo.configBlockList[i].enable ? 'T' : 'F',
+                  gnssConfigInfo.configBlockList[i].resTrkCh,
+                  gnssConfigInfo.configBlockList[i].maxTrkCh,
+                  gnssConfigInfo.configBlockList[i].sigCfgMask);
+          displayPV.prt_str(_dispStr, 20, 0, (i*18)+84);
+        }
       } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
         if(menu_captRxPktInProgress) {
           sprintf(_dispStr, " File = %s", rxPktFileName);

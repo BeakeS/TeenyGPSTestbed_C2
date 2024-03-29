@@ -32,7 +32,54 @@ bool TeenyRTC::isValid() {
 }
 
 /********************************************************************/
-// Get ISO8601 string from date/time
+// Convert unixTime to dateTime
+rtc_datetime_t TeenyRTC::unixTimeToDateTime(uint32_t unixTime) {
+  uint32_t _unixTime = unixTime;
+  rtc_datetime_t _dateTime;
+  _dateTime.second = _unixTime % 60ul;
+  _unixTime /= 60ul;
+  _dateTime.minute = _unixTime % 60ul;
+  _unixTime /= 60ul;
+  _dateTime.hour = _unixTime % 24ul;
+  _unixTime /= 24ul;
+  uint32_t z = _unixTime + 719468;
+  uint8_t era = z / 146097ul;
+  uint16_t doe = z - era * 146097ul;
+  uint16_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+  uint16_t y = yoe + era * 400;
+  uint16_t doy = doe - (yoe * 365 + yoe / 4 - yoe / 100);
+  uint16_t mp = (doy * 5 + 2) / 153;
+  _dateTime.day = doy - (mp * 153 + 2) / 5 + 1;
+  _dateTime.month = mp + (mp < 10 ? 3 : -9);
+  y += (_dateTime.month <= 2);
+  _dateTime.year = y;
+  return _dateTime;
+}
+ 
+/********************************************************************/
+// Convert unixTime to dateTime with time zone offset
+rtc_datetime_t TeenyRTC::unixTimeToDateTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  return getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset);
+}
+
+/********************************************************************/
+// Convert dateTime to unixTime
+uint32_t TeenyRTC::dateTimeToUnixTime(rtc_datetime_t dateTime) {
+  int8_t my = (dateTime.month >= 3) ? 1 : 0;
+  uint16_t y = dateTime.year + my - 1970;
+  uint16_t dm = 0;
+  for(int i = 0; i < dateTime.month - 1; i++) dm += (i<7)?((i==1)?28:((i&1)?30:31)):((i&1)?31:30);
+  return (((dateTime.day-1+dm+((y+1)>>2)-((y+69)/100)+((y+369)/100/4)+365*(y-my))*24ul+dateTime.hour)*60ul+dateTime.minute)*60ul+dateTime.second;
+}
+ 
+/********************************************************************/
+// Convert dateTime to unixTime with time zone offset
+uint32_t TeenyRTC::dateTimeToUnixTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
+  return dateTimeToUnixTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+
+/********************************************************************/
+// Get ISO8601 string from dateTime
 char* TeenyRTC::getISO8601DateTimeStr(rtc_datetime_t dateTime) {
   //e.g. "2020-06-25T15:29:37"
   static char _itdStr[20];
@@ -43,14 +90,27 @@ char* TeenyRTC::getISO8601DateTimeStr(rtc_datetime_t dateTime) {
 }
 
 /********************************************************************/
-// Get ISO8601 string from date/time with time zone offset
+// Get ISO8601 string from dateTime with time zone offset
 char* TeenyRTC::getISO8601DateTimeStr(rtc_datetime_t dateTime,
                                       int16_t timeZoneOffset) {
   return getISO8601DateTimeStr(getOffsetDateTime(dateTime, timeZoneOffset));
 }
 
 /********************************************************************/
-// Extract date/time from ISO8601 string
+// Get ISO8601 string from unixTime
+char* TeenyRTC::getISO8601DateTimeStr(uint32_t unixTime) {
+  return getISO8601DateTimeStr(unixTimeToDateTime(unixTime));
+}
+
+/********************************************************************/
+// Get ISO8601 string from unixTime with time zone offset
+char* TeenyRTC::getISO8601DateTimeStr(uint32_t unixTime,
+                                      int16_t timeZoneOffset) {
+  return getISO8601DateTimeStr(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
+}
+
+/********************************************************************/
+// Extract dateTime from ISO8601 string
 rtc_datetime_t TeenyRTC::extractISO8601DateTime(const char* iso8601DateTimeStr) {
   char ref[] = "2000-01-01T00:00:00";
   rtc_datetime_t _dateTime;
@@ -73,7 +133,7 @@ rtc_datetime_t TeenyRTC::extractISO8601DateTime(const char* iso8601DateTimeStr) 
 }
 
 /********************************************************************/
-// Extract date/time from ISO8601 string with time zone offset
+// Extract dateTime from ISO8601 string with time zone offset
 rtc_datetime_t TeenyRTC::extractISO8601DateTime(const char* iso8601DateTimeStr,
                                                 int16_t timeZoneOffset) {
   return getOffsetDateTime(extractISO8601DateTime(iso8601DateTimeStr), timeZoneOffset);
@@ -211,7 +271,11 @@ void TeenyCore2RTC::setRTCTime(rtc_datetime_t dateTime) {
   _valid = true;
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+void TeenyCore2RTC::setRTCTime(uint32_t unixTime) {
+  setRTCTime(unixTimeToDateTime(unixTime));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
 void TeenyCore2RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                                uint8_t hour, uint8_t minute, uint8_t second,
                                int16_t timeZoneOffset) {
@@ -225,9 +289,14 @@ void TeenyCore2RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
   setRTCTime(getOffsetDateTime(_dateTime, timeZoneOffset));
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+// Set RTC dateTime with time zone offset
 void TeenyCore2RTC::setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
   setRTCTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyCore2RTC::setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
 }
 
 /********************************************************************/
@@ -246,9 +315,19 @@ rtc_datetime_t TeenyCore2RTC::getRTCTime() {
   return _dateTime;
 }
 /********************************************************************/
-// Get RTC date/time with time zone offset
+// Get RTC dateTime with time zone offset
 rtc_datetime_t TeenyCore2RTC::getRTCTime(int16_t timeZoneOffset) {
    return getOffsetDateTime(getRTCTime(), timeZoneOffset);
+}
+/********************************************************************/
+// Get RTC unixTime
+uint32_t TeenyCore2RTC::getRTCUnixTime() {
+   return dateTimeToUnixTime(getRTCTime());
+}
+/********************************************************************/
+// Get RTC unixTime with time zone offset
+uint32_t TeenyCore2RTC::getRTCUnixTime(int16_t timeZoneOffset) {
+   return dateTimeToUnixTime(getOffsetDateTime(getRTCTime(), timeZoneOffset));
 }
 /********************************************************************/
 // Get RTC ISO8601 string
@@ -301,7 +380,11 @@ void TeenyTeensy41RTC::setRTCTime(rtc_datetime_t dateTime) {
   _valid = true;
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+void TeenyTeensy41RTC::setRTCTime(uint32_t unixTime) {
+  setRTCTime(unixTimeToDateTime(unixTime));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
 void TeenyTeensy41RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                           uint8_t hour, uint8_t minute, uint8_t second,
                           int16_t timeZoneOffset) {
@@ -315,9 +398,14 @@ void TeenyTeensy41RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
   setRTCTime(getOffsetDateTime(_dateTime, timeZoneOffset));
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+// Set RTC dateTime with time zone offset
 void TeenyTeensy41RTC::setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
   setRTCTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyTeensy41RTC::setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
 }
 
 /********************************************************************/
@@ -333,9 +421,19 @@ rtc_datetime_t TeenyTeensy41RTC::getRTCTime() {
   return _dateTime;
 }
 /********************************************************************/
-// Get RTC date/time with time zone offset
+// Get RTC dateTime with time zone offset
 rtc_datetime_t TeenyTeensy41RTC::getRTCTime(int16_t timeZoneOffset) {
    return getOffsetDateTime(getRTCTime(), timeZoneOffset);
+}
+/********************************************************************/
+// Get RTC unixTime
+uint32_t TeenyTeensy41RTC::getRTCUnixTime() {
+   return dateTimeToUnixTime(getRTCTime());
+}
+/********************************************************************/
+// Get RTC unixTime with time zone offset
+uint32_t TeenyTeensy41RTC::getRTCUnixTime(int16_t timeZoneOffset) {
+   return dateTimeToUnixTime(getOffsetDateTime(getRTCTime(), timeZoneOffset));
 }
 /********************************************************************/
 // Get RTC ISO8601 string
@@ -373,13 +471,18 @@ void TeenyZeroRTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
   rtc.setDate(day, month, (uint8_t)(year - 2000));
   _valid = true;
 }
+/********************************************************************/
 void TeenyZeroRTC::setRTCTime(rtc_datetime_t dateTime) {
   rtc.setTime(dateTime.hour, dateTime.minute, dateTime.second);
   rtc.setDate(dateTime.day, dateTime.month, (uint8_t)(dateTime.year - 2000));
   _valid = true;
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+void TeenyZeroRTC::setRTCTime(uint32_t unixTime) {
+  setRTCTime(unixTimeToDateTime(unixTime));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
 void TeenyZeroRTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                           uint8_t hour, uint8_t minute, uint8_t second,
                           int16_t timeZoneOffset) {
@@ -393,9 +496,14 @@ void TeenyZeroRTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
   setRTCTime(getOffsetDateTime(_dateTime, timeZoneOffset));
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+// Set RTC dateTime with time zone offset
 void TeenyZeroRTC::setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
   setRTCTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyZeroRTC::setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
 }
 
 /********************************************************************/
@@ -410,9 +518,19 @@ rtc_datetime_t TeenyZeroRTC::getRTCTime() {
   return _dateTime;
 }
 /********************************************************************/
-// Get RTC date/time with time zone offset
+// Get RTC dateTime with time zone offset
 rtc_datetime_t TeenyZeroRTC::getRTCTime(int16_t timeZoneOffset) {
    return getOffsetDateTime(getRTCTime(), timeZoneOffset);
+}
+/********************************************************************/
+// Get RTC unixTime
+uint32_t TeenyZeroRTC::getRTCUnixTime() {
+   return dateTimeToUnixTime(getRTCTime());
+}
+/********************************************************************/
+// Get RTC unixTime with time zone offset
+uint32_t TeenyZeroRTC::getRTCUnixTime(int16_t timeZoneOffset) {
+   return dateTimeToUnixTime(getOffsetDateTime(getRTCTime(), timeZoneOffset));
 }
 /********************************************************************/
 // Get RTC ISO8601 string
@@ -457,7 +575,11 @@ void TeenyDS3231RTC::setRTCTime(rtc_datetime_t dateTime) {
                       dateTime.hour, dateTime.minute, dateTime.second));
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+void TeenyDS3231RTC::setRTCTime(uint32_t unixTime) {
+  setRTCTime(unixTimeToDateTime(unixTime));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
 void TeenyDS3231RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                           uint8_t hour, uint8_t minute, uint8_t second,
                           int16_t timeZoneOffset) {
@@ -471,9 +593,14 @@ void TeenyDS3231RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
   setRTCTime(getOffsetDateTime(_dateTime, timeZoneOffset));
 }
 /********************************************************************/
-// Set RTC date/time with time zone offset
+// Set RTC dateTime with time zone offset
 void TeenyDS3231RTC::setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
   setRTCTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyDS3231RTC::setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
 }
 
 /********************************************************************/
@@ -489,9 +616,19 @@ rtc_datetime_t TeenyDS3231RTC::getRTCTime() {
   return _dateTime;
 }
 /********************************************************************/
-// Get RTC date/time with time zone offset
+// Get RTC dateTime with time zone offset
 rtc_datetime_t TeenyDS3231RTC::getRTCTime(int16_t timeZoneOffset) {
    return getOffsetDateTime(getRTCTime(), timeZoneOffset);
+}
+/********************************************************************/
+// Get RTC unixTime
+uint32_t TeenyDS3231RTC::getRTCUnixTime() {
+   return dateTimeToUnixTime(getRTCTime());
+}
+/********************************************************************/
+// Get RTC unixTime with time zone offset
+uint32_t TeenyDS3231RTC::getRTCUnixTime(int16_t timeZoneOffset) {
+   return dateTimeToUnixTime(getOffsetDateTime(getRTCTime(), timeZoneOffset));
 }
 /********************************************************************/
 // Get RTC ISO8601 string

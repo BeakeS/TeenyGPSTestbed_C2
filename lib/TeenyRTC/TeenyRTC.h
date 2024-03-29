@@ -46,35 +46,60 @@ class TeenyRTC {
     void setValid(bool valid=true);
     bool isValid();
 
-    // Set RTC date/time
+    // Set RTC dateTime
     virtual void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                             uint8_t hour, uint8_t minute, uint8_t second) = 0;
     virtual void setRTCTime(rtc_datetime_t dateTime) = 0;
-    // Set RTC date/time with time zone offset
+    virtual void setRTCTime(uint32_t unixTime) = 0;
+    // Set RTC dateTime with time zone offset
     virtual void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                             uint8_t hour, uint8_t minute, uint8_t second,
                             int16_t timeZoneOffset) = 0;
     virtual void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) = 0;
+    virtual void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) = 0;
 
-    // Get RTC date/time
+    // Get RTC dateTime
     virtual rtc_datetime_t getRTCTime() = 0;
-    // Get RTC date/time with time zone offset
+    // Get RTC dateTime with time zone offset
     virtual rtc_datetime_t getRTCTime(int16_t timeZoneOffset) = 0;
+
+    // Get RTC unixTime
+    virtual uint32_t getRTCUnixTime() = 0;
+    // Get RTC unixTime with time zone offset
+    virtual uint32_t getRTCUnixTime(int16_t timeZoneOffset) = 0;
 
     // Get RTC ISO8601 string
     virtual char* getRTCISO8601DateTimeStr() = 0;
     // Get RTC ISO8601 string with time zone offset
     virtual char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset) = 0;
 
-    // Get ISO8601 string from date/time
+    // Convert unixTime to dateTime
+    rtc_datetime_t unixTimeToDateTime(uint32_t unixTime);
+    // Convert unixTime to dateTime with time zone offset
+    rtc_datetime_t unixTimeToDateTime(uint32_t unixTime,
+                                      int16_t timeZoneOffset);
+
+    // Convert dateTime to unixTime
+    uint32_t dateTimeToUnixTime(rtc_datetime_t dateTime);
+    // Convert dateTime to unixTime with time zone offset
+    uint32_t dateTimeToUnixTime(rtc_datetime_t dateTime,
+                                int16_t timeZoneOffset);
+
+    // Get ISO8601 string from dateTime
     char* getISO8601DateTimeStr(rtc_datetime_t dateTime);
-    // Get ISO8601 string from date/time with time zone offset
+    // Get ISO8601 string from dateTime with time zone offset
     char* getISO8601DateTimeStr(rtc_datetime_t dateTime,
                                 int16_t timeZoneOffset);
 
-    // Extract date/time from ISO8601 string
+    // Get ISO8601 string from unixTime
+    char* getISO8601DateTimeStr(uint32_t unixTime);
+    // Get ISO8601 string from unixTime with time zone offset
+    char* getISO8601DateTimeStr(uint32_t unixTime,
+                                int16_t timeZoneOffset);
+
+    // Extract dateTime from ISO8601 string
     rtc_datetime_t extractISO8601DateTime(const char* iso8601DateTimeStr);
-    // Extract date/time from ISO8601 string with time zone offset
+    // Extract dateTime from ISO8601 string with time zone offset
     rtc_datetime_t extractISO8601DateTime(const char* iso8601DateTimeStr,
                                           int16_t timeZoneOffset);
 
@@ -107,13 +132,19 @@ class TeenyCore2RTC : public TeenyRTC {
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second);
     void setRTCTime(rtc_datetime_t dateTime);
+    void setRTCTime(uint32_t unixTime);
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second,
                     int16_t timeZoneOffset);
     void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset);
+    void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset);
 
     rtc_datetime_t getRTCTime();
     rtc_datetime_t getRTCTime(int16_t timeZoneOffset);
+
+    uint32_t getRTCUnixTime();
+    uint32_t getRTCUnixTime(int16_t timeZoneOffset);
+
     char* getRTCISO8601DateTimeStr();
     char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset);
 
@@ -140,13 +171,19 @@ class TeenyTeensy41RTC : public TeenyRTC {
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second);
     void setRTCTime(rtc_datetime_t dateTime);
+    void setRTCTime(uint32_t unixTime);
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second,
                     int16_t timeZoneOffset);
     void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset);
+    void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset);
 
     rtc_datetime_t getRTCTime();
     rtc_datetime_t getRTCTime(int16_t timeZoneOffset);
+
+    uint32_t getRTCUnixTime();
+    uint32_t getRTCUnixTime(int16_t timeZoneOffset);
+
     char* getRTCISO8601DateTimeStr();
     char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset);
 
@@ -174,13 +211,19 @@ class TeenyZeroRTC : public TeenyRTC {
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second);
     void setRTCTime(rtc_datetime_t dateTime);
+    void setRTCTime(uint32_t unixTime);
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second,
                     int16_t timeZoneOffset);
     void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset);
+    void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset);
 
     rtc_datetime_t getRTCTime();
     rtc_datetime_t getRTCTime(int16_t timeZoneOffset);
+
+    uint32_t getRTCUnixTime();
+    uint32_t getRTCUnixTime(int16_t timeZoneOffset);
+
     char* getRTCISO8601DateTimeStr();
     char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset);
 
@@ -212,13 +255,19 @@ class TeenyDS3231RTC : public TeenyRTC {
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second);
     void setRTCTime(rtc_datetime_t dateTime);
+    void setRTCTime(uint32_t unixTime);
     void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
                     uint8_t hour, uint8_t minute, uint8_t second,
                     int16_t timeZoneOffset);
     void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset);
+    void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset);
 
     rtc_datetime_t getRTCTime();
     rtc_datetime_t getRTCTime(int16_t timeZoneOffset);
+
+    uint32_t getRTCUnixTime();
+    uint32_t getRTCUnixTime(int16_t timeZoneOffset);
+
     char* getRTCISO8601DateTimeStr();
     char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset);
 
