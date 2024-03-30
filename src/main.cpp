@@ -42,7 +42,8 @@ enum gpsReset_mode_t : uint8_t {
   GPS_NORESET = 0,
   GPS_HOTSTART,
   GPS_WARMSTART,
-  GPS_COLDSTART
+  GPS_COLDSTART,
+  GPS_HARDWARERESET
 };
 
 /********************************************************************/

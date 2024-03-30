@@ -87,6 +87,16 @@ void TeenyUbloxConnect::setSerialRate(uint32_t baudrate_, uint8_t uartPort_, uin
 }
 
 /********************************************************************/
+void TeenyUbloxConnect::hardwareReset() {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_RST;
+  commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
+  memcpy(commandPacket.payload, UBX_CFG_RST_HARDWARERESET_PAYLOAD, UBX_CFG_RST_PAYLOADLENGTH);
+  commandPacket.validPacket = true;
+  sendCommandPacket(false, false, 0);
+}
+
+/********************************************************************/
 void TeenyUbloxConnect::coldStart() {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RST;

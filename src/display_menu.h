@@ -226,7 +226,8 @@ SelectOptionUint8t selectGPSResetOptions[] = {
   {"NO",   GPS_NORESET},
   {"HOT",  GPS_HOTSTART},
   {"WARM", GPS_WARMSTART},
-  {"COLD", GPS_COLDSTART}};
+  {"COLD", GPS_COLDSTART},
+  {"HWRST", GPS_HARDWARERESET}};
 TeenyMenuSelect selectGPSReset(sizeof(selectGPSResetOptions)/sizeof(SelectOptionUint8t), selectGPSResetOptions);
 TeenyMenuItem menuItemGPSReset("GPS Reset", deviceState.GPSRESET, selectGPSReset, menu_GPSResetCB);
 //

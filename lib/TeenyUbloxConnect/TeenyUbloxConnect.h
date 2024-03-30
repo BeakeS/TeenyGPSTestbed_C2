@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // SBAS      1       S     WEB      NO       YES
 // Galileo   2       E     27       YES      YES
 // BeiDou    3       B     44       YES      YES
-// IMES      4       I     0        NO       NO
+// IMES      4       I     0        NO       YES
 // QZSS      5       Q     4        NO       YES
 // GLONASS   6       R     24       YES      YES
 // NAVIC     7       N     5        ?        NO
@@ -241,6 +241,9 @@ typedef struct {
 /********************************************************************/
 // UBX-CFG-RST Payloads
 /********************************************************************/
+const uint8_t UBX_CFG_RST_HARDWARERESET_PAYLOAD[UBX_CFG_RST_PAYLOADLENGTH] = {
+  0xFF,0xFF,0x00,0x00
+};
 const uint8_t UBX_CFG_RST_COLDSTART_PAYLOAD[UBX_CFG_RST_PAYLOADLENGTH] = {
   0xFF,0xFF,0x01,0x00
 };
@@ -276,6 +279,7 @@ class TeenyUbloxConnect {
     bool    pollUART1Port(uint16_t maxWait_ = defaultMaxWait);
     bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
     void    setSerialRate(uint32_t baudrate_, uint8_t uartPort_ = COM_PORT_UART1, uint16_t maxWait_ = defaultMaxWait);
+    void    hardwareReset();
     void    coldStart();
     void    warmStart();
     void    hotStart();

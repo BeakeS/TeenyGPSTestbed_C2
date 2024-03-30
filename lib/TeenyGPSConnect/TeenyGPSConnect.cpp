@@ -59,8 +59,9 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
       case 1: gnss.hotStart();  break;
       case 2: gnss.warmStart(); break;
       case 3: gnss.coldStart(); break;
+      case 4: gnss.hardwareReset(); break;
     }
-    // Re-establish comms after hot/warm/cold start and software reset
+    // Re-establish comms after hot/warm/cold start and software/hardware reset
     int32_t startTime = millis();
     while((millis() - startTime) < 1000) {
       if(gnss.pollUART1Port()) break;
@@ -154,8 +155,8 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
     //UBX-CFG-CFG to save current configuration to BBR and then
     // by UBX-CFG-RST with resetMode set to Hardware reset.
     if(gnss.saveConfiguration(0x00000010)) {
-      gnss.coldStart();
-      // Re-establish comms after cold start and software reset
+      gnss.hardwareReset();
+      // Re-establish comms after cold start and hardware reset
       int32_t startTime = millis();
       while((millis() - startTime) < 1000) {
         if(gnss.pollUART1Port()) break;
