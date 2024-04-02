@@ -310,7 +310,7 @@ void display_refresh() {
                 (gnssSelectInfo.enabledGNSS & 0x04) ? " B" : "",
                 (gnssSelectInfo.enabledGNSS & 0x08) ? " E" : "");
         displayPV.prt_str(_dispStr, 20, 0, 64);
-        sprintf(_dispStr, "Simultaneous=%02d", gnssSelectInfo.simultaneousGNSS);
+        sprintf(_dispStr, "Simultaneous: %d", gnssSelectInfo.simultaneousGNSS);
         displayPV.prt_str(_dispStr, 20, 0, 84);
       } else if(menu.isMenuPageCurrent(menuPageGNSSCfgInfo)) {
         ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();

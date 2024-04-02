@@ -131,23 +131,22 @@ TeenyMenuItem menuItemGNSSCfgInfoLabel8("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel9("");
 TeenyMenuItem menuItemGNSSCfgInfoExit(false); // optional return menu item
 //
-// gnss satellite Galileo enable/disable
-void menu_gnssCfgGalileoEnableCB(); // forward declaration
-void menu_gnssCfgGalileoDisableCB(); // forward declaration
-TeenyMenuItem menuItemGNSSCfgGalileoEnable("Galileo Enable", menu_gnssCfgGalileoEnableCB);
-TeenyMenuItem menuItemGNSSCfgGalileoDisable("Galileo Disable", menu_gnssCfgGalileoDisableCB);
-//
-// gnss satellite BeiDou enable/disable
-void menu_gnssCfgBeiDouEnableCB(); // forward declaration
-void menu_gnssCfgBeiDouDisableCB(); // forward declaration
-TeenyMenuItem menuItemGNSSCfgBeiDouEnable("BeiDou Enable", menu_gnssCfgBeiDouEnableCB);
-TeenyMenuItem menuItemGNSSCfgBeiDouDisable("BeiDou Disable", menu_gnssCfgBeiDouDisableCB);
-//
-// gnss satellite GLONASS enable/disable
-void menu_gnssCfgGLONASSEnableCB(); // forward declaration
-void menu_gnssCfgGLONASSDisableCB(); // forward declaration
-TeenyMenuItem menuItemGNSSCfgGLONASSEnable("GLONASS Enable", menu_gnssCfgGLONASSEnableCB);
-TeenyMenuItem menuItemGNSSCfgGLONASSDisable("GLONASS Disable", menu_gnssCfgGLONASSDisableCB);
+// gnss satellite toggle items
+void menu_gnssCfgGPSToggleCB(); // forward declaration
+void menu_gnssCfgSBASToggleCB(); // forward declaration
+void menu_gnssCfgGalileoToggleCB(); // forward declaration
+void menu_gnssCfgBeiDouToggleCB(); // forward declaration
+void menu_gnssCfgIMESToggleCB(); // forward declaration
+void menu_gnssCfgQZSSToggleCB(); // forward declaration
+void menu_gnssCfgGLONASSToggleCB(); // forward declaration
+// Note:  Toggle menu item titles set by menu_gnssConfigurator()
+TeenyMenuItem menuItemGNSSCfgGPSToggle(    "", menu_gnssCfgGPSToggleCB);
+TeenyMenuItem menuItemGNSSCfgSBASToggle(   "", menu_gnssCfgSBASToggleCB);
+TeenyMenuItem menuItemGNSSCfgGalileoToggle("", menu_gnssCfgGalileoToggleCB);
+TeenyMenuItem menuItemGNSSCfgBeiDouToggle( "", menu_gnssCfgBeiDouToggleCB);
+TeenyMenuItem menuItemGNSSCfgIMESToggle(   "", menu_gnssCfgIMESToggleCB);
+TeenyMenuItem menuItemGNSSCfgQZSSToggle(   "", menu_gnssCfgQZSSToggleCB);
+TeenyMenuItem menuItemGNSSCfgGLONASSToggle("", menu_gnssCfgGLONASSToggleCB);
 //
 // gps transceiver unit
 //
@@ -430,12 +429,13 @@ void menu_setup() {
   menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoLabel9);
   menuPageGNSSCfgInfo.addMenuItem(menuItemGNSSCfgInfoExit);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel1);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoEnable);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoDisable);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouEnable);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouDisable);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSEnable);
-  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSDisable);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGPSToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgSBASToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgIMESToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgQZSSToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSToggle);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgExit);
   menuPageMain.addMenuItem(menuItemGPSCapt);
@@ -814,9 +814,116 @@ void menu_exitGPSSmapCB() {
 }
 
 /********************************************************************/
+void menu_gnssConfigurator(char toggleGnssIdType) {
+  char _msgStr[22];
+  // GNSS State - Undefined=-1, Disabled=0, Enabled=1
+  typedef struct {
+    int8_t GPS = -1;
+    int8_t SBAS = -1;
+    int8_t Galileo = -1;
+    int8_t BeiDou = -1;
+    int8_t IMES = -1;
+    int8_t QZSS = -1;
+    int8_t GLONASS = -1;
+    int8_t spare00;
+  } gnss_state_t;
+  gnss_state_t gnssUndefined;
+  static gnss_state_t gnssState;
+  // Reset State
+  gnssState = gnssUndefined;
+  // Poll GNSS config state
+  bool pollRC = gps.pollGNSSConfigInfo();
+  ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();
+  uint8_t gnssId;
+  char gnssIdType;
+  uint8_t gnssEnable;
+  bool toggleRC;
+  // Toggle selected GNSS
+  if(pollRC) {
+    for(uint8_t i=0; i<min(gnssConfigInfo.numConfigBlocks, 7); i++) {
+      gnssId = gnssConfigInfo.configBlockList[i].gnssId;
+      gnssIdType = gnssConfigInfo.configBlockList[i].gnssIdType;
+      gnssEnable = gnssConfigInfo.configBlockList[i].enable;
+      if(toggleGnssIdType == gnssIdType) {
+        toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
+        if(toggleRC) gnssEnable = !gnssEnable;
+        sprintf(_msgStr, "Set CFG-GNSS RC=%d", toggleRC);
+        msg_update(_msgStr);
+      }
+      switch(gnssIdType) {
+        case  'G':
+          gnssState.GPS = gnssEnable;
+          break;
+        case  'S':
+          gnssState.SBAS = gnssEnable;
+          break;
+        case  'E':
+          gnssState.Galileo = gnssEnable;
+          break;
+        case  'B':
+          gnssState.BeiDou = gnssEnable;
+          break;
+        case  'I':
+          gnssState.IMES = gnssEnable;
+          break;
+        case  'Q':
+          gnssState.QZSS = gnssEnable;
+          break;
+        case  'R':
+          gnssState.GLONASS = gnssEnable;
+          break;
+      }
+    }
+  }
+  if((!pollRC) || toggleGnssIdType == '\0') {
+    sprintf(_msgStr, "Poll CFG-GNSS RC=%d", pollRC);
+    msg_update(_msgStr);
+  }
+  // Update toggle menu item titles
+  // Note: setTitle() only accepts const char*
+  switch(gnssState.GPS) {
+    case -1: menuItemGNSSCfgGPSToggle.setTitle("GPS    :Unknown"); break;
+    case  0: menuItemGNSSCfgGPSToggle.setTitle("GPS    :Disabled"); break;
+    case  1: menuItemGNSSCfgGPSToggle.setTitle("GPS    :Enabled"); break;
+  }
+  switch(gnssState.SBAS) {
+    case -1: menuItemGNSSCfgSBASToggle.setTitle("SBAS   :Unknown"); break;
+    case  0: menuItemGNSSCfgSBASToggle.setTitle("SBAS   :Disabled"); break;
+    case  1: menuItemGNSSCfgSBASToggle.setTitle("SBAS   :Enabled"); break;
+  }
+  switch(gnssState.Galileo) {
+    case -1: menuItemGNSSCfgGalileoToggle.setTitle("Galileo:Unknown"); break;
+    case  0: menuItemGNSSCfgGalileoToggle.setTitle("Galileo:Disabled"); break;
+    case  1: menuItemGNSSCfgGalileoToggle.setTitle("Galileo:Enabled"); break;
+  }
+  switch(gnssState.BeiDou) {
+    case -1: menuItemGNSSCfgBeiDouToggle.setTitle("BeiDou :Unknown"); break;
+    case  0: menuItemGNSSCfgBeiDouToggle.setTitle("BeiDou :Disabled"); break;
+    case  1: menuItemGNSSCfgBeiDouToggle.setTitle("BeiDou :Enabled"); break;
+  }
+  switch(gnssState.IMES) {
+    case -1: menuItemGNSSCfgIMESToggle.setTitle("IMES   :Unknown"); break;
+    case  0: menuItemGNSSCfgIMESToggle.setTitle("IMES   :Disabled"); break;
+    case  1: menuItemGNSSCfgIMESToggle.setTitle("IMES   :Enabled"); break;
+  }
+  switch(gnssState.QZSS) {
+    case -1: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Unknown"); break;
+    case  0: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Disabled"); break;
+    case  1: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Enabled"); break;
+  }
+  switch(gnssState.GLONASS) {
+    case -1: menuItemGNSSCfgGLONASSToggle.setTitle("GLONASS:Unknown"); break;
+    case  0: menuItemGNSSCfgGLONASSToggle.setTitle("GLONASS:Disabled"); break;
+    case  1: menuItemGNSSCfgGLONASSToggle.setTitle("GLONASS:Enabled"); break;
+  }
+  displayRefresh = true;
+}
+
+/********************************************************************/
 void menu_entrGPSScfgCB() {
   deviceState.DEVICE_MODE = DM_GPSSCFG;
   deviceMode_init();
+  menu_gnssConfigurator('\0');
   displayRefresh = true;
 }
 
@@ -839,56 +946,44 @@ void menu_pollGNSSCfgInfoCB() {
 }
 
 /********************************************************************/
-void menu_gnssCfgGalileoEnableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x02, true);
-  sprintf(_msgStr, "Enable Galileo rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgGPSToggleCB() {
+  menu_gnssConfigurator('G');
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_gnssCfgGalileoDisableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x02, false);
-  sprintf(_msgStr, "Disable Galileo rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgSBASToggleCB() {
+  menu_gnssConfigurator('S');
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_gnssCfgBeiDouEnableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x03, true);
-  sprintf(_msgStr, "Enable BeiDou rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgGalileoToggleCB() {
+  menu_gnssConfigurator('E');
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_gnssCfgBeiDouDisableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x03, false);
-  sprintf(_msgStr, "Disable BeiDou rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgBeiDouToggleCB() {
+  menu_gnssConfigurator('B');
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_gnssCfgGLONASSEnableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x06, true);
-  sprintf(_msgStr, "Enable GLONASS rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgIMESToggleCB() {
+  menu_gnssConfigurator('I');
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_gnssCfgGLONASSDisableCB() {
-  char _msgStr[22];
-  bool rcode = gps.setGNSSConfig(0x06, false);
-  sprintf(_msgStr, "Disable GLONASS rc=%d", rcode);
-  msg_update(_msgStr);
+void menu_gnssCfgQZSSToggleCB() {
+  menu_gnssConfigurator('Q');
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgGLONASSToggleCB() {
+  menu_gnssConfigurator('R');
   displayRefresh = true;
 }
 
