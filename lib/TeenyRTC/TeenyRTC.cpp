@@ -226,7 +226,7 @@ rtc_datetime_t TeenyRTC::getOffsetDateTime(rtc_datetime_t dateTime, int16_t time
 }
 
 
-#ifdef M5_CORE2
+#ifdef M5_CORE2_RTC
 #include <M5Core2.h>
 /********************************************************************/
 // Core2 RTC
@@ -342,7 +342,7 @@ char* TeenyCore2RTC::getRTCISO8601DateTimeStr(int16_t timeZoneOffset) {
 #endif
 
 
-#ifdef TEENSY41
+#ifdef TEENSY41_RTC
 #include <TimeLib.h>
 /********************************************************************/
 // Teensy41 RTC
@@ -448,7 +448,123 @@ char* TeenyTeensy41RTC::getRTCISO8601DateTimeStr(int16_t timeZoneOffset) {
 #endif
 
 
-#ifdef FEATHERM0
+#ifdef RP2040_RTC
+#include "hardware/rtc.h"
+#include <TimeLib.h>
+/********************************************************************/
+// RP2040 RTC
+/********************************************************************/
+TeenyRP2040RTC::TeenyRP2040RTC() { }
+
+TeenyRP2040RTC::~TeenyRP2040RTC() { }
+
+/********************************************************************/
+bool TeenyRP2040RTC::setup() {
+  _valid = false;
+  rtc_init();
+  return true;
+}
+
+/********************************************************************/
+void TeenyRP2040RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
+                                  uint8_t hour, uint8_t minute, uint8_t second) {
+  datetime_t t = {
+    .year  = year,
+    .month = month,
+    .day   = day,
+    .dotw  = 0,
+    .hour  = hour,
+    .min   = minute,
+    .sec   = second
+  };
+  rtc_set_datetime(&t);
+  _valid = true;
+}
+/********************************************************************/
+void TeenyRP2040RTC::setRTCTime(rtc_datetime_t dateTime) {
+  datetime_t t = {
+    .year  = dateTime.year,
+    .month = dateTime.month,
+    .day   = dateTime.day,
+    .dotw  = 0,
+    .hour  = dateTime.hour,
+    .min   = dateTime.minute,
+    .sec   = dateTime.second
+  };
+  rtc_set_datetime(&t);
+  _valid = true;
+}
+/********************************************************************/
+void TeenyRP2040RTC::setRTCTime(uint32_t unixTime) {
+  setRTCTime(unixTimeToDateTime(unixTime));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyRP2040RTC::setRTCTime(uint16_t year, uint8_t month, uint8_t day,
+                          uint8_t hour, uint8_t minute, uint8_t second,
+                          int16_t timeZoneOffset) {
+  rtc_datetime_t _dateTime;
+  _dateTime.year   = year;
+  _dateTime.month  = month;
+  _dateTime.day    = day;
+  _dateTime.hour   = hour;
+  _dateTime.minute = minute;
+  _dateTime.second = second;
+  setRTCTime(getOffsetDateTime(_dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyRP2040RTC::setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(dateTime, timeZoneOffset));
+}
+/********************************************************************/
+// Set RTC dateTime with time zone offset
+void TeenyRP2040RTC::setRTCTime(uint32_t unixTime, int16_t timeZoneOffset) {
+  setRTCTime(getOffsetDateTime(unixTimeToDateTime(unixTime), timeZoneOffset));
+}
+
+/********************************************************************/
+rtc_datetime_t TeenyRP2040RTC::getRTCTime() {
+  datetime_t t;
+  rtc_get_datetime(&t);
+  rtc_datetime_t _dateTime;
+  _dateTime.year   = t.year;
+  _dateTime.month  = t.month;
+  _dateTime.day    = t.day;
+  _dateTime.hour   = t.hour;
+  _dateTime.minute = t.min;
+  _dateTime.second = t.sec;
+  return _dateTime;
+}
+/********************************************************************/
+// Get RTC dateTime with time zone offset
+rtc_datetime_t TeenyRP2040RTC::getRTCTime(int16_t timeZoneOffset) {
+   return getOffsetDateTime(getRTCTime(), timeZoneOffset);
+}
+/********************************************************************/
+// Get RTC unixTime
+uint32_t TeenyRP2040RTC::getRTCUnixTime() {
+   return dateTimeToUnixTime(getRTCTime());
+}
+/********************************************************************/
+// Get RTC unixTime with time zone offset
+uint32_t TeenyRP2040RTC::getRTCUnixTime(int16_t timeZoneOffset) {
+   return dateTimeToUnixTime(getOffsetDateTime(getRTCTime(), timeZoneOffset));
+}
+/********************************************************************/
+// Get RTC ISO8601 string
+char* TeenyRP2040RTC::getRTCISO8601DateTimeStr() {
+  return getISO8601DateTimeStr(getRTCTime());
+}
+/********************************************************************/
+// Get RTC ISO8601 string with time zone offset
+char* TeenyRP2040RTC::getRTCISO8601DateTimeStr(int16_t timeZoneOffset) {
+  return getISO8601DateTimeStr(getRTCTime(timeZoneOffset));
+}
+#endif
+
+
+#ifdef FEATHERM0_RTC
 #include <RTCZero.h>
 /********************************************************************/
 // SAMD21 ARM Cortex M0 RTC
@@ -545,7 +661,7 @@ char* TeenyZeroRTC::getRTCISO8601DateTimeStr(int16_t timeZoneOffset) {
 #endif
 
 
-#ifdef FEATHERDS3231
+#ifdef DS3231_RTC
 #include <RTClib.h>
 /********************************************************************/
 // DS3231 RTC

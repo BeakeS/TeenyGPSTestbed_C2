@@ -22,7 +22,7 @@ uint8_t drawSatConstellation(int16_t compAngle) {
 
   // draw main circles, one at 0deg, and one at 45deg elevation
   display.drawCircle(mapCenterX, mapCenterY, mapRadius, WHITE);
-  display.drawCircle(mapCenterX, mapCenterY, 60, WHITE);
+  display.drawCircle(mapCenterX, mapCenterY, (mapRadius>>1)+1, WHITE);
 
   // draw lines at 0, 45, 90, 135 etc degrees azimuth
   for (int16_t i = 0; i <= 7; i++) {
@@ -56,16 +56,12 @@ uint8_t drawSatConstellation(int16_t compAngle) {
   // draw the positions of the sats
   for(int16_t i = navsatInfo.numSvsEphValid -1; i >= 0; i--) {
 
-  //if(navsatInfo.svSortList[i].elev < 0) {
-  //  continue;
-  //}
-
     // Sat position
     numSats ++;
     xCoord = round(-sin(radians(navsatInfo.svSortList[i].azim + 180 + compAngle)) *
-                   map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1));
+                   map(max(navsatInfo.svSortList[i].elev, 0), 0, 90, mapSatRadius, 1));
     yCoord = round(cos(radians(navsatInfo.svSortList[i].azim + 180 + compAngle)) *
-                   map(navsatInfo.svSortList[i].elev, 0, 90, mapSatRadius, 1));
+                   map(max(navsatInfo.svSortList[i].elev, 0), 0, 90, mapSatRadius, 1));
 
     // Sat ring color based on SNR
     if(navsatInfo.svSortList[i].cno >= 35) {

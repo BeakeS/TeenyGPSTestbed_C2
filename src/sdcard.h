@@ -40,36 +40,30 @@ bool sdcard_deviceStateReset() {
 }
 /********************************************************************/
 bool sdcard_deviceStateSave() {
+  if(!writeDeviceStateKVS()) return false;
   if(!sdcard_deviceStateReset()) return false;
   //SdFile::dateTimeCallback(sdDateTimeCB);
   sdFile = SD.open("/TEENYGPS.cfg", FILE_WRITE);
   if(!sdFile) return false;
-  sdFile.write((uint8_t*)&deviceState, sizeof(deviceState));
+  sdFile.write(deviceStateKVSArray, deviceStateKVS.used_bytes());
   sdFile.close();
   return true;
 }
 /********************************************************************/
 bool sdcard_deviceStateRestore() {
-  if((!sdcardEnabled) || (!SD.exists("/TEENYGPS.cfg"))) {
-    deviceState.TIMEZONE = 0;
-    deviceState.DEVICE_MODE = DM_IDLE;
-    deviceState.EMUL_NUMCOLDSTARTPVTPACKETS = 10;
-    deviceState.DISPLAYTIMEOUT = 10;
-    deviceState.STATUSLED = true;
-    deviceState.GPSRESET = GPS_NORESET;
-    return false;
+  if(sdcardEnabled && SD.exists("/TEENYGPS.cfg")) {
+    sdFile = SD.open("/TEENYGPS.cfg");
+    if(sdFile) {
+      sdFile.read(deviceStateKVSArray, min(sdFile.size(), sizeof(deviceStateKVSArray)));
+      sdFile.close();
+      if(readDeviceStateKVS()) {
+        return true;
+      }
+      sdcard_deviceStateReset();
+    }
   }
-  sdFile = SD.open("/TEENYGPS.cfg");
-  if(!sdFile) return false;
-  if(sdFile.size()!=sizeof(deviceState)) {
-    sdcard_deviceStateReset();
-    return false;
-  }
-  if(sdFile.read((uint8_t*)&deviceState, sizeof(deviceState)) < sizeof(deviceState)) {
-    return false;
-  }
-  sdFile.close();
-  return true;
+  deviceState = deviceState_defaults;
+  return false;
 }
 
 /********************************************************************/

@@ -115,7 +115,7 @@ class TeenyRTC {
 };
 
 
-#ifdef M5_CORE2
+#ifdef M5_CORE2_RTC
 /********************************************************************/
 class TeenyCore2RTC : public TeenyRTC {
 
@@ -154,7 +154,7 @@ class TeenyCore2RTC : public TeenyRTC {
 #endif
 
 
-#ifdef TEENSY41
+#ifdef TEENSY41_RTC
 /********************************************************************/
 class TeenyTeensy41RTC : public TeenyRTC {
 
@@ -193,7 +193,46 @@ class TeenyTeensy41RTC : public TeenyRTC {
 #endif
 
 
-#ifdef FEATHERM0
+#ifdef RP2040_RTC
+/********************************************************************/
+class TeenyRP2040RTC : public TeenyRTC {
+
+  public:
+
+    // Constructor / destructor / disallow copy and move
+    TeenyRP2040RTC();
+    virtual ~TeenyRP2040RTC();
+    TeenyRP2040RTC(const TeenyRP2040RTC&);
+    TeenyRP2040RTC& operator=(const TeenyRP2040RTC&);
+
+    bool setup();
+
+    void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
+                    uint8_t hour, uint8_t minute, uint8_t second);
+    void setRTCTime(rtc_datetime_t dateTime);
+    void setRTCTime(uint32_t unixTime);
+    void setRTCTime(uint16_t year, uint8_t month, uint8_t day,
+                    uint8_t hour, uint8_t minute, uint8_t second,
+                    int16_t timeZoneOffset);
+    void setRTCTime(rtc_datetime_t dateTime, int16_t timeZoneOffset);
+    void setRTCTime(uint32_t unixTime, int16_t timeZoneOffset);
+
+    rtc_datetime_t getRTCTime();
+    rtc_datetime_t getRTCTime(int16_t timeZoneOffset);
+
+    uint32_t getRTCUnixTime();
+    uint32_t getRTCUnixTime(int16_t timeZoneOffset);
+
+    char* getRTCISO8601DateTimeStr();
+    char* getRTCISO8601DateTimeStr(int16_t timeZoneOffset);
+
+  private:
+
+};
+#endif
+
+
+#ifdef FEATHERM0_RTC
 #include <RTCZero.h>
 /********************************************************************/
 class TeenyZeroRTC : public TeenyRTC {
@@ -235,7 +274,7 @@ class TeenyZeroRTC : public TeenyRTC {
 #endif
 
 
-#ifdef FEATHERDS3231
+#ifdef DS3231_RTC
 #include <RTClib.h>
 /********************************************************************/
 class TeenyDS3231RTC : public TeenyRTC {

@@ -48,17 +48,7 @@ enum gpsReset_mode_t : uint8_t {
 
 /********************************************************************/
 // Device State
-typedef struct {
-  int16_t  TIMEZONE = 0;
-  int16_t  DEVICE_MODE = DM_IDLE;
-  int16_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
-  int16_t  DISPLAYTIMEOUT = 10;
-  bool     STATUSLED = true;
-  uint8_t  GPSRESET = GPS_NORESET;
-  uint8_t  spare00;
-  uint8_t  spare01;
-} device_state_t;
-device_state_t deviceState;
+#include "device_state.h"
 
 /********************************************************************/
 // Prototypes
@@ -72,6 +62,10 @@ device_state_t deviceState;
 // GPS
 HardwareSerial *gpsSerial;
 #include "gps.h"
+
+/********************************************************************/
+// Compass
+#include "compass.h"
 
 /********************************************************************/
 // SD Card
@@ -90,11 +84,6 @@ HardwareSerial *emulatorSerial;
 /********************************************************************/
 // Satellite Constellation
 #include "constellation.h"
-
-// **DEBUG** map compensation angle **DEBUG**
-uint32_t mapCompAngleTime = millis();
-int16_t mapCompAngle = 0;
-// **DEBUG** map compensation angle **DEBUG**
 
 /********************************************************************/
 // Battery
@@ -164,16 +153,31 @@ void setup() {
     delay(200);
   }
 
-  //Setup sdcard
-  if(sdcard_setup()) {
+  //Setup compass
+  if(compass_setup()) {
     if(displayEnabled) {
-      displayPV.prt_str("- SD Card Enabled", 20, 0, 48);
+      displayPV.prt_str("- Compass Enabled", 20, 0, 48);
       display_display();
       delay(200);
     }
   } else {
     if(displayEnabled) {
-      displayPV.prt_str("- SD Card Missing", 20, 0, 48);
+      displayPV.prt_str("- Compass Missing", 20, 0, 48);
+      display_display();
+      delay(200);
+    }
+  }
+
+  //Setup sdcard
+  if(sdcard_setup()) {
+    if(displayEnabled) {
+      displayPV.prt_str("- SD Card Enabled", 20, 0, 64);
+      display_display();
+      delay(200);
+    }
+  } else {
+    if(displayEnabled) {
+      displayPV.prt_str("- SD Card Missing", 20, 0, 64);
       display_display();
       delay(200);
     }
@@ -195,11 +199,6 @@ void setup() {
     display_clearDisplay();
     display_display();
   }
-
-// **DEBUG** map compensation angle **DEBUG**
-  mapCompAngleTime = millis();
-  mapCompAngle = 0;
-// **DEBUG** map compensation angle **DEBUG**
 
   // setup and init menu
   if(displayEnabled) {
@@ -271,19 +270,6 @@ void loop() {
         displayRefresh = true;
       } else if(gps.getNAVSAT()) {
         displayRefresh = true;
-
-// **DEBUG** map compensation angle **DEBUG**
-      } else if(menu_GPSNsatDisplayMap &&
-                ((_nowMS - mapCompAngleTime) >= DISPLAY_REFRESH_PERIOD)) {
-        if((_nowMS - mapCompAngleTime) > (DISPLAY_REFRESH_PERIOD * 2)) {
-          mapCompAngleTime = _nowMS;
-        } else {
-          mapCompAngleTime += DISPLAY_REFRESH_PERIOD;
-        }
-        mapCompAngle = (++mapCompAngle) % 360;
-        displayRefresh = true;
-// **DEBUG** map compensation angle **DEBUG**
-
       }
       break;
     case DM_GPSSMAP:

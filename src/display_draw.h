@@ -129,6 +129,13 @@ void display_refresh() {
       menu.drawMenu();
       if(menu.isMenuPageCurrent(menuPageMain)) {
         // main/idle display
+        if(compassEnabled) {
+          sVector_t mag = compass.readRaw();
+          compass.getHeadingDegrees();
+          sprintf(_dispStr, "Comp Heading %03d'",
+                  (int16_t)nearbyint(mag.HeadingDegress));
+          displayPV.prt_str(_dispStr, 20, 0, 250);
+        }
         sprintf(_dispStr, "Bat %d%% %s",
                 battery.getPercentage(),
                 battery.isCharging() ? "Charging" : "");
@@ -231,7 +238,7 @@ void display_refresh() {
         }
         if(menu_GPSNsatDisplayMap) {
           // NAVSAT Map
-          drawSatConstellation(mapCompAngle);
+          drawSatConstellation(0);
         } else {
           // NAVSAT Data
           ubloxPacket_t navsatPacket;

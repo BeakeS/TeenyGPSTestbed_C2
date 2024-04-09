@@ -301,12 +301,12 @@ uint8_t menuRTCSecondMax = 59;
 TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, menuRTCSecondMax);
 //
 // rtc set date/time
-TeenyMenuItem menuItemRTCSetDateTime("Set Date/Time", menu_setRTC_CB);
+TeenyMenuItem menuItemRTCSetDateTime("Set RTC Date/Time", menu_setRTC_CB);
 //
 // EMULATOR SETTINGS
 //
 // emulator settings menu
-TeenyMenuPage menuPageEMULSettings("EMULATOR SETTINGS", menu_getRTC_CB);
+TeenyMenuPage menuPageEMULSettings("EMULATOR SETTINGS");
 TeenyMenuItem menuItemEMULSettings("Emulator Settings", menuPageEMULSettings);
 TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 //
@@ -314,6 +314,18 @@ TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 int16_t menuColdStartPVTPktsMin = 0;
 int16_t menuColdStartPVTPktsMax = 60;
 TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, menuColdStartPVTPktsMin, menuColdStartPVTPktsMax);
+//
+// display brightness
+void menu_displayBrightnessCB(); // forward declaration
+SelectOptionUint8t selectDisplayBrightnessOptions[] = {
+  {"100", 100},
+  {"90",   90},
+  {"80",   80},
+  {"70",   70},
+  {"60",   60},
+  {"50",   50}};
+TeenyMenuSelect selectDisplayBrightness(sizeof(selectDisplayBrightnessOptions)/sizeof(SelectOptionUint8t), selectDisplayBrightnessOptions);
+TeenyMenuItem menuItemDisplayBrightness("Dsp Brghtns", deviceState.DISPLAYBRIGHTNESS, selectDisplayBrightness, menu_displayBrightnessCB);
 //
 // display timeout
 SelectOptionUint8t selectDisplayTimeoutOptions[] = {
@@ -493,6 +505,7 @@ void menu_setup() {
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
+  menuPageTopLevelSettings.addMenuItem(menuItemDisplayBrightness);
   menuPageTopLevelSettings.addMenuItem(menuItemDisplayTimeout);
   //menuPageTopLevelSettings.addMenuItem(menuItemStatusLED);
   menuPageTopLevelSettings.addMenuItem(menuItemSaveSettings);
@@ -536,6 +549,7 @@ void menu_setup() {
   // init and enter menu
   menu.setTextColor(WHITE, BLACK);
   menuDisplaySleepMode = false;
+  menu_displayBrightnessCB();
 }
 
 /********************************************************************/
@@ -565,11 +579,14 @@ void menu_idle_timer() {
     if(!menuDisplaySleepMode) {
       menuDisplaySleepMode = true;
       //msg_update("Enter Sleep Mode");
-      M5.Lcd.sleep();
+      //M5.Lcd.sleep();
+      M5.Axp.SetDCDC3(false);
+      M5.Axp.ScreenBreath(0);
     }
   } else if(menuDisplaySleepMode) {
     menuDisplaySleepMode = false;
-    M5.Lcd.wakeup();
+    //M5.Lcd.wakeup();
+    menu_displayBrightnessCB();
     msg_update("Exit Sleep Mode");
   }
 }
@@ -827,10 +844,8 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
     int8_t GLONASS = -1;
     int8_t spare00;
   } gnss_state_t;
-  gnss_state_t gnssUndefined;
-  static gnss_state_t gnssState;
+  gnss_state_t gnssState;
   // Reset State
-  gnssState = gnssUndefined;
   // Poll GNSS config state
   bool pollRC = gps.pollGNSSConfigInfo();
   ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();
@@ -1366,7 +1381,7 @@ void menu_exitGPSEmulCB() {
 /********************************************************************/
 void menu_getRTC_CB() {
   if(rtc.isValid()) {
-    rtc_datetime_t now = rtc.getRTCTime(deviceState.TIMEZONE); // get the RTC
+    rtc_datetime_t now = rtc.getRTCTime(deviceState.TIMEZONE);
     menuRTCYear    = now.year;
     menuRTCMonth   = now.month;
     menuRTCDay     = now.day;
@@ -1381,7 +1396,15 @@ void menu_setRTC_CB() {
   rtc.setRTCTime(menuRTCYear, menuRTCMonth, menuRTCDay,
                  menuRTCHour, menuRTCMinute, menuRTCSecond,
                  -deviceState.TIMEZONE);
-  msg_update("RTC Clock Set");
+  msg_update("RTC Date/Time Set");
+}
+
+/********************************************************************/
+void menu_displayBrightnessCB() {
+  // Make sure screen is turned on
+  M5.Axp.SetDCDC3(true);
+  // Set brightness
+  M5.Axp.ScreenBreath(deviceState.DISPLAYBRIGHTNESS);
 }
 
 /********************************************************************/
