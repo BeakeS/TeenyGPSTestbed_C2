@@ -26,5 +26,8 @@ NAVSAT: UBX-NAV-SAT Receiver - For testing satellite reception.  Displays a list
 SATMAP: Satellite Constellation Map - View of satellite position data including individual satellite status - usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>=20db,orange<20db).
 ![IMG_1043](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/0a825537-1c38-4cab-9103-e406b6bcbade)
 
+SATCFG: Satellite Configuration Tool - View GNSS system configuration and enable/disable selected GNSS.
+![PXL_20240410_140034278](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/a930ee04-f1bd-4229-a14a-501317c313ff)
+
 GPSEMU: GPS Emulation - Emulates Beitian BN-880Q GPS module including replay of PVT packets from ROM or SDCARD with progressive date/time updates.
 ![PXL_20240229_005625834](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/f4011f04-dae2-459f-9b68-648e4ca00ba4)
