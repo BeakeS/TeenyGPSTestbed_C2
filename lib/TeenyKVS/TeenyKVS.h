@@ -46,18 +46,15 @@ class TeenyKVS {
     // KVS access
     virtual bool reset();
     bool check();
-    bool init(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
-    bool init(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
-    bool init(const char *key, uint16_t key_len, const char *value, uint16_t value_len);
+    bool set(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
+    bool set(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
+    bool set(const char *key, uint16_t key_len, const char *value, uint16_t value_len);
     bool find(const uint16_t key_num, uint16_t *key_len, uint16_t *value_len);
     bool find(const uint8_t *key, uint16_t key_len, uint16_t *value_len);
     bool find(const char *key, uint16_t key_len, uint16_t *value_len);
     bool get(const uint8_t *key, uint16_t key_len, uint8_t *value, uint16_t value_len);
     bool get(const char *key, uint16_t key_len, uint8_t *value, uint16_t value_len);
     bool get(const char *key, uint16_t key_len, char *value, uint16_t value_len);
-    bool set(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
-    bool set(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len);
-    bool set(const char *key, uint16_t key_len, const char *value, uint16_t value_len);
     bool del(const uint8_t *key, uint16_t key_len);
     bool del(const char *key, uint16_t key_len);
 

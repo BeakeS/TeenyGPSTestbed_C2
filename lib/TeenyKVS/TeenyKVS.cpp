@@ -47,23 +47,14 @@ bool TeenyKVS::check() {
 }
 
 /********************************************************************/
-bool TeenyKVS::init(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
-  if(kvs_reset()) {
-    return kvs_set(key, key_len, value, value_len);
-  }
-  return false;
+bool TeenyKVS::set(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
+  return kvs_set(key, key_len, value, value_len);
 }
-bool TeenyKVS::init(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
-  if(kvs_reset()) {
-    return kvs_set((uint8_t*)key, key_len, value, value_len);
-  }
-  return false;
+bool TeenyKVS::set(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
+  return kvs_set((uint8_t*)key, key_len, value, value_len);
 }
-bool TeenyKVS::init(const char *key, uint16_t key_len, const char *value, uint16_t value_len) {
-  if(kvs_reset()) {
-    return kvs_set((uint8_t*)key, key_len, (uint8_t*)value, value_len);
-  }
-  return false;
+bool TeenyKVS::set(const char *key, uint16_t key_len, const char *value, uint16_t value_len) {
+  return kvs_set((uint8_t*)key, key_len, (uint8_t*)value, value_len);
 }
 
 bool TeenyKVS::find(const uint16_t key_num, uint16_t *key_len, uint16_t *value_len) {
@@ -88,16 +79,6 @@ bool TeenyKVS::get(const char *key, uint16_t key_len, uint8_t *value, uint16_t v
 }
 bool TeenyKVS::get(const char *key, uint16_t key_len, char *value, uint16_t value_len) {
   return kvs_get((uint8_t*)key, key_len, (uint8_t*)value, value_len);
-}
-
-bool TeenyKVS::set(const uint8_t *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
-  return kvs_set(key, key_len, value, value_len);
-}
-bool TeenyKVS::set(const char *key, uint16_t key_len, const uint8_t *value, uint16_t value_len) {
-  return kvs_set((uint8_t*)key, key_len, value, value_len);
-}
-bool TeenyKVS::set(const char *key, uint16_t key_len, const char *value, uint16_t value_len) {
-  return kvs_set((uint8_t*)key, key_len, (uint8_t*)value, value_len);
 }
 
 bool TeenyKVS::del(const uint8_t *key, uint16_t key_len) {
