@@ -330,14 +330,12 @@ bool TeenyGPSConnect::getNAVSAT() {
   // navigation satellite data.
   if(gnss.getNAVSAT()) {
     time_getnavsat.restart();
-
-    gnss.getNAVSATPacket(navsatPacket);
     gnss.getNAVSATInfo(navsatInfo);
     return true;
   }
   // else lost packet(s)
   if(time_getnavsat.isExpired()) {
-    navsatPacket.validPacket = false;
+    navsatInfo.validPacket = false;
     navsatInfo.numSvs = 0;
     navsatInfo.numSvsHealthy = 0;
     navsatInfo.numSvsUsed = 0;
@@ -353,9 +351,15 @@ bool TeenyGPSConnect::pollNAVSAT() {
   return false;
 }
 
+
 /********************************************************************/
-void TeenyGPSConnect::getNAVSATPacket(ubloxPacket_t &packet_) {
-  packet_ = navsatPacket;
+void TeenyGPSConnect::getNAVSATPacket(uint8_t *packet) {
+  gnss.getNAVSATPacket(packet);
+}
+
+/********************************************************************/
+uint16_t TeenyGPSConnect::getNAVSATPacketLength() {
+  return gnss.getNAVSATPacketLength();
 }
 
 /********************************************************************/

@@ -27,7 +27,7 @@ poll UBX-CFG-PRT  for begin() and setOutputUBX - Return UBX-CFG-PRT and ACK
 set  UBX-CFG-PRT  for setOutputUBX - Returns ACK if not changing baudRate
 poll UBX-CFG-RATE for setMeasRate and setNavRate - Returns UBX-CFG-RATE and ACK
 set  UBX-CFG-RATE for setMeasRate and setNavRate - Returns ACK
-set  UBX-CFG-MSG  for setAutoPVT - Returns ACK
+set  UBX-CFG-MSG  for setAutoNAVPVT - Returns ACK
 set  UBX-CFG-CFG  for saveConfig - Returns ACK
 poll UBX-MON-VER  for getProtocolVersion - Returns UBX-MON-VER only
 */
@@ -36,25 +36,43 @@ poll UBX-MON-VER  for getProtocolVersion - Returns UBX-MON-VER only
 // UBX Packet Frame Defines
 /********************************************************************/
 const uint8_t  TGPSE_COM_PORT_UART1 = 1;
+const uint8_t  TGPSE_COM_TYPE_UBX = 1;
+//const uint16_t TGPSE_UBX_MAXPAYLOADLENGTH = 872; // NAV-SAT message with 72 satellites
+const uint16_t TGPSE_UBX_MAXPAYLOADLENGTH = 392; // NAV-SAT message with 32 tracking channels
 const uint8_t  TGPSE_UBX_SYNCH_1 = 0xB5;
 const uint8_t  TGPSE_UBX_SYNCH_2 = 0x62;
 const uint8_t  TGPSE_UBX_CLASS_NAV = 0x01;
 const uint8_t    TGPSE_UBX_NAV_PVT   = 0x07;
 const uint16_t   TGPSE_UBX_NAV_PVT_PAYLOADLENGTH = 92;
 const uint16_t   TGPSE_UBX_NAV_PVT_PACKETLENGTH = 100;
+const uint8_t    TGPSE_UBX_NAV_SAT = 0x35;
+const uint16_t   TGPSE_UBX_NAV_SAT_MINPAYLOADLENGTH = 8;
+const uint16_t   TGPSE_UBX_NAV_SAT_MINPACKETLENGTH = TGPSE_UBX_NAV_SAT_MINPAYLOADLENGTH + 8;
+const uint16_t   TGPSE_UBX_NAV_SAT_MAXPAYLOADLENGTH = TGPSE_UBX_MAXPAYLOADLENGTH;
+const uint16_t   TGPSE_UBX_NAV_SAT_MAXPACKETLENGTH = TGPSE_UBX_NAV_SAT_MAXPAYLOADLENGTH + 8;
 const uint8_t  TGPSE_UBX_CLASS_ACK = 0x05;
 const uint8_t    TGPSE_UBX_ACK_NAK   = 0x00;
 const uint8_t    TGPSE_UBX_ACK_ACK   = 0x01;
+const uint16_t   TGPSE_UBX_ACKNAK_PAYLOADLENGTH = 2;
 const uint8_t  TGPSE_UBX_CLASS_CFG = 0x06;
 const uint8_t    TGPSE_UBX_CFG_PRT   = 0x00;
 const uint16_t   TGPSE_UBX_CFG_PRT_PAYLOADLENGTH = 20;
 const uint8_t    TGPSE_UBX_CFG_MSG   = 0x01;
+const uint8_t    TGPSE_UBX_CFG_RST   = 0x04;
+const uint16_t   TGPSE_UBX_CFG_RST_PAYLOADLENGTH = 4;
 const uint8_t    TGPSE_UBX_CFG_RATE  = 0x08;
 const uint16_t   TGPSE_UBX_CFG_RATE_PAYLOADLENGTH = 6;
 const uint8_t    TGPSE_UBX_CFG_CFG   = 0x09;
+const uint8_t    TGPSE_UBX_CFG_NAVX5 = 0x23;
+const uint16_t   TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH = 40;
+const uint8_t    TGPSE_UBX_CFG_GNSS  = 0x3E;
+const uint16_t   TGPSE_UBX_CFG_GNSS_MINPAYLOADLENGTH = 4;
+const uint16_t   TGPSE_UBX_CFG_GNSS_MAXPAYLOADLENGTH = 68;
 const uint8_t  TGPSE_UBX_CLASS_MON = 0x0A;
 const uint8_t    TGPSE_UBX_MON_VER   = 0x04;
 const uint16_t   TGPSE_UBX_MON_VER_PAYLOADLENGTH = 160;
+const uint8_t    TGPSE_UBX_MON_GNSS   = 0x28;
+const uint16_t   TGPSE_UBX_MON_GNSS_PAYLOADLENGTH = 8;
 
 /********************************************************************/
 // UBX Packet Struct
@@ -67,7 +85,7 @@ typedef struct {
   uint16_t payloadLength;
   uint8_t  pad00a;
   uint8_t  pad00b;
-  uint8_t  payload[512];
+  uint8_t  payload[TGPSE_UBX_MAXPAYLOADLENGTH];
   uint8_t  checksumA;
   uint8_t  checksumB;
   uint8_t  rollingChecksumA;
@@ -81,7 +99,7 @@ typedef struct {
 } ubxPacket_t;
 
 /********************************************************************/
-// UBX PVT Packet Struct
+// UBX NAVPVT Packet Struct
 /********************************************************************/
 typedef struct {
   uint8_t  synch1        = TGPSE_UBX_SYNCH_1;
@@ -92,10 +110,10 @@ typedef struct {
   uint8_t  payload[TGPSE_UBX_NAV_PVT_PAYLOADLENGTH];
   uint8_t  checksumA;
   uint8_t  checksumB;
-} ubxPVTPacket_t;
+} ubxNAVPVTPacket_t;
 
 /********************************************************************/
-// UBX PVT Info Struct
+// UBX NAVPVT Info Struct
 /********************************************************************/
 typedef struct {
   uint16_t year;
@@ -124,6 +142,20 @@ typedef struct {
   uint8_t  pad02a;
   uint8_t  pad02b;
 } ubxNAVPVTInfo_t;
+
+/********************************************************************/
+// UBX NAVSAT Packet Struct
+/********************************************************************/
+typedef struct {
+  uint8_t  synch1        = TGPSE_UBX_SYNCH_1;
+  uint8_t  synch2        = TGPSE_UBX_SYNCH_2;
+  uint8_t  messageClass  = TGPSE_UBX_CLASS_NAV;
+  uint8_t  messageID     = TGPSE_UBX_NAV_SAT;
+  uint16_t payloadLength = TGPSE_UBX_NAV_SAT_MAXPAYLOADLENGTH;
+  uint8_t  payload[TGPSE_UBX_NAV_SAT_MAXPAYLOADLENGTH];
+  uint8_t  checksumA;
+  uint8_t  checksumB;
+} ubxNAVSATPacket_t;
 
 /********************************************************************/
 // UBX Packet Payload Defaults
@@ -165,11 +197,9 @@ const uint8_t TGPSE_UBX_NAV_PVT_COLD_PAYLOAD[TGPSE_UBX_NAV_PVT_PAYLOADLENGTH] = 
   0xE0,0x4A,0x23,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00
 };
-
-/********************************************************************/
-// UBX Test Loop Packets
-/********************************************************************/
-#include "TeenyGPSEmulate.navPvtLoop.h"
+const uint8_t TGPSE_UBX_NAV_SAT_COLD_PAYLOAD[TGPSE_UBX_NAV_SAT_MINPAYLOADLENGTH] = {
+  0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00
+};
 
 /********************************************************************/
 // Emulator Settings
@@ -186,10 +216,14 @@ typedef struct {
   uint16_t navigationRate = 1;
   uint8_t  pad02a;
   uint8_t  pad02b;
-  uint8_t  autoPVTRate = 0;
+  uint8_t  autoNAVPVTRate = 0;
   uint8_t  pad03a;
   uint8_t  pad03b;
   uint8_t  pad03c;
+  uint8_t  autoNAVSATRate = 0;
+  uint8_t  pad04a;
+  uint8_t  pad04b;
+  uint8_t  pad04c;
 } emulatorSettings_t;
 
 /********************************************************************/
@@ -210,58 +244,83 @@ class TeenyGPSEmulate {
     bool reset();
 
     // Methods for process incoming commands/requests from host
-    void tick(); // can do in ISR - depends on serial read hardware queue
-    void processIncomingPacket(); // do not call in ISR - uses serial read and write
+    void    tick(); // can do in ISR - rate depends on serial read hardware queue
+    void    processIncomingPacket(); // do not call in ISR - uses serial read and write
     uint8_t getLostRxPacketCount();
 
     // Methods to access internal state
-    uint32_t     getBaudRate();
-    bool         getOutputUBX();
-    uint16_t     getMeasurementRate();
-    uint16_t     getNavigationRate();
-    uint8_t      getAutoPVTRate();
+    uint32_t        getBaudRate();
+    bool            getOutputUBX();
+    uint16_t        getMeasurementRate();
+    uint16_t        getNavigationRate();
+    uint8_t         getAutoNAVPVTRate();
+    uint8_t         getAutoNAVSATRate();
 
-    // Methods for manual and auto PVT packet transmission
-    uint32_t     getPVTTransmissionRate();
-    bool         isPVTPacketRequested();
-    uint8_t      getLostPVTRequestCount();
-    void         setAutoPVTRate(uint8_t rate=1); // Debug use only //
-    bool         isAutoPVTEnabled();
-    bool         setPVTPacket(uint8_t *buf, size_t size);
-    bool         setPVTColdPacket();
-    bool         setPVTLoopPacket();
-    ubxNAVPVTInfo_t getPVTPacketInfo();
-    void         setPVTPacketDateTime(uint16_t year, uint8_t month, uint8_t day,
-                                      uint8_t hour, uint8_t minute, uint8_t second);
-    void         unsetPVTPacketDateValidFlag();
-    void         unsetPVTPacketTimeValidFlag();
-    void         unsetPVTPacketLocationValidFlag();
-    bool         sendPVTPacket(); // do not call in ISR - uses serial write and sdcard
+    // Methods for manual and auto NAVPVT packet transmission
+    uint32_t        getNAVPVTTransmissionRate();
+    bool            isNAVPVTPacketRequested();
+    uint8_t         getLostNAVPVTRequestCount();
+    void            setAutoNAVPVTRate(uint8_t rate=1); // Debug use only //
+    bool            isAutoNAVPVTEnabled();
+    bool            isNAVPVTPacket(const uint8_t *buf, size_t size);
+    bool            setNAVPVTPacket(const uint8_t *buf, size_t size);
+    void            setNAVPVTColdPacket();
+    ubxNAVPVTInfo_t getNAVPVTPacketInfo();
+    void            setNAVPVTPacketDateTime(uint16_t year, uint8_t month, uint8_t day,
+                                            uint8_t hour, uint8_t minute, uint8_t second);
+    void            unsetNAVPVTPacketDateValidFlag();
+    void            unsetNAVPVTPacketTimeValidFlag();
+    void            unsetNAVPVTPacketLocationValidFlag();
+    bool            sendNAVPVTPacket(); // do not call in ISR - uses serial write and sdcard
+
+    // Methods for manual and auto NAVSAT packet transmission
+    uint32_t        getNAVSATTransmissionRate();
+    bool            isNAVSATPacketRequested();
+    uint8_t         getLostNAVSATRequestCount();
+    void            setAutoNAVSATRate(uint8_t rate=10); // Debug use only //
+    bool            isAutoNAVSATEnabled();
+    bool            isNAVSATPacket(const uint8_t *buf, size_t size);
+    bool            setNAVSATPacket(const uint8_t *buf, size_t size);
+    void            setNAVSATColdPacket();
+    bool            sendNAVSATPacket(); // do not call in ISR - uses serial write and sdcard
+
+    // Methods for setting cold and emulation loop output packets
+    void            setEmuColdOutputPackets();
+    bool            setEmuLoopOutputPackets();
 
     // PUBLIC FOR DEBUG - so we can display contents 
-    ubxPacket_t incomingPacket;
-    ubxPacket_t receivedPacket;
-    ubxPacket_t responsePacket;
-    ubxPacket_t acknowledgePacket;
-    ubxPacket_t unknownPacket;
-    ubxPVTPacket_t ubxPVTPacket;
-    ubxNAVPVTInfo_t ubxNAVPVTInfo;
+    ubxPacket_t       incomingPacket;
+    ubxPacket_t       receivedPacket;
+    ubxPacket_t       responsePacket;
+    ubxPacket_t       acknowledgePacket;
+    ubxPacket_t       unknownPacket;
+    ubxNAVPVTPacket_t ubxNAVPVTPacket;
+    ubxNAVPVTInfo_t   ubxNAVPVTInfo;
+    ubxNAVSATPacket_t ubxNAVSATPacket;
 
   private:
+
     HardwareSerial *serialPort;
     emulatorSettings_t emulatorSettings;
     uint32_t baudRate;
     uint32_t requestedBaudRate;
     uint8_t  lostRxPacketCount;
-    bool     requestPVTPacket;
-    uint8_t  lostPVTRequestCount;
-    uint16_t loopPacketNum;
     void     processIncomingByte(uint8_t incomingByte);
     void     buildAcknowledgePacket(uint8_t messageClass, uint8_t messageID, bool ack);
     void     sendPackets();
     void     sendPacket(ubxPacket_t *pkt);
+
+    bool     requestNAVPVTPacket;
+    uint8_t  lostNAVPVTRequestCount;
+    bool     requestNAVSATPacket;
+    uint8_t  lostNAVSATRequestCount;
+
+    uint32_t loopPacketIndex;
+    uint16_t getLoopPacketLength();
+
     void     calcChecksum(ubxPacket_t *pkt);
-    void     calcChecksum(ubxPVTPacket_t *pkt);
+    void     calcChecksum(ubxNAVPVTPacket_t *pkt);
+    void     calcChecksum(ubxNAVSATPacket_t *pkt);
 
 };
 

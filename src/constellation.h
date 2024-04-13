@@ -4,7 +4,6 @@
 
 uint8_t drawSatConstellation(int16_t compAngle) {
 
-  ubloxPacket_t navsatPacket;
   ubloxNAVSATInfo_t navsatInfo;
 
   int16_t  mapRadius = 118;
@@ -44,9 +43,8 @@ uint8_t drawSatConstellation(int16_t compAngle) {
   }
 
   // Check NAVSAT Packet
-  gps.getNAVSATPacket(navsatPacket);
   gps.getNAVSATInfo(navsatInfo);
-  if(!navsatPacket.validPacket) {
+  if(!navsatInfo.validPacket) {
     return numSats;
   }
 

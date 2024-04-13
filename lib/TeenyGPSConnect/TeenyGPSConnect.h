@@ -177,7 +177,8 @@ class TeenyGPSConnect {
     uint8_t getSecond();
 
     // full NAVSAT packet
-    void getNAVSATPacket(ubloxPacket_t &packet_);
+    void getNAVSATPacket(uint8_t* packet);
+    uint16_t getNAVSATPacketLength();
     // NAVSAT packet info
     void getNAVSATInfo(ubloxNAVSATInfo_t &info_);
 
@@ -203,7 +204,6 @@ class TeenyGPSConnect {
     volatile GnssData data;
 
     // NAV-SAT data
-    ubloxPacket_t navsatPacket;
     ubloxNAVSATInfo_t navsatInfo;
 
     // GPS setup

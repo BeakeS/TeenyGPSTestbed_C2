@@ -32,7 +32,7 @@ void menu_menuModeCB(); // forward declaration
 SelectOptionUint8t selectMenuModeOptions[] = {
   {"IDLE",   DM_IDLE},
   {"GPSRCV", DM_GPSRCVR},
-  {"PVTLOG", DM_GPSLOGR},
+  {"GPSLOG", DM_GPSLOGR},
   {"NAVSAT", DM_GPSNSAT},
   {"SATMAP", DM_GPSSMAP},
   {"SATCFG", DM_GPSSCFG},
@@ -67,10 +67,20 @@ TeenyMenuItem menuItemGPSLogrLabel4("");
 TeenyMenuItem menuItemGPSLogrLabel5("");
 TeenyMenuItem menuItemGPSLogrLabel6("");
 TeenyMenuItem menuItemGPSLogrLabel7("");
+//
+// gps logging mode
+SelectOptionUint8t selectGPSLogModeOptions[] = {
+  {"PVT",    GPSLOG_NAVPVT},
+  {"SAT",    GPSLOG_NAVSAT},
+  {"PVTSAT", GPSLOG_NAVPVTNAVSAT}};
+TeenyMenuSelect selectGPSLogMode(sizeof(selectGPSLogModeOptions)/sizeof(SelectOptionUint8t), selectGPSLogModeOptions);
+TeenyMenuItem menuItemGPSLogMode("PVT/SAT Log", deviceState.GPSLOGMODE, selectGPSLogMode);
+//
+// gps start/stop logging
 void menu_startGPSLogrCB(); // forward declaration
-TeenyMenuItem menuItemGPSLogrStrtLog("Start PVT Logging", menu_startGPSLogrCB);
+TeenyMenuItem menuItemGPSLogrStrtLog("Start GPS Logging", menu_startGPSLogrCB);
 void menu_stopGPSLogrCB(); // forward declaration
-TeenyMenuItem menuItemGPSLogrStopLog("Stop PVT Logging", menu_stopGPSLogrCB);
+TeenyMenuItem menuItemGPSLogrStopLog("Stop GPS Logging", menu_stopGPSLogrCB);
 //
 // gps navsat unit
 //
@@ -311,8 +321,8 @@ TeenyMenuItem menuItemEMULSettings("Emulator Settings", menuPageEMULSettings);
 TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 //
 // display timeout
-int16_t menuColdStartPVTPktsMin = 0;
-int16_t menuColdStartPVTPktsMax = 60;
+uint8_t menuColdStartPVTPktsMin = 0;
+uint8_t menuColdStartPVTPktsMax = 60;
 TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, menuColdStartPVTPktsMin, menuColdStartPVTPktsMax);
 //
 // display brightness
@@ -410,6 +420,7 @@ void menu_setup() {
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel5);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel6);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel7);
+  menuPageGPSLogr.addMenuItem(menuItemGPSLogMode);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStrtLog);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStopLog);
   //menuPageGPSLogr.addMenuItem(menuItemGPSLogrExit);
@@ -633,6 +644,7 @@ void menu_menuModeCB() {
       menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
+      menuItemGPSLogMode.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogrStrtLog.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogrStopLog.hide(ubxLoggingInProgress ? false : true);
       break;
@@ -756,6 +768,7 @@ void menu_startGPSLogrCB() {
   if(ubxLoggingInProgress) return;
   if(sdcard_openLoggingFile()) {
     ubxLoggingInProgress = true;
+    menuItemGPSLogMode.hide();
     menuItemGPSLogrStrtLog.hide();
     menuItemGPSLogrStopLog.show();
     msg_update("PVT Logging Started");
@@ -771,6 +784,7 @@ void menu_stopGPSLogrCB() {
   if(!ubxLoggingInProgress) return;
   sdcard_closeLoggingFile();
   ubxLoggingInProgress = false;
+  menuItemGPSLogMode.show();
   menuItemGPSLogrStrtLog.show();
   menuItemGPSLogrStopLog.hide();
   sprintf(_msgStr, "F%02d TP=%04d VP=%04d",

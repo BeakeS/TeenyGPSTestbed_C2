@@ -77,8 +77,9 @@ const uint16_t   UBX_NAV_PVT_PAYLOADLENGTH = 92;
 const uint16_t   UBX_NAV_PVT_PACKETLENGTH = 100;
 const uint8_t    UBX_NAV_SAT = 0x35;
 const uint16_t   UBX_NAV_SAT_MINPAYLOADLENGTH = 8;
+const uint16_t   UBX_NAV_SAT_MINPACKETLENGTH = UBX_NAV_SAT_MINPAYLOADLENGTH + 8;
 const uint16_t   UBX_NAV_SAT_MAXPAYLOADLENGTH = UBX_MAXPAYLOADLENGTH;
-const uint16_t   UBX_NAV_SAT_MAXPACKETLENGTH = UBX_MAXPAYLOADLENGTH + 8;
+const uint16_t   UBX_NAV_SAT_MAXPACKETLENGTH = UBX_NAV_SAT_MAXPAYLOADLENGTH + 8;
 const uint8_t  UBX_CLASS_ACK = 0x05;
 const uint8_t    UBX_ACK_NAK   = 0x00;
 const uint8_t    UBX_ACK_ACK   = 0x01;
@@ -227,6 +228,7 @@ typedef struct {
 } ubloxNAVSATSVInfo_t;
 /********************************************************************/
 typedef struct {
+  bool     validPacket = false;
   uint8_t  numSvs;
   uint8_t  numSvsHealthy;
   uint8_t  numSvsEphValid;
@@ -234,7 +236,6 @@ typedef struct {
   uint8_t  numSvsUsed;
   uint8_t  pad00a;
   uint8_t  pad00b;
-  uint8_t  pad00c;
   ubloxNAVSATSVInfo_t svSortList[32];
 } ubloxNAVSATInfo_t;
 
@@ -341,7 +342,8 @@ class TeenyUbloxConnect {
     uint16_t getPDOP();
 
     // Ublox navsat data access
-    void     getNAVSATPacket(ubloxPacket_t &packet_); // Get the full NAV-SAT packet
+    void     getNAVSATPacket(uint8_t *packet_); // Get the full NAV-SAT packet
+    uint16_t getNAVSATPacketLength(); // Get the actual NAV-SAT packet length
     void     getNAVSATInfo(ubloxNAVSATInfo_t &info_); // summary and sorted sat details
 
     // Access lost packet counts
@@ -364,7 +366,8 @@ class TeenyUbloxConnect {
     uint8_t             ubloxNAVPVTPacket[UBX_NAV_PVT_PACKETLENGTH];
     ubloxNAVPVTInfo_t   ubloxNAVPVTInfo;
     ubloxPacket_t       ubloxNAVSATPacketBuffer;
-    ubloxPacket_t       ubloxNAVSATPacket;
+    uint8_t             ubloxNAVSATPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
+    uint16_t            ubloxNAVSATPacketLength;
     ubloxNAVSATInfo_t   ubloxNAVSATInfo;
 
     void     calcCommandPacketChecksum();

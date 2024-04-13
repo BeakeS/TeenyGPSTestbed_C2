@@ -820,7 +820,16 @@ bool TeenyUbloxConnect::getNAVSAT() {
 bool TeenyUbloxConnect::processNAVSATPacket() {
   if(ubloxNAVSATPacketBuffer.validPacket) {
     // Save buffer to packet
-    ubloxNAVSATPacket = ubloxNAVSATPacketBuffer;
+    ubloxNAVSATPacketLength = 8 + 8 + (12 * ubloxNAVSATPacketBuffer.payload[5]);
+    ubloxNAVSATPacket[0] = ubloxNAVSATPacketBuffer.synch1;
+    ubloxNAVSATPacket[1] = ubloxNAVSATPacketBuffer.synch2;
+    ubloxNAVSATPacket[2] = ubloxNAVSATPacketBuffer.messageClass;
+    ubloxNAVSATPacket[3] = ubloxNAVSATPacketBuffer.messageID;
+    ubloxNAVSATPacket[4] = ubloxNAVSATPacketBuffer.payloadLength;
+    ubloxNAVSATPacket[5] = ubloxNAVSATPacketBuffer.payloadLength >> 8;
+    memcpy(ubloxNAVSATPacket+6, ubloxNAVSATPacketBuffer.payload, ubloxNAVSATPacketLength - 8);
+    ubloxNAVSATPacket[ubloxNAVSATPacketLength-2] = ubloxNAVSATPacketBuffer.checksumA;
+    ubloxNAVSATPacket[ubloxNAVSATPacketLength-1] = ubloxNAVSATPacketBuffer.checksumB;
     // Parse packet fields
     setNAVSATPacketInfo();
     ubloxNAVSATPacketBuffer.validPacket = false;
@@ -831,6 +840,7 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 
 /********************************************************************/
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
+  ubloxNAVSATInfo.validPacket = true;
   ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
   ubloxNAVSATInfo.numSvsHealthy = 0;
   ubloxNAVSATInfo.numSvsEphValid = 0;
@@ -924,8 +934,13 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
 }
 
 /********************************************************************/
-void TeenyUbloxConnect::getNAVSATPacket(ubloxPacket_t &packet_) {
-  packet_ = ubloxNAVSATPacket;
+void TeenyUbloxConnect::getNAVSATPacket(uint8_t *packet_) {
+  memcpy(packet_, ubloxNAVSATPacket, UBX_NAV_SAT_MAXPACKETLENGTH);
+}
+
+/********************************************************************/
+uint16_t TeenyUbloxConnect::getNAVSATPacketLength() {
+  return ubloxNAVSATPacketLength;
 }
 
 /********************************************************************/

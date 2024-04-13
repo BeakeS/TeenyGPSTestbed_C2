@@ -23,34 +23,6 @@ void device_reset() {
 }
 
 /********************************************************************/
-// Device Modes
-enum device_mode_t : int16_t {
-  DM_IDLE = 0,
-  DM_GPSRCVR,
-  DM_GPSLOGR,
-  DM_GPSNSAT,
-  DM_GPSSMAP,
-  DM_GPSSCFG,
-  DM_GPSCAPT,
-  DM_GPSSSTP,
-  DM_GPSEMUL
-};
-
-/********************************************************************/
-// GPS startup Modes
-enum gpsReset_mode_t : uint8_t {
-  GPS_NORESET = 0,
-  GPS_HOTSTART,
-  GPS_WARMSTART,
-  GPS_COLDSTART,
-  GPS_HARDWARERESET
-};
-
-/********************************************************************/
-// Device State
-#include "device_state.h"
-
-/********************************************************************/
 // Prototypes
 #include "prototypes.h"
 
@@ -66,6 +38,10 @@ HardwareSerial *gpsSerial;
 /********************************************************************/
 // Compass
 #include "compass.h"
+
+/********************************************************************/
+// Device State
+#include "device_state.h"
 
 /********************************************************************/
 // SD Card
@@ -228,10 +204,17 @@ void loop() {
   uint32_t _clockTime = (uint32_t)(_rtcTime.hour*3600) + (uint32_t)(_rtcTime.minute*60) + _rtcTime.second;
   static uint32_t _prevClockTime = 86400; // This is 24hr rollover seconds so it will never match _clockTime
   bool _clockTick_1sec = false;
-  if((_prevClockTime) != (_clockTime)) {
+  static uint8_t _clockTick_1sec_count = 0;
+  bool _clockTick_10sec = false;
+  if(_prevClockTime != _clockTime) {
     displayRefresh = true;
     _prevClockTime = _clockTime;
     _clockTick_1sec = true;
+    _clockTick_1sec_count++;
+    if(_clockTick_1sec_count >= 10) {
+      _clockTick_1sec_count = 0;
+      _clockTick_10sec = true;
+    }
   }
 
   // Update device based on mode
@@ -251,10 +234,23 @@ void loop() {
           rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
                          gps.getHour(), gps.getMinute(), gps.getSecond());
         }
-        if(ubxLoggingInProgress) {
-          uint8_t pvtPacket[UBX_NAV_PVT_PACKETLENGTH];
-          gps.getNAVPVTPacket(pvtPacket);
-          sdcard_writeLoggingFile(pvtPacket, UBX_NAV_PVT_PACKETLENGTH);
+        if(ubxLoggingInProgress &&
+           ((deviceState.GPSLOGMODE == GPSLOG_NAVPVT) ||
+            (deviceState.GPSLOGMODE == GPSLOG_NAVPVTNAVSAT))) {
+          uint8_t navpvtPacket[UBX_NAV_PVT_PACKETLENGTH];
+          gps.getNAVPVTPacket(navpvtPacket);
+          sdcard_writeLoggingFile(navpvtPacket, UBX_NAV_PVT_PACKETLENGTH);
+          ubxLoggingFileWriteCount++;
+          if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
+        }
+        displayRefresh = true;
+      } else if(gps.getNAVSAT()) {
+        if(ubxLoggingInProgress &&
+           ((deviceState.GPSLOGMODE == GPSLOG_NAVSAT) ||
+            (deviceState.GPSLOGMODE == GPSLOG_NAVPVTNAVSAT))) {
+          uint8_t navsatPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
+          gps.getNAVSATPacket(navsatPacket);
+          sdcard_writeLoggingFile(navsatPacket, gps.getNAVSATPacketLength());
           ubxLoggingFileWriteCount++;
           if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
         }
@@ -293,29 +289,23 @@ void loop() {
     case DM_GPSEMUL:
       // Process host commands
       emulator.processIncomingPacket();
-      // Transmit autoPVT packets if enabled
-//*** NEED TO INCORPORATE TRANSMISSION RATE INTO sendPVTPacket()
+      // Transmit autoNAVPVT packets if enabled
+//*** NEED TO INCORPORATE TRANSMISSION RATE INTO sendNAVPVTPacket()
 //*** ALSO NEED TO FACTOR IN LOG RATE VS TRANSMISSION RATE
-//uint32_t getPVTTransmissionRate();
-      uint8_t _ubxPVTBuf[100];
+//uint32_t getNAVPVTTransmissionRate();
+      uint8_t _ubxNAVPVTBuf[100];
       ubxNAVPVTInfo_t _ubxNAVPVTInfo;
-      static uint8_t _coldPVTPacketCount = 0;
-      if(_clockTick_1sec &&
-         (emulator.isAutoPVTEnabled() || emulator.isPVTPacketRequested())) {
-        if(!rtc.isValid()) {
-          if(_coldPVTPacketCount < deviceState.EMUL_NUMCOLDSTARTPVTPACKETS) {
-            _coldPVTPacketCount++;
-            emulator.setPVTColdPacket();
-            emulator.sendPVTPacket();
-            //statusLED.pulse(1);
-          } else {
-            if(emulatorSDCardEnabled &&
-               sdcard_readLogFile(_ubxPVTBuf, sizeof(_ubxPVTBuf))) {
-              emulator.setPVTPacket(_ubxPVTBuf, sizeof(_ubxPVTBuf));
-            } else {
-              emulator.setPVTLoopPacket();
-            }
-            _ubxNAVPVTInfo = emulator.getPVTPacketInfo();
+      if((_clockTick_1sec && emulator.isAutoNAVPVTEnabled()) ||
+         emulator.isNAVPVTPacketRequested()) {
+        if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPVTPACKETS) {
+          emulatorColdStartPacketCount++;
+          emulator.setEmuColdOutputPackets();
+          emulator.sendNAVPVTPacket();
+          //statusLED.pulse(1);
+        } else {
+          if(!rtc.isValid()) {
+            emulator.setEmuLoopOutputPackets(); // Sets NAVPVT packet and possible adjacent NAVSAT packet
+            _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
             if(_ubxNAVPVTInfo.dateValid && _ubxNAVPVTInfo.timeValid) {
               rtc.setRTCTime(_ubxNAVPVTInfo.year, _ubxNAVPVTInfo.month, _ubxNAVPVTInfo.day,
                              _ubxNAVPVTInfo.hour, _ubxNAVPVTInfo.minute, _ubxNAVPVTInfo.second);
@@ -323,22 +313,24 @@ void loop() {
                                (uint32_t)(_ubxNAVPVTInfo.minute*60) +
                                _ubxNAVPVTInfo.second;
             }
-            emulator.sendPVTPacket();
+            emulator.sendNAVPVTPacket();
+            _clockTick_1sec_count = 0;
+            _clockTick_10sec = true;
+            //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
+          } else {
+            emulator.setEmuLoopOutputPackets(); // Sets NAVPVT packet and possible adjacent NAVSAT packet
+            _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
+            emulator.setNAVPVTPacketDateTime(_rtcTime.year, _rtcTime.month, _rtcTime.day,
+                                             _rtcTime.hour, _rtcTime.minute, _rtcTime.second);
+            emulator.sendNAVPVTPacket();
             //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
           }
-        } else {
-          if(emulatorSDCardEnabled &&
-             sdcard_readLogFile(_ubxPVTBuf, sizeof(_ubxPVTBuf))) {
-            emulator.setPVTPacket(_ubxPVTBuf, sizeof(_ubxPVTBuf));
-          } else {
-            emulator.setPVTLoopPacket();
-          }
-          _ubxNAVPVTInfo = emulator.getPVTPacketInfo();
-          emulator.setPVTPacketDateTime(_rtcTime.year, _rtcTime.month, _rtcTime.day,
-                                        _rtcTime.hour, _rtcTime.minute, _rtcTime.second);
-          emulator.sendPVTPacket();
-          //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
         }
+        displayRefresh = true;
+      }
+      if((_clockTick_10sec && emulator.isAutoNAVSATEnabled()) ||
+         emulator.isNAVSATPacketRequested()) {
+        emulator.sendNAVSATPacket();
         displayRefresh = true;
       }
       break;

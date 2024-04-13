@@ -77,7 +77,7 @@ uint16_t ubxLoggingFileWriteValidCount;
 /********************************************************************/
 bool sdcard_openLoggingFile() {
   if(!sdcardEnabled) return false;
-  sprintf(ubxLoggingFileName, "/NAVPVT%02d.log", ubxLoggingFileNum);
+  sprintf(ubxLoggingFileName, "/GPSLOG%02d.hex", ubxLoggingFileNum);
   if(SD.exists(ubxLoggingFileName)) {
     if(!SD.remove(ubxLoggingFileName)) return false;
   }
@@ -102,40 +102,9 @@ uint16_t sdcard_closeLoggingFile() {
 }
 
 /********************************************************************/
-// UBX Log File Reader
+// UBX Emulation Loop File Reader
 /********************************************************************/
-char ubxLogFileName[14]={0};
-/********************************************************************/
-bool sdcard_openLogFile(const uint8_t logFileNum) {
-  if(!sdcardEnabled) return false;
-  sprintf(ubxLogFileName, "/NAVPVT%02d.emu", logFileNum);
-  if(!SD.exists(ubxLogFileName)) {
-    return false;
-  }
-  sdFile = SD.open(ubxLogFileName);
-  if(!sdFile) return false;
-  return true;
-}
-/********************************************************************/
-bool sdcard_readLogFile(uint8_t *buf, size_t size) {
-  // make log file a circular buffer 
-  if(sdFile.peek() == -1) {
-    if(!sdFile.seek(0)) {
-      return false;
-    }
-  }
-  if(sdFile.peek() == -1) {
-    return false;
-  }
-  if(sdFile.read(buf, size) < size) {
-    return false;
-  }
-  return true;
-}
-/********************************************************************/
-void sdcard_closeLogFile() {
-  sdFile.close();
-}
+// TBD
 
 /********************************************************************/
 // Rx Pkt File Writer

@@ -1,14 +1,29 @@
 
 /********************************************************************/
+// Device Modes
+enum device_mode_t : int16_t {
+  DM_IDLE = 0,
+  DM_GPSRCVR,
+  DM_GPSLOGR,
+  DM_GPSNSAT,
+  DM_GPSSMAP,
+  DM_GPSSCFG,
+  DM_GPSCAPT,
+  DM_GPSSSTP,
+  DM_GPSEMUL
+};
+
+/********************************************************************/
 // Device State
 typedef struct {
   int16_t  TIMEZONE = 0;
   int16_t  DEVICE_MODE = DM_IDLE;
-  int16_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
+  uint8_t  GPSRESET = GPS_NORESET;
+  uint8_t  GPSLOGMODE = GPSLOG_NAVPVTNAVSAT;
+  uint8_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
   uint8_t  DISPLAYBRIGHTNESS = 50;
   uint8_t  DISPLAYTIMEOUT = 10;
   bool     STATUSLED = true;
-  uint8_t  GPSRESET = GPS_NORESET;
   uint8_t  spare00;
   uint8_t  spare01;
 } device_state_t;
@@ -48,6 +63,9 @@ bool writeDeviceStateKVS() {
   rc = deviceStateKVS.set("GPSRESET", strlen("GPSRESET"),
                           (uint8_t*)&deviceState.GPSRESET, sizeof(deviceState.GPSRESET));
   if(!rc) return false;
+  rc = deviceStateKVS.set("GPSLOGMODE", strlen("GPSLOGMODE"),
+                          (uint8_t*)&deviceState.GPSLOGMODE, sizeof(deviceState.GPSLOGMODE));
+  if(!rc) return false;
   return true;
 }
 
@@ -74,6 +92,9 @@ bool readDeviceStateKVS() {
   if(!rc) return false;
   rc = deviceStateKVS.get("GPSRESET", strlen("GPSRESET"),
                           (uint8_t*)&deviceState.GPSRESET, sizeof(deviceState.GPSRESET));
+  if(!rc) return false;
+  rc = deviceStateKVS.get("GPSLOGMODE", strlen("GPSLOGMODE"),
+                          (uint8_t*)&deviceState.GPSLOGMODE, sizeof(deviceState.GPSLOGMODE));
   if(!rc) return false;
   return true;
 }

@@ -26,7 +26,7 @@ void deviceMode_init() {
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET, 1, 10)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
