@@ -379,6 +379,11 @@ void display_refresh() {
         displayPV.prt_str(_dispStr, 4, 114, 220);
         displayPV.prt_str("PP=", 3, 168, 220);
         displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 220);
+        sprintf(_dispStr, "   SAT OUTPUT PKT");
+        displayPV.prt_str(_dispStr, 20, 0, 240);
+        ubxNAVSATInfo_t _ubxNAVSATInfo = emulator.getNAVSATPacketInfo();
+        sprintf(_dispStr, "TotalSats=%02d", _ubxNAVSATInfo.numSvs);
+        displayPV.prt_str(_dispStr, 20, 0, 256);
       //sprintf(_dispStr, "RXP CL%02XID%02XPL%02dV%d",
       //        emulator.receivedPacket.messageClass,
       //        emulator.receivedPacket.messageID,

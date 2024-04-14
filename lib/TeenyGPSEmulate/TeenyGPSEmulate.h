@@ -158,6 +158,16 @@ typedef struct {
 } ubxNAVSATPacket_t;
 
 /********************************************************************/
+// UBX NAVSAT Info Struct
+/********************************************************************/
+typedef struct {
+  uint8_t  numSvs;
+  uint8_t  pad00a;
+  uint8_t  pad00b;
+  uint8_t  pad00c;
+} ubxNAVSATInfo_t;
+
+/********************************************************************/
 // UBX Packet Payload Defaults
 /********************************************************************/
 const uint8_t TGPSE_UBX_CFG_PRT_PAYLOAD[TGPSE_UBX_CFG_PRT_PAYLOADLENGTH] = {
@@ -282,6 +292,7 @@ class TeenyGPSEmulate {
     bool            isNAVSATPacket(const uint8_t *buf, size_t size);
     bool            setNAVSATPacket(const uint8_t *buf, size_t size);
     void            setNAVSATColdPacket();
+    ubxNAVSATInfo_t getNAVSATPacketInfo();
     bool            sendNAVSATPacket(); // do not call in ISR - uses serial write and sdcard
 
     // Methods for setting cold and emulation loop output packets
@@ -297,6 +308,7 @@ class TeenyGPSEmulate {
     ubxNAVPVTPacket_t ubxNAVPVTPacket;
     ubxNAVPVTInfo_t   ubxNAVPVTInfo;
     ubxNAVSATPacket_t ubxNAVSATPacket;
+    ubxNAVSATInfo_t   ubxNAVSATInfo;
 
   private:
 

@@ -624,6 +624,12 @@ void TeenyGPSEmulate::setNAVSATColdPacket() {
 }
 
 /********************************************************************/
+ubxNAVSATInfo_t TeenyGPSEmulate::getNAVSATPacketInfo() {
+  ubxNAVSATInfo.numSvs = ubxNAVSATPacket.payload[5];
+  return ubxNAVSATInfo;
+}
+
+/********************************************************************/
 bool TeenyGPSEmulate::sendNAVSATPacket() {
   calcChecksum(&ubxNAVSATPacket);
   serialPort->write(ubxNAVSATPacket.synch1);
