@@ -59,7 +59,7 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
               break;
     }
     // Re-establish comms after hot/warm/cold start and software/hardware reset
-    delay(100);
+    delay(100); // recovery time for possible gnss module baud rate change
     if(!gnss_setSerialRate()) return false;
   }
 
@@ -75,11 +75,10 @@ bool TeenyGPSConnect::gnss_setSerialRate() {
   if(gnss.begin(*serialPort)) {
     return true;
   } else {
-    delay(100);
     serialPort->begin(9600); // default for many gps modules
     if(gnss.begin(*serialPort)) {
       gnss.setSerialRate(baudRate);
-      delay(100);
+      delay(100); // recovery time for gnss module baud rate change
       serialPort->begin(baudRate);
       if(gnss.begin(*serialPort)) {
         return true;
@@ -179,7 +178,7 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
     if(gnss.saveConfiguration(0x00000010)) {
       gnss.hardwareReset();
       // Re-establish comms after cold start and hardware reset
-      delay(100);
+      delay(100); // recovery time for possible gnss module baud rate change;
       if(gnss_setSerialRate()) {
         gnss_config();
         return true;
