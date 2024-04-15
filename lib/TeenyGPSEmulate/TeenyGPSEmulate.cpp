@@ -31,23 +31,22 @@ TeenyGPSEmulate::~TeenyGPSEmulate() { }
 
 /********************************************************************/
 bool TeenyGPSEmulate::init(HardwareSerial &serialPort_, uint32_t baudRate_) {
-  serialPort = &serialPort_;
-  baudRate = baudRate_;
-  serialPort->begin(baudRate);
   reset();
+  serialPort = &serialPort_;
+  emulatorSettings.baudRate = baudRate_;
+  serialPort->begin(emulatorSettings.baudRate);
   return true;
 }
 
 /********************************************************************/
 bool TeenyGPSEmulate::reset() {
+  emulatorSettings = emulatorSettings_default;
   lostRxPacketCount = 0;
   requestNAVPVTPacket = false;
   lostNAVPVTRequestCount = 0;
   requestNAVSATPacket = false;
   lostNAVSATRequestCount = 0;
   loopPacketIndex = 0;
-  emulatorSettings.autoNAVPVTRate = 0;
-  emulatorSettings.autoNAVSATRate = 0;
   setEmuColdOutputPackets();
   return true;
 }
@@ -162,10 +161,10 @@ void TeenyGPSEmulate::processIncomingPacket() {
       responsePacket.payloadLength = TGPSE_UBX_CFG_PRT_PAYLOADLENGTH;
       memcpy(responsePacket.payload, TGPSE_UBX_CFG_PRT_PAYLOAD, TGPSE_UBX_CFG_PRT_PAYLOADLENGTH);
       responsePacket.payload[0] = TGPSE_COM_PORT_UART1;
-      responsePacket.payload[8] = baudRate & 0xFF;
-      responsePacket.payload[9] = baudRate >> 8;
-      responsePacket.payload[10] = baudRate >> 16;
-      responsePacket.payload[11] = baudRate >> 24;
+      responsePacket.payload[8] = emulatorSettings.baudRate & 0xFF;
+      responsePacket.payload[9] = emulatorSettings.baudRate >> 8;
+      responsePacket.payload[10] = emulatorSettings.baudRate >> 16;
+      responsePacket.payload[11] = emulatorSettings.baudRate >> 24;
       responsePacket.payload[14] = emulatorSettings.outputUBX ? 0x01 : 0x00;
       calcChecksum(&responsePacket);
       responsePacket.validPacket = true;
@@ -181,7 +180,7 @@ void TeenyGPSEmulate::processIncomingPacket() {
       requestedBaudRate |= receivedPacket.payload[9] << 8;
       requestedBaudRate |= receivedPacket.payload[10] << 16;
       requestedBaudRate |= receivedPacket.payload[11] << 24;
-      if(requestedBaudRate != baudRate) {
+      if(requestedBaudRate != emulatorSettings.baudRate) {
         if((requestedBaudRate == 9600) ||
            (requestedBaudRate == 38400) ||
            (requestedBaudRate == 115200)) {

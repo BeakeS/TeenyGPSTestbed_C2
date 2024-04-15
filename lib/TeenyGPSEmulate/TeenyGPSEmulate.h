@@ -19,8 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TeenyGPSEmulate_h
 
 // Emulator Config Variables
-//const uint32_t EMULATOR_BAUD_RATE = 9600;
-const uint32_t EMULATOR_BAUD_RATE = 38400;
+const uint32_t EMULATOR_BAUD_RATE = 9600;
 
 /*
 poll UBX-CFG-PRT  for begin() and setOutputUBX - Return UBX-CFG-PRT and ACK
@@ -215,8 +214,8 @@ const uint8_t TGPSE_UBX_NAV_SAT_COLD_PAYLOAD[TGPSE_UBX_NAV_SAT_MINPAYLOADLENGTH]
 // Emulator Settings
 /********************************************************************/
 typedef struct {
-  uint32_t baudRate = 38400;
-  bool     outputUBX = true;
+  uint32_t baudRate = 9600;
+  bool     outputUBX = false;
   uint8_t  pad00a;
   uint8_t  pad00b;
   uint8_t  pad00c;
@@ -314,7 +313,7 @@ class TeenyGPSEmulate {
 
     HardwareSerial *serialPort;
     emulatorSettings_t emulatorSettings;
-    uint32_t baudRate;
+    emulatorSettings_t emulatorSettings_default;
     uint32_t requestedBaudRate;
     uint8_t  lostRxPacketCount;
     void     processIncomingByte(uint8_t incomingByte);
