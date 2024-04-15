@@ -59,14 +59,8 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
               break;
     }
     // Re-establish comms after hot/warm/cold start and software/hardware reset
-    delay(500);
+    delay(100);
     if(!gnss_setSerialRate()) return false;
-    bool connReestablished = false;
-    int32_t startTime = millis();
-    while((millis() - startTime) < 1000) {
-      if(gnss.pollUART1Port()) connReestablished = true;
-    }
-    if(!connReestablished) return false;
   }
 
   // Config gnss
@@ -185,14 +179,10 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
     if(gnss.saveConfiguration(0x00000010)) {
       gnss.hardwareReset();
       // Re-establish comms after cold start and hardware reset
-      delay(500);
-      if(!gnss_setSerialRate()) return false;
-      int32_t startTime = millis();
-      while((millis() - startTime) < 1000) {
-        if(gnss.pollUART1Port()) {
-          gnss_config();
-          return true;
-        }
+      delay(100);
+      if(gnss_setSerialRate()) {
+        gnss_config();
+        return true;
       }
     }
   }
