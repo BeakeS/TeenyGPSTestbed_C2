@@ -120,36 +120,34 @@ class TeenyGPSConnect {
     TeenyGPSConnect(const TeenyGPSConnect&);
     TeenyGPSConnect& operator=(const TeenyGPSConnect&);
 
-    // Direct serialPort commands
-    //void begin(uint32_t baudRate_);
-    //void end();
-
-    // GPS setup
+    // GPS SETUP
     bool gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode=0, uint8_t autoNAVPVTRate=1, uint8_t autoNAVSATRate=0);
 
-    // GPS process data
+    // Host methods for process incoming responses/acknowledges from ublox receiver
+    // Can be called inside a timer ISR
+    // Recommend calling ever 10-50ms - depends on queue size, baud rate and packets
     void gnss_checkUblox();
-    bool pollGNSSSelectionInfo();
-    bool pollGNSSConfigInfo();
-    bool setGNSSConfig(uint8_t gnssId, bool enable);
-    bool getNAVPVT();
-    bool pollNAVPVT();
-    bool getNAVSAT();
-    bool pollNAVSAT();
-
-    // GPS read data
 
     // GPS protocol version
     byte getProtocolVersionHigh();
     byte getProtocolVersionLow();
 
+    // Factory Reset - So we can make sure app can configure a factory default module
+    bool factoryReset();
+
+    // UBX-CFG-GNSS
+    bool pollGNSSSelectionInfo();
+    bool pollGNSSConfigInfo();
+    bool setGNSSConfig(uint8_t gnssId, bool enable);
     // GNSS config info
     ubloxMONGNSSInfo_t getGNSSSelectionInfo();
     ubloxCFGGNSSInfo_t getGNSSConfigInfo();
 
+    // UBX-NAV-PVT
+    bool getNAVPVT();
+    bool pollNAVPVT();
     // full NAVPVT packet
     void getNAVPVTPacket(uint8_t* packet);
-
     // NAVPVT packet info
     // Valid packet
     bool isPacketValid();
@@ -176,21 +174,14 @@ class TeenyGPSConnect {
     uint8_t getMinute();
     uint8_t getSecond();
 
+    // UBX-NAV-SAT
+    bool getNAVSAT();
+    bool pollNAVSAT();
     // full NAVSAT packet
     void getNAVSATPacket(uint8_t* packet);
     uint16_t getNAVSATPacketLength();
     // NAVSAT packet info
     void getNAVSATInfo(ubloxNAVSATInfo_t &info_);
-
-    // Single Step Commands (for capturing host transmit packets on emulator side)
-    bool gnss_ss_begin(Stream &serialPort_);
-    void gnss_ss_setSerialRate(uint32_t baudRate);
-    bool gnss_ss_saveConfiguration();
-    bool gnss_ss_getProtocolVersion();
-    bool gnss_ss_setPortOutput(uint8_t portID, uint8_t comSettings);
-    bool gnss_ss_setMeasurementRate(uint16_t rate);
-    bool gnss_ss_setNavigationRate(uint16_t rate);
-    bool gnss_ss_setAutoNAVPVT(bool enabled);
 
   private:
     /* u-blox UBX protocol query NAVPVT gets position, velocity & time in one call.
@@ -198,8 +189,10 @@ class TeenyGPSConnect {
      * each call only succeeds once until the next fix update.
      * Use pdop and numSV to determine acceptability.
     */
-    uint32_t baudRate;
     HardwareSerial *serialPort;
+    uint32_t baudRate;
+    uint8_t autoNAVPVTRate;
+    uint8_t autoNAVSATRate;
     TeenyUbloxConnect gnss;
     volatile GnssData data;
 
@@ -207,7 +200,8 @@ class TeenyGPSConnect {
     ubloxNAVSATInfo_t navsatInfo;
 
     // GPS setup
-    bool gnss_setSerialRate(uint32_t baudRate_);
+    bool gnss_setSerialRate();
+    void gnss_config();
     void gnss_getProtocolVersion();
 
     // Age each item. If the corresponding timer times out, it's stale.

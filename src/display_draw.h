@@ -334,14 +334,6 @@ void display_refresh() {
                   gnssConfigInfo.configBlockList[i].sigCfgMask);
           displayPV.prt_str(_dispStr, 20, 0, (i*18)+84);
         }
-      } else if(menu.isMenuPageCurrent(menuPageGPSCapt)) {
-        if(menu_captRxPktInProgress) {
-          sprintf(_dispStr, " File = %s", rxPktFileName);
-          displayPV.prt_str(_dispStr, 20, 0, 64);
-          sprintf(_dispStr, " Bytes = %d", rxPktWriteCount);
-          displayPV.prt_str(_dispStr, 20, 0, 80);
-        }
-      } else if(menu.isMenuPageCurrent(menuPageGPSStep)) {
       } else if(menu.isMenuPageCurrent(menuPageGPSEmul)) {
         sprintf(_dispStr, "   EMULATOR STATE");
         displayPV.prt_str(_dispStr, 20, 0, 24);

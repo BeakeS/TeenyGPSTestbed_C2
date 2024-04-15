@@ -8,8 +8,6 @@ enum device_mode_t : int16_t {
   DM_GPSNSAT,
   DM_GPSSMAP,
   DM_GPSSCFG,
-  DM_GPSCAPT,
-  DM_GPSSSTP,
   DM_GPSEMUL
 };
 

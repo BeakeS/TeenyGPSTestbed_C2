@@ -276,6 +276,11 @@ class TeenyUbloxConnect {
     // Ublox setup
     bool    begin(Stream &serialPort_, uint16_t maxWait_ = defaultMaxWait);
 
+    // Host methods for process incoming responses/acknowledges from ublox receiver
+    // Can be called inside a timer ISR
+    // Recommend calling ever 10-50ms - depends on queue size, baud rate and packets
+    void    checkUblox();
+
     // Ublox command methods
     bool    pollUART1Port(uint16_t maxWait_ = defaultMaxWait);
     bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
@@ -284,6 +289,7 @@ class TeenyUbloxConnect {
     void    coldStart();
     void    warmStart();
     void    hotStart();
+    bool    clearConfiguration(uint32_t configMask = 0xFFFF, uint16_t maxWait_ = defaultMaxWait);
     bool    saveConfiguration(uint32_t configMask = 0xFFFF, uint16_t maxWait_ = defaultMaxWait);
     bool    pollProtocolVersion(uint16_t maxWait_ = defaultMaxWait);
     uint8_t getProtocolVersionHigh(uint16_t maxWait_ = defaultMaxWait);
@@ -299,10 +305,6 @@ class TeenyUbloxConnect {
     bool    setAutoPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTRate
     bool    setAutoNAVSAT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
     bool    setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
-
-    // Host methods for process incoming responses/acknowledges from ublox receiver
-    // can do in ISR - depends on serial read hardware queue
-    void    checkUblox();
 
     // Get the latest Position/Velocity/Time solution and fill all global variables
     // Returns true when a packet has been received

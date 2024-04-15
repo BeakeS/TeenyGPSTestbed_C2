@@ -36,8 +36,6 @@ SelectOptionUint8t selectMenuModeOptions[] = {
   {"NAVSAT", DM_GPSNSAT},
   {"SATMAP", DM_GPSSMAP},
   {"SATCFG", DM_GPSSCFG},
-//{"GPSCPT", DM_GPSCAPT},
-//{"GPSSST", DM_GPSSSTP},
   {"GPSEMU", DM_GPSEMUL}};
 TeenyMenuSelect selectMenuMode(sizeof(selectMenuModeOptions)/sizeof(SelectOptionUint8t), selectMenuModeOptions);
 TeenyMenuItem menuItemMenuMode("Device Mode", MENU_MODE, selectMenuMode, menu_menuModeCB);
@@ -157,66 +155,6 @@ TeenyMenuItem menuItemGNSSCfgBeiDouToggle( "", menu_gnssCfgBeiDouToggleCB);
 TeenyMenuItem menuItemGNSSCfgIMESToggle(   "", menu_gnssCfgIMESToggleCB);
 TeenyMenuItem menuItemGNSSCfgQZSSToggle(   "", menu_gnssCfgQZSSToggleCB);
 TeenyMenuItem menuItemGNSSCfgGLONASSToggle("", menu_gnssCfgGLONASSToggleCB);
-//
-// gps transceiver unit
-//
-void menu_entrGPSCaptCB(); // forward declaration
-void menu_exitGPSCaptCB(); // forward declaration
-TeenyMenuPage menuPageGPSCapt("GPS CAPTURE MODE", menu_entrGPSCaptCB, menu_exitGPSCaptCB);
-TeenyMenuItem menuItemGPSCapt("*START GPS CAPTURE*", menuPageGPSCapt);
-TeenyMenuItem menuItemGPSCaptExit(false); // optional return menu item
-TeenyMenuItem menuItemGPSCaptLabel0("");
-bool menu_captRxPktInProgress = false;
-void menu_captStrtRxPktCB(); // forward declaration
-TeenyMenuItem menuItemGPSCaptStrtRxPkt("Capture RX PKT", menu_captStrtRxPktCB);
-void menu_captStopRxPktCB(); // forward declaration
-TeenyMenuItem menuItemGPSCaptStopRxPkt("Save RX PKT", menu_captStopRxPktCB);
-//
-// gps single step unit
-//
-void menu_entrGPSStepCB(); // forward declaration
-void menu_exitGPSStepCB(); // forward declaration
-TeenyMenuPage menuPageGPSStep("GPS SINGLESTEP MODE", menu_entrGPSStepCB, menu_exitGPSStepCB);
-TeenyMenuItem menuItemGPSStep("*START GPS STEPPER*", menuPageGPSStep);
-TeenyMenuItem menuItemGPSStepExit(false); // optional return menu item
-void menu_sstBeginCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepBegin("gnss.begin", menu_sstBeginCB);
-void menu_sstSetBaudCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetBaud("gnss.setSerialRate", menu_sstSetBaudCB);
-void menu_sstSaveConfigCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSaveCfg("gnss.saveConfig", menu_sstSaveConfigCB);
-void menu_sstGetVersionCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepGetVersion("gnss.getVersion", menu_sstGetVersionCB);
-void menu_sstSetPortOutputCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetPortOutput("gnss.setPortOutput", menu_sstSetPortOutputCB);
-void menu_sstSetMeasRateCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepMeasRate("gnss.setMeasRate", menu_sstSetMeasRateCB);
-void menu_sstSetNavRateCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetNavRate("gnss.setNavRate", menu_sstSetNavRateCB);
-void menu_sstTogAutoPVTCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepTogAutoPVT("gnss.togAutoPVT", menu_sstTogAutoPVTCB);
-void menu_sstReqCfgPrtCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqCfgPrt("reqCfgPrt_CMD", menu_sstReqCfgPrtCB);
-void menu_sstReqCfgNavx5CB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqCfgNavx5("reqCfgNavx5_CMD", menu_sstReqCfgNavx5CB);
-void menu_sstColdStartCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepcoldStart("coldStart_CMD", menu_sstColdStartCB);
-void menu_sstReqMonVerCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqMonVer("reqMonVer_CMD", menu_sstReqMonVerCB);
-void menu_sstReqMonSmgrCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqMonSmgr("reqMonSmgr_CMD", menu_sstReqMonSmgrCB);
-void menu_sstSetCfgPrtCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetCfgPrt("setCfgPrt_CMD", menu_sstSetCfgPrtCB);
-void menu_sstReqCfgRateCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqCfgRate("reqCfgRate_CMD", menu_sstReqCfgRateCB);
-void menu_sstSetCfgRateCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetCfgRate("setCfgRate_CMD", menu_sstSetCfgRateCB);
-void menu_sstSetCfgCfgCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetCfgCfg("setCfgCfg_CMD", menu_sstSetCfgCfgCB);
-void menu_sstSetCfgMsgCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepSetCfgMsg("setCfgMsg_CMD", menu_sstSetCfgMsgCB);
-void menu_sstReqNavPvtCB(); // forward declaration
-TeenyMenuItem menuItemGPSStepReqNavPvt("reqNavPvt_CMD", menu_sstReqNavPvtCB);
 //
 // gps emulator unit
 //
@@ -461,32 +399,6 @@ void menu_setup() {
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSToggle);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgExit);
-  menuPageMain.addMenuItem(menuItemGPSCapt);
-  menuPageGPSCapt.addMenuItem(menuItemGPSCaptLabel0);
-  menuPageGPSCapt.addMenuItem(menuItemGPSCaptStrtRxPkt);
-  menuPageGPSCapt.addMenuItem(menuItemGPSCaptStopRxPkt);
-  //menuPageGPSCapt.addMenuItem(menuItemGPSCaptExit);
-  menuPageMain.addMenuItem(menuItemGPSStep);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepBegin);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetBaud);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSaveCfg);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepGetVersion);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetPortOutput);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepMeasRate);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetNavRate);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepTogAutoPVT);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqCfgPrt);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqCfgNavx5);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepcoldStart);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqMonVer);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqMonSmgr);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetCfgPrt);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqCfgRate);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetCfgRate);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetCfgCfg);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepSetCfgMsg);
-  menuPageGPSStep.addMenuItem(menuItemGPSStepReqNavPvt);
-  //menuPageGPSStep.addMenuItem(menuItemGPSStepExit);
   menuPageMain.addMenuItem(menuItemGPSEmul);
   menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel0);
   menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel1);
@@ -546,12 +458,6 @@ void menu_setup() {
       break;
     case DM_GPSSCFG:
       menu.linkMenuPage(menuPageGPSScfg);
-      break;
-    case DM_GPSCAPT:
-      menu.linkMenuPage(menuPageGPSCapt);
-      break;
-    case DM_GPSSSTP:
-      menu.linkMenuPage(menuPageGPSStep);
       break;
     case DM_GPSEMUL:
       menu.linkMenuPage(menuPageGPSEmul);
@@ -614,8 +520,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.show();
       break;
@@ -627,8 +531,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
       break;
@@ -640,8 +542,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
       menuItemGPSLogMode.hide(ubxLoggingInProgress ? true : false);
@@ -656,8 +556,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
       break;
@@ -669,8 +567,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
       break;
@@ -682,36 +578,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.show();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
-      menuItemGPSEmul.hide();
-      menuItemLabel3.hide();
-      break;
-    case DM_GPSCAPT:
-      menuItemGPSRcvr.hide();
-      menuItemGPSLogr.hide();
-      menuItemGPSNsat.hide();
-      menuItemGPSSmap.hide();
-      menuItemGPSScfg.hide();
-      menuItemGPSReset.hide();
-      menuItemLabel2.show();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.show();
-      menuItemGPSEmul.hide();
-      menuItemLabel3.hide();
-      menuItemGPSCaptStrtRxPkt.hide(menu_captRxPktInProgress ? true : false);
-      menuItemGPSCaptStopRxPkt.hide(menu_captRxPktInProgress ? false : true);
-      break;
-    case DM_GPSSSTP:
-      menuItemGPSRcvr.hide();
-      menuItemGPSLogr.hide();
-      menuItemGPSNsat.hide();
-      menuItemGPSSmap.hide();
-      menuItemGPSScfg.hide();
-      menuItemGPSReset.hide();
-      menuItemLabel2.show();
-      menuItemGPSStep.show();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.hide();
       menuItemLabel3.hide();
       break;
@@ -723,8 +589,6 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
-      menuItemGPSStep.hide();
-      menuItemGPSCapt.hide();
       menuItemGPSEmul.show();
       menuItemLabel3.hide();
       break;
@@ -847,7 +711,7 @@ void menu_exitGPSSmapCB() {
 /********************************************************************/
 void menu_gnssConfigurator(char toggleGnssIdType) {
   char _msgStr[22];
-  // GNSS State - Undefined=-1, Disabled=0, Enabled=1
+  // GNSS State - Unknown=-1, Disabled=0, Enabled=1
   typedef struct {
     int8_t GPS = -1;
     int8_t SBAS = -1;
@@ -876,7 +740,7 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
       if(toggleGnssIdType == gnssIdType) {
         toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
         if(toggleRC) gnssEnable = !gnssEnable;
-        sprintf(_msgStr, "Set CFG-GNSS RC=%d", toggleRC);
+        sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
         msg_update(_msgStr);
       }
       switch(gnssIdType) {
@@ -905,7 +769,7 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
     }
   }
   if((!pollRC) || toggleGnssIdType == '\0') {
-    sprintf(_msgStr, "Poll CFG-GNSS RC=%d", pollRC);
+    sprintf(_msgStr, "Poll CFG-GNSS rc=%d", pollRC);
     msg_update(_msgStr);
   }
   // Update toggle menu item titles
@@ -1020,361 +884,6 @@ void menu_gnssCfgGLONASSToggleCB() {
 void menu_exitGPSScfgCB() {
   deviceMode_end();
   menu.exitToParentMenuPage();
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_entrGPSCaptCB() {
-  deviceState.DEVICE_MODE = DM_GPSCAPT;
-  deviceMode_init();
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_captStrtRxPktCB() {
-  if(menu_captRxPktInProgress) return;
-  if(sdcard_openRxPktFile()) {
-    menu_captRxPktInProgress = true;
-    menuItemGPSCaptStrtRxPkt.hide();
-    menuItemGPSCaptStopRxPkt.show();
-    msg_update("Ready for RX PKT");
-  } else {
-    msg_update("SD Card Error");
-  }
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_captStopRxPktCB() {
-  char _msgStr[22];
-  if(!menu_captRxPktInProgress) return;
-  sdcard_closeRxPktFile();
-  menu_captRxPktInProgress = false;
-  menuItemGPSCaptStrtRxPkt.show();
-  menuItemGPSCaptStopRxPkt.hide();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_exitGPSCaptCB() {
-  menu_captStopRxPktCB();
-  deviceMode_end();
-  menu.exitToParentMenuPage();
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_entrGPSStepCB() {
-  deviceState.DEVICE_MODE = DM_GPSSSTP;
-  deviceMode_init();
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_exitGPSStepCB() {
-  deviceMode_end();
-  menu.exitToParentMenuPage();
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstBeginCB() {
-  char _msgStr[22];
-  gpsSerial->begin(GPS_BAUD_RATE);
-  bool rcode = gps.gnss_ss_begin(*gpsSerial);
-  sprintf(_msgStr, "gnss.begin rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetBaudCB() {
-  char _msgStr[22];
-  gps.gnss_ss_setSerialRate(GPS_BAUD_RATE);
-  sprintf(_msgStr, "gnss.setSerRate");
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSaveConfigCB() {
-  char _msgStr[22];
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_saveConfiguration();
-  sprintf(_msgStr, "gnss.saveCfg rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstGetVersionCB() {
-  char _msgStr[22];
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_getProtocolVersion();
-  sprintf(_msgStr, "gnss.getPV rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetPortOutputCB() {
-  char _msgStr[22];
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_setPortOutput(COM_PORT_UART1, COM_TYPE_UBX);
-  sprintf(_msgStr, "gnss.setPtOut rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetMeasRateCB() {
-  char _msgStr[22];
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_setMeasurementRate(1000);
-  sprintf(_msgStr, "gnss.setMR rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetNavRateCB() {
-  char _msgStr[22];
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_setNavigationRate(1);
-  sprintf(_msgStr, "gnss.setNR rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstTogAutoPVTCB() {
-  char _msgStr[22];
-  static bool enable = true;
-  while(gpsSerial->available()) gpsSerial->read();
-  bool rcode = gps.gnss_ss_setAutoNAVPVT(enable);
-  sprintf(_msgStr, "gnss.setANPVT rc=%d", rcode);
-  msg_update(_msgStr);
-  displayRefresh = true;
-  enable = !enable;
-}
-
-/********************************************************************/
-void menu_sstReqCfgPrtCB() {
-  char _msgStr[22];
-  uint8_t host_reqCFGPRT[9]  = {0xb5,0x62,0x06,0x00,0x01,0x00,0x01,0x08,0x22};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqCFGPRT, sizeof(host_reqCFGPRT));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstReqCfgNavx5CB() {
-  char _msgStr[22];
-  uint8_t host_reqCFGNAVX5[8]  = {0xb5,0x62,0x06,0x23,0x00,0x00,0x29,0x81};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqCFGNAVX5, sizeof(host_reqCFGNAVX5));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstColdStartCB() {
-  char _msgStr[22];
-  const uint8_t host_coldStart[12] = {0xB5,0x62,0x06,0x04,0x04,0x00,0xFF,0xB9,0x02,0x00,0xC8,0x8F};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_coldStart, sizeof(host_coldStart));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstReqMonVerCB() {
-  char _msgStr[22];
-  uint8_t host_reqMONVER[8]  = {0xb5,0x62,0x0a,0x04,0x00,0x00,0x0e,0x34};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqMONVER, sizeof(host_reqMONVER));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstReqMonSmgrCB() {
-  char _msgStr[22];
-  uint8_t host_reqMONSMGR[8]  = {0xb5,0x62,0x0a,0x2e,0x00,0x00,0x38,0xb2};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqMONSMGR, sizeof(host_reqMONSMGR));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetCfgPrtCB() {
-  char _msgStr[22];
-  uint8_t host_setCFGPRT[28]  = {0xb5,0x62,0x06,0x00,0x14,0x00,0x01,0x00,0x00,0x00,0xc0,0x08,0x00,0x00,0x00,0x96,0x00,0x00,0x07,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x81,0x84};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_setCFGPRT, sizeof(host_setCFGPRT));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstReqCfgRateCB() {
-  char _msgStr[22];
-  uint8_t host_reqCFGRATE[8]  = {0xb5,0x62,0x06,0x08,0x00,0x00,0x0e,0x30};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqCFGRATE, sizeof(host_reqCFGRATE));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetCfgRateCB() {
-  char _msgStr[22];
-  uint8_t host_setCFGRATE[14] = {0xb5,0x62,0x06,0x08,0x06,0x00,0xe8,0x03,0x01,0x00,0x01,0x00,0x01,0x39};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_setCFGRATE, sizeof(host_setCFGRATE));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetCfgCfgCB() {
-  char _msgStr[22];
-  uint8_t host_setCFGCFG[20]  = {0xb5,0x62,0x06,0x09,0x0c,0x00,0x00,0x00,0x00,0x00,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00,0x19,0x80};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_setCFGCFG, sizeof(host_setCFGCFG));
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_sstSetCfgMsgCB() {
-  char _msgStr[22];
-  static bool enable = true;
-  uint8_t host_setCFGMSG1[11]  = {0xb5,0x62,0x06,0x01,0x03,0x00,0x01,0x07,0x01,0x13,0x51};
-  uint8_t host_setCFGMSG0[11]  = {0xb5,0x62,0x06,0x01,0x03,0x00,0x01,0x07,0x00,0x12,0x50};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  if(enable) {
-    gpsSerial->write(host_setCFGMSG1, sizeof(host_setCFGMSG1));
-  } else {
-    gpsSerial->write(host_setCFGMSG0, sizeof(host_setCFGMSG0));
-  }
-  while((millis()-_nowMS)<500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
-  displayRefresh = true;
-  enable = !enable;
-}
-
-/********************************************************************/
-void menu_sstReqNavPvtCB() {
-  char _msgStr[22];
-  uint8_t host_reqNAVPVT[8]  = {0xb5,0x62,0x01,0x07,0x00,0x00,0x08,0x19};
-  while(gpsSerial->available()) gpsSerial->read();
-  if(!sdcard_openRxPktFile()) return;
-  uint32_t _nowMS = millis();
-  gpsSerial->write(host_reqNAVPVT, sizeof(host_reqNAVPVT));
-  while((millis()-_nowMS)<1500) {
-    sdcard_writeRxPktFile();
-  }
-  sdcard_closeRxPktFile();
-  sprintf(_msgStr, "%s l=%d",
-          rxPktFileName,
-          min(rxPktWriteCount, 999));
-  msg_update(_msgStr);
   displayRefresh = true;
 }
 

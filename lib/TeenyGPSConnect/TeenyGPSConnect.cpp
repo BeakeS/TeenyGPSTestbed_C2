@@ -31,51 +31,79 @@ TeenyGPSConnect::TeenyGPSConnect() { }
 TeenyGPSConnect::~TeenyGPSConnect() { }
 
 /********************************************************************/
-// Direct serialPort commands
+// GPS SETUP
 /********************************************************************/
-//void TeenyGPSConnect::begin(uint32_t baudRate_) {
-//  serialPort->begin(baudRate_);
-//}
-//
-//void TeenyGPSConnect::end() {
-//  serialPort->end();
-//}
-
-/********************************************************************/
-// GPS INIT PROCS
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode, uint8_t autoNAVPVTRate, uint8_t autoNAVSATRate) {
+bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode_, uint8_t autoNAVPVTRate_, uint8_t autoNAVSATRate_) {
 
   // Assign serial port
   serialPort = &serialPort_;
 
-  // Set gnss/gps baudRate
-  if(!gnss_setSerialRate(baudRate_)) return false;
+  // Set gnss baudRate
+  baudRate = baudRate_;
+  if(!gnss_setSerialRate()) return false;
+
+  // Save gnss config
+  autoNAVPVTRate = autoNAVPVTRate_;
+  autoNAVSATRate = autoNAVSATRate_;
 
   // Optional startup mode
-  if(startMode > 0) {
-    switch(startMode) {
-      case 1: gnss.hotStart();  break;
-      case 2: gnss.warmStart(); break;
-      case 3: gnss.coldStart(); break;
-      case 4: gnss.hardwareReset(); break;
+  if((startMode_ > 0) && (startMode_ < 5)) {
+    switch(startMode_) {
+      case 1: gnss.hotStart();
+              break;
+      case 2: gnss.warmStart();
+              break;
+      case 3: gnss.coldStart();
+              break;
+      case 4: gnss.hardwareReset();
+              break;
     }
     // Re-establish comms after hot/warm/cold start and software/hardware reset
+    delay(500);
+    if(!gnss_setSerialRate()) return false;
+    bool connReestablished = false;
     int32_t startTime = millis();
     while((millis() - startTime) < 1000) {
-      if(gnss.pollUART1Port()) break;
+      if(gnss.pollUART1Port()) connReestablished = true;
+    }
+    if(!connReestablished) return false;
+  }
+
+  // Config gnss
+  gnss_config();
+
+  return true;
+}
+
+/********************************************************************/
+bool TeenyGPSConnect::gnss_setSerialRate() {
+  serialPort->begin(baudRate);
+  if(gnss.begin(*serialPort)) {
+    return true;
+  } else {
+    delay(100);
+    serialPort->begin(9600); // default for many gps modules
+    if(gnss.begin(*serialPort)) {
+      gnss.setSerialRate(baudRate);
+      delay(100);
+      serialPort->begin(baudRate);
+      if(gnss.begin(*serialPort)) {
+        return true;
+      }
     }
   }
+  return false;
+}
+
+/********************************************************************/
+void TeenyGPSConnect::gnss_config() {
 
   // Get protocol version
   gnss_getProtocolVersion();
 
-  // Setup GSP Module with auto NAV-PVT non-blocking access
-  // getNAVPVT() will return true if a new navigation solution is available
   gnss.setPortOutput(COM_PORT_UART1, COM_TYPE_UBX); //Set the UART port to output UBX only
-  gnss.setMeasurementRate(1000);       //Produce a measurement every 1000ms
-  gnss.setNavigationRate(1);           //Produce a navigation solution every measurement
+  gnss.setMeasurementRate(1000);          //Produce a measurement every 1000ms
+  gnss.setNavigationRate(1);              //Produce a navigation solution every measurement
   gnss.setAutoNAVPVTRate(autoNAVPVTRate); //Include NAV-PVT reports 
   gnss.setAutoNAVSATRate(autoNAVSATRate); //Include NAV-SAT reports 
 
@@ -85,30 +113,6 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
   data.location_valid = false;
   data.date_valid = false;
   data.time_valid = false;
-
-  return true;
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_setSerialRate(uint32_t baudRate_) {
-  serialPort->begin(baudRate_);
-  if(!gnss.begin(*serialPort)) {
-    delay(100);
-    serialPort->begin(9600); // default for many gps modules
-    if(gnss.begin(*serialPort)) {
-      gnss.setSerialRate(baudRate_);
-      delay(100);
-      serialPort->begin(baudRate_);
-      if(gnss.begin(*serialPort)) {
-        //gnss.saveConfiguration();
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-  return true;
 }
 
 /********************************************************************/
@@ -118,12 +122,36 @@ void TeenyGPSConnect::gnss_getProtocolVersion() {
 }
 
 /********************************************************************/
-// GNSS ACCESS PROCS
+byte TeenyGPSConnect::getProtocolVersionHigh() {
+  return data.protocolVersionHigh;
+}
+
+/********************************************************************/
+byte TeenyGPSConnect::getProtocolVersionLow() {
+  return data.protocolVersionLow;
+}
+
+/********************************************************************/
+// GNSS SERIAL INPUT PROCESSING
 /********************************************************************/
 void TeenyGPSConnect::gnss_checkUblox() {
   gnss.checkUblox();
 }
 
+/********************************************************************/
+// FACTORY RESET
+/********************************************************************/
+bool TeenyGPSConnect::factoryReset() {
+  if(gnss.clearConfiguration(0x0000FFFF)) {
+    gnss.hardwareReset();
+    // Will need system reboot to access GPS module
+    return true;
+  }
+  return false;
+}
+
+/********************************************************************/
+// UBX-CFG-GNSS
 /********************************************************************/
 bool TeenyGPSConnect::pollGNSSSelectionInfo() {
   return gnss.pollGNSSSelectionInfo();
@@ -148,7 +176,7 @@ ubloxCFGGNSSInfo_t TeenyGPSConnect::getGNSSConfigInfo() {
 bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
   if(gnss.setGNSSConfig(gnssId, enable)) {
     //Applying the GNSS system configuration takes some time.
-    //After issuing UBXCFG-GNSS, wait first for the acknowledgement
+    //After issuing UBX-CFG-GNSS, wait first for the acknowledgement
     //from the receiver and then 0.5 seconds before sending the next command.
     delay(500);
     //If Galileo is enabled, UBX-CFG-GNSS must be followed by
@@ -157,16 +185,22 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
     if(gnss.saveConfiguration(0x00000010)) {
       gnss.hardwareReset();
       // Re-establish comms after cold start and hardware reset
+      delay(500);
+      if(!gnss_setSerialRate()) return false;
       int32_t startTime = millis();
       while((millis() - startTime) < 1000) {
-        if(gnss.pollUART1Port()) break;
+        if(gnss.pollUART1Port()) {
+          gnss_config();
+          return true;
+        }
       }
-      return true;
     }
   }
   return false;
 }
 
+/********************************************************************/
+// UBX-NAV-PVT
 /********************************************************************/
 bool TeenyGPSConnect::getNAVPVT() {
   // getNAVPVT will return true if there actually is a fresh
@@ -325,6 +359,8 @@ uint8_t TeenyGPSConnect::getSecond() {
 }
 
 /********************************************************************/
+// UBX-NAV-SAT
+/********************************************************************/
 bool TeenyGPSConnect::getNAVSAT() {
   // getNAVSAT will return true if there actually is fresh
   // navigation satellite data.
@@ -365,55 +401,5 @@ uint16_t TeenyGPSConnect::getNAVSATPacketLength() {
 /********************************************************************/
 void TeenyGPSConnect::getNAVSATInfo(ubloxNAVSATInfo_t &info_) {
   info_ = navsatInfo;
-}
-
-/********************************************************************/
-byte TeenyGPSConnect::getProtocolVersionHigh() {
-  return data.protocolVersionHigh;
-}
-byte TeenyGPSConnect::getProtocolVersionLow() {
-  return data.protocolVersionLow;
-}
-
-/********************************************************************/
-// Single Step Commands (for capturing host transmit packets on emulator side)
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_begin(Stream &serialPort_) {
-  return gnss.begin(serialPort_);
-}
-
-/********************************************************************/
-void TeenyGPSConnect::gnss_ss_setSerialRate(uint32_t baudRate) {
-  gnss.setSerialRate(baudRate);
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_saveConfiguration() {
-  return gnss.saveConfiguration();
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_getProtocolVersion() {
-  return gnss.pollProtocolVersion();
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_setPortOutput(uint8_t portID, uint8_t comSettings) {
-  return gnss.setPortOutput(portID, comSettings);
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_setMeasurementRate(uint16_t rate) {
-  return gnss.setMeasurementRate(rate);
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_setNavigationRate(uint16_t rate) {
-  return gnss.setNavigationRate(rate);
-}
-
-/********************************************************************/
-bool TeenyGPSConnect::gnss_ss_setAutoNAVPVT(bool enabled) {
-  return gnss.setAutoNAVPVT(enabled);
 }
 

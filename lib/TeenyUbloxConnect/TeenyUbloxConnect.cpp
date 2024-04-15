@@ -127,6 +127,20 @@ void TeenyUbloxConnect::hotStart() {
 }
 
 /********************************************************************/
+bool TeenyUbloxConnect::clearConfiguration(uint32_t configMask, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_CFG;
+  commandPacket.payloadLength = 12;
+  memset(commandPacket.payload, 0, commandPacket.payloadLength);
+  commandPacket.payload[0] = configMask & 0xFF;
+  commandPacket.payload[1] = (configMask >> 8) & 0xFF;
+  commandPacket.payload[2] = (configMask >> 16) & 0xFF;
+  commandPacket.payload[3] = (configMask >> 24) & 0xFF;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
+
+/********************************************************************/
 bool TeenyUbloxConnect::saveConfiguration(uint32_t configMask, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_CFG;

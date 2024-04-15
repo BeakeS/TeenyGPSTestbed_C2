@@ -279,13 +279,6 @@ void loop() {
         displayRefresh = true;
       }
       break;
-    case DM_GPSCAPT:
-      if(menu_captRxPktInProgress) {
-        sdcard_writeRxPktFile();
-      }
-      break;
-    case DM_GPSSSTP:
-      break;
     case DM_GPSEMUL:
       // Process host commands
       emulator.processIncomingPacket();

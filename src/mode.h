@@ -86,20 +86,6 @@ void deviceMode_init() {
         msg_update("ERROR - GPS Missing");
       }
       break;
-    case DM_GPSCAPT:
-      //statusLED.pulse_repeat(1);
-      rtc.setValid(false);
-      gpsSerial = &Serial2;
-      gpsSerial->begin(GPS_BAUD_RATE);
-      msg_update("GPS Serial Enabled");
-      break;
-    case DM_GPSSSTP:
-      //statusLED.pulse_repeat(1);
-      rtc.setValid(false);
-      gpsSerial = &Serial2;
-      gpsSerial->begin(GPS_BAUD_RATE);
-      msg_update("GPS Serial Enabled");
-      break;
     case DM_GPSEMUL:
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
@@ -117,30 +103,29 @@ void deviceMode_init() {
 void deviceMode_end() {
   switch(deviceState.DEVICE_MODE) {
     case DM_GPSRCVR:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
       gpsEnabled = false;
       msg_update("GPS Receiver Stopped");
       break;
     case DM_GPSLOGR:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
       gpsEnabled = false;
       msg_update("GPS Logger Stopped");
       break;
     case DM_GPSNSAT:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
       gpsEnabled = false;
       msg_update("GPS NAVSAT Stopped");
       break;
     case DM_GPSSMAP:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
       gpsEnabled = false;
       msg_update("GPS SATMAP Stopped");
       break;
     case DM_GPSSCFG:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
       gpsEnabled = false;
       msg_update("GPS SATCFG Stopped");
-      break;
-    case DM_GPSCAPT:
-      msg_update("Capture Mode Stopped");
-      break;
-    case DM_GPSSSTP:
-      msg_update("Stepper Mode Stopped");
       break;
     case DM_GPSEMUL:
       emulator_end();
