@@ -251,6 +251,23 @@ TeenyMenuItem menuItemRTCSecond("RTC Second", menuRTCSecond, menuRTCSecondMin, m
 // rtc set date/time
 TeenyMenuItem menuItemRTCSetDateTime("Set RTC Date/Time", menu_setRTC_CB);
 //
+// GPS SETTINGS
+//
+// gps settings menu
+TeenyMenuPage menuPageGPSSettings("GPS SETTINGS");
+TeenyMenuItem menuItemGPSSettings("GPS Settings", menuPageGPSSettings);
+TeenyMenuItem menuItemGPSSettingsExit(false); // optional return menu item
+//
+// gps factory reset menu
+void menu_cancelGPSFactoryResetCB(); // forward declaration
+TeenyMenuPage menuPageGPSFactoryReset("GPS FACTORY RESET", nullptr, menu_cancelGPSFactoryResetCB);
+TeenyMenuItem menuItemGPSFactoryReset("GPS Factory Reset", menuPageGPSFactoryReset);
+TeenyMenuItem menuItemGPSFactoryResetExit(false); // optional return menu item
+//
+// confirm gps reset
+void menu_confirmGPSFactoryResetCB(); // forward declaration
+TeenyMenuItem menuItemConfirmGPSFactoryReset("Confirm Reset?", menu_confirmGPSFactoryResetCB);
+//
 // EMULATOR SETTINGS
 //
 // emulator settings menu
@@ -258,7 +275,7 @@ TeenyMenuPage menuPageEMULSettings("EMULATOR SETTINGS");
 TeenyMenuItem menuItemEMULSettings("Emulator Settings", menuPageEMULSettings);
 TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 //
-// display timeout
+// emulator cold start packet count
 uint8_t menuColdStartPVTPktsMin = 0;
 uint8_t menuColdStartPVTPktsMax = 60;
 TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, menuColdStartPVTPktsMin, menuColdStartPVTPktsMax);
@@ -425,6 +442,11 @@ void menu_setup() {
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel1);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel2);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsExit); // optional return menu item
+  menuPageTopLevelSettings.addMenuItem(menuItemGPSSettings);
+  menuPageGPSSettings.addMenuItem(menuItemGPSFactoryReset);
+  menuPageGPSFactoryReset.addMenuItem(menuItemConfirmGPSFactoryReset);
+  menuPageGPSFactoryReset.addMenuItem(menuItemGPSFactoryResetExit);
+  menuPageGPSSettings.addMenuItem(menuItemGPSSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
@@ -920,6 +942,26 @@ void menu_setRTC_CB() {
                  menuRTCHour, menuRTCMinute, menuRTCSecond,
                  -deviceState.TIMEZONE);
   msg_update("RTC Date/Time Set");
+}
+
+/********************************************************************/
+void menu_cancelGPSFactoryResetCB() {
+  menu.exitToParentMenuPage();
+  msg_update("GPS Reset Canceled");
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_confirmGPSFactoryResetCB() {
+  menu.exitToParentMenuPage();
+  gpsSerial = &Serial2;
+  if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0) &&
+     gps.factoryReset()) {
+    msg_update("GPS Reset Completed");
+  } else {
+    msg_update("GPS Reset Failed");
+  }
+  displayRefresh = true;
 }
 
 /********************************************************************/
