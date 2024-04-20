@@ -276,9 +276,9 @@ TeenyMenuItem menuItemEMULSettings("Emulator Settings", menuPageEMULSettings);
 TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 //
 // emulator cold start packet count
-uint8_t menuColdStartPVTPktsMin = 0;
-uint8_t menuColdStartPVTPktsMax = 60;
-TeenyMenuItem menuItemColdStartPVTPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, menuColdStartPVTPktsMin, menuColdStartPVTPktsMax);
+uint8_t menuColdStartPktsMin = 0;
+uint8_t menuColdStartPktsMax = 60;
+TeenyMenuItem menuItemColdStartPkts("ColdStrtPkts", deviceState.EMUL_NUMCOLDSTARTPACKETS, menuColdStartPktsMin, menuColdStartPktsMax);
 //
 // display brightness
 void menu_displayBrightnessCB(); // forward declaration
@@ -448,7 +448,7 @@ void menu_setup() {
   menuPageGPSFactoryReset.addMenuItem(menuItemGPSFactoryResetExit);
   menuPageGPSSettings.addMenuItem(menuItemGPSSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
-  menuPageEMULSettings.addMenuItem(menuItemColdStartPVTPkts);
+  menuPageEMULSettings.addMenuItem(menuItemColdStartPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemDisplayBrightness);
   menuPageTopLevelSettings.addMenuItem(menuItemDisplayTimeout);
@@ -657,8 +657,11 @@ void menu_startGPSLogrCB() {
     menuItemGPSLogMode.hide();
     menuItemGPSLogrStrtLog.hide();
     menuItemGPSLogrStopLog.show();
-    msg_update("PVT Logging Started");
+    msg_update("GPS Logging Started");
   } else {
+    msg_update("SD Card Error");
+  }
+  if(!sdcard_openGPXLoggingFile()) {
     msg_update("SD Card Error");
   }
   displayRefresh = true;
@@ -678,6 +681,7 @@ void menu_stopGPSLogrCB() {
           min(ubxLoggingFileWriteCount, 9999),
           min(ubxLoggingFileWriteValidCount, 9999));
   msg_update(_msgStr);
+  sdcard_closeGPXLoggingFile();
   displayRefresh = true;
 }
 

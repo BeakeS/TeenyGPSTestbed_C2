@@ -8,6 +8,7 @@ bool sdcardEnabled;
 // m5stack core2 chip select = 4
 const int sdChipSelect = 4;
 File sdFile; // SD file pointer
+File sdFile_gpx; // SD file pointer
 
 /********************************************************************/
 bool sdcard_setup() {
@@ -69,9 +70,9 @@ bool sdcard_deviceStateRestore() {
 /********************************************************************/
 // UBX Logging File Writer
 /********************************************************************/
-bool ubxLoggingInProgress = false;
-uint8_t ubxLoggingFileNum = 0;
-char ubxLoggingFileName[14]={0};
+bool     ubxLoggingInProgress = false;
+uint8_t  ubxLoggingFileNum = 0;
+char     ubxLoggingFileName[14]={0};
 uint16_t ubxLoggingFileWriteCount;
 uint16_t ubxLoggingFileWriteValidCount;
 /********************************************************************/
@@ -102,41 +103,51 @@ uint16_t sdcard_closeLoggingFile() {
 }
 
 /********************************************************************/
-// UBX Emulation Loop File Reader
+// GPX Logging File Writer
 /********************************************************************/
-// TBD
-
+uint8_t  gpxLoggingFileNum = 0;
+char     gpxLoggingFileName[14]={0};
+uint16_t gpxLoggingFileWriteCount;
 /********************************************************************/
-// Rx Pkt File Writer
-/********************************************************************/
-uint8_t rxPktFileNum = 0;
-char rxPktFileName[14]={0};
-uint16_t rxPktWriteCount;
-/********************************************************************/
-bool sdcard_openRxPktFile() {
+bool sdcard_openGPXLoggingFile() {
   if(!sdcardEnabled) return false;
-  rxPktWriteCount = 0;
-  while(gpsSerial->available()) gpsSerial->read();
-  sprintf(rxPktFileName, "/RXPKT%03d.hex", rxPktFileNum);
-  if(SD.exists(rxPktFileName)) {
-    if(!SD.remove(rxPktFileName)) return false;
+  sprintf(gpxLoggingFileName, "/GPSLOG%02d.gpx", gpxLoggingFileNum);
+  if(SD.exists(gpxLoggingFileName)) {
+    if(!SD.remove(gpxLoggingFileName)) return false;
   }
   //SdFile::dateTimeCallback(sdDateTimeCB);
-  sdFile = SD.open(rxPktFileName, FILE_WRITE);
-  if(!sdFile) return false;
+  sdFile_gpx = SD.open(gpxLoggingFileName, FILE_WRITE);
+  if(!sdFile_gpx) return false;
+  sdFile_gpx.write((uint8_t*)"<gpx version=\"1.1\" creator=\"TeenyGPSTestbed\">\n",
+                   strlen("<gpx version=\"1.1\" creator=\"TeenyGPSTestbed\">\n"));
+  sdFile_gpx.write((uint8_t*)"  <trk>\n",
+                   strlen("  <trk>\n"));
+  sdFile_gpx.write((uint8_t*)"    <trkseg>\n",
+                   strlen("    <trkseg>\n"));
+  gpxLoggingFileWriteCount = 0;
   return true;
 }
 /********************************************************************/
-void sdcard_writeRxPktFile() {
-  while(gpsSerial->available()) {
-    sdFile.write(gpsSerial->read());
-    rxPktWriteCount++;
-  }
+void sdcard_writeGPXLoggingFile(const uint8_t *buf, size_t size) {
+  sdFile_gpx.write(buf, size);
+  gpxLoggingFileWriteCount++;
 }
 /********************************************************************/
-uint16_t sdcard_closeRxPktFile() {
-  sdFile.close();
-  rxPktFileNum++;
-  return rxPktWriteCount;
+uint16_t sdcard_closeGPXLoggingFile() {
+  sdFile_gpx.write((uint8_t*)"    </trkseg>\n",
+                   strlen("    </trkseg>\n"));
+  sdFile_gpx.write((uint8_t*)"  </trk>\n",
+                   strlen("  </trk>\n"));
+  sdFile_gpx.write((uint8_t*)"</gpx>\n",
+                   strlen("</gpx>\n"));
+  sdFile_gpx.close();
+  gpxLoggingFileNum++;
+  if(gpxLoggingFileNum > 99) gpxLoggingFileNum = 0;
+  return gpxLoggingFileWriteCount;
 }
+
+/********************************************************************/
+// UBX Emulation Loop File Reader
+/********************************************************************/
+// TBD
 

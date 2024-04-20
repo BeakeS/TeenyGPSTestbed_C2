@@ -18,7 +18,7 @@ typedef struct {
   int16_t  DEVICE_MODE = DM_IDLE;
   uint8_t  GPSRESET = GPS_NORESET;
   uint8_t  GPSLOGMODE = GPSLOG_NAVPVTNAVSAT;
-  uint8_t  EMUL_NUMCOLDSTARTPVTPACKETS = 10;
+  uint8_t  EMUL_NUMCOLDSTARTPACKETS = 10;
   uint8_t  DISPLAYBRIGHTNESS = 50;
   uint8_t  DISPLAYTIMEOUT = 10;
   bool     STATUSLED = true;
@@ -46,8 +46,8 @@ bool writeDeviceStateKVS() {
   rc = deviceStateKVS.set("DEVICE_MODE", strlen("DEVICE_MODE"),
                           (uint8_t*)&deviceState.DEVICE_MODE, sizeof(deviceState.DEVICE_MODE));
   if(!rc) return false;
-  rc = deviceStateKVS.set("EMUL_NUMCOLDSTARTPVTPACKETS", strlen("EMUL_NUMCOLDSTARTPVTPACKETS"),
-                          (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPVTPACKETS));
+  rc = deviceStateKVS.set("EMUL_NUMCOLDSTARTPACKETS", strlen("EMUL_NUMCOLDSTARTPACKETS"),
+                          (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPACKETS));
   if(!rc) return false;
   rc = deviceStateKVS.set("DISPLAYBRIGHTNESS", strlen("DISPLAYBRIGHTNESS"),
                           (uint8_t*)&deviceState.DISPLAYBRIGHTNESS, sizeof(deviceState.DISPLAYBRIGHTNESS));
@@ -76,8 +76,8 @@ bool readDeviceStateKVS() {
   rc = deviceStateKVS.get("DEVICE_MODE", strlen("DEVICE_MODE"),
                           (uint8_t*)&deviceState.DEVICE_MODE, sizeof(deviceState.DEVICE_MODE));
   if(!rc) return false;
-  rc = deviceStateKVS.get("EMUL_NUMCOLDSTARTPVTPACKETS", strlen("EMUL_NUMCOLDSTARTPVTPACKETS"),
-                          (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPVTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPVTPACKETS));
+  rc = deviceStateKVS.get("EMUL_NUMCOLDSTARTPACKETS", strlen("EMUL_NUMCOLDSTARTPACKETS"),
+                          (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPACKETS));
   if(!rc) return false;
   rc = deviceStateKVS.get("DISPLAYBRIGHTNESS", strlen("DISPLAYBRIGHTNESS"),
                           (uint8_t*)&deviceState.DISPLAYBRIGHTNESS, sizeof(deviceState.DISPLAYBRIGHTNESS));

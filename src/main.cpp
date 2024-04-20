@@ -73,7 +73,7 @@ HardwareSerial *emulatorSerial;
 // Pulsed Outputs
 //#include <TeenyPulser.h>
 // Status LED Defines
-//TeenyPulser statusLED(13, true, 20, 50, 4000);
+//TeenyPulser statusLED(13, true);
 
 /********************************************************************/
 // Device Mode
@@ -95,7 +95,7 @@ void setup() {
   M5.begin();
 
   // setup statusLED
-//  statusLED.init();
+//  statusLED.init(20, 50, 4000);
 
   // Setup display
   display_setup();
@@ -237,11 +237,30 @@ void loop() {
         if(ubxLoggingInProgress &&
            ((deviceState.GPSLOGMODE == GPSLOG_NAVPVT) ||
             (deviceState.GPSLOGMODE == GPSLOG_NAVPVTNAVSAT))) {
+          // UBX packet logging
           uint8_t navpvtPacket[UBX_NAV_PVT_PACKETLENGTH];
           gps.getNAVPVTPacket(navpvtPacket);
           sdcard_writeLoggingFile(navpvtPacket, UBX_NAV_PVT_PACKETLENGTH);
           ubxLoggingFileWriteCount++;
           if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
+          // GPX track logging
+          char _latStr[11];
+          dtostrf(gps.getLatitude(), -9, 6, _latStr);
+          char _lonStr[11];
+          dtostrf(gps.getLongitude(), -9, 6, _lonStr);
+          rtc_datetime_t dateTime;
+          dateTime.year   = gps.getYear();
+          dateTime.month  = gps.getMonth();
+          dateTime.day    = gps.getDay();
+          dateTime.hour   = gps.getHour();
+          dateTime.minute = gps.getMinute();
+          dateTime.second = gps.getSecond();
+          char* _itdStr = rtc.getISO8601DateTimeStr(dateTime);
+          // trkpt - "<trkpt lat=\"45.4431641\" lon=\"-121.7295456\"><ele>122</ele><time>2001-06-02T00:18:15Z</time></trkpt>\n"
+          char _trkptStr[256];
+          sprintf(_trkptStr, "      <trkpt lat=\"%s\" lon=\"%s\"><ele>%d</ele><time>%sZ</time></trkpt>\n",
+                  _latStr, _lonStr, gps.getAltitudeMSL(), _itdStr);
+          sdcard_writeGPXLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
         }
         displayRefresh = true;
       } else if(gps.getNAVSAT()) {
@@ -300,7 +319,7 @@ void loop() {
       if(!emulatorLoopEnabled) break;
       // Update loop event every second
       if(_clockTick_1sec) {
-        if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPVTPACKETS) {
+        if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPACKETS) {
           emulatorColdStartPacketCount++;
           emulator.setEmuColdOutputPackets(); // Sets cold NAVPVT and NAVSAT packets
           //statusLED.pulse(1);
