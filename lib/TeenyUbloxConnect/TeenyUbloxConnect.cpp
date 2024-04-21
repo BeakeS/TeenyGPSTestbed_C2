@@ -734,6 +734,10 @@ void TeenyUbloxConnect::setNAVPVTPacketInfo() {
   ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[29] << 8;
   ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[30] << 16;
   ubloxNAVPVTInfo.latitude |= ubloxNAVPVTPacketBuffer.payload[31] << 24;
+  ubloxNAVPVTInfo.altitude = ubloxNAVPVTPacketBuffer.payload[32];
+  ubloxNAVPVTInfo.altitude |= ubloxNAVPVTPacketBuffer.payload[33] << 8;
+  ubloxNAVPVTInfo.altitude |= ubloxNAVPVTPacketBuffer.payload[34] << 16;
+  ubloxNAVPVTInfo.altitude |= ubloxNAVPVTPacketBuffer.payload[35] << 24;
   ubloxNAVPVTInfo.altitudeMSL = ubloxNAVPVTPacketBuffer.payload[36];
   ubloxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[37] << 8;
   ubloxNAVPVTInfo.altitudeMSL |= ubloxNAVPVTPacketBuffer.payload[38] << 16;
@@ -802,6 +806,9 @@ int32_t TeenyUbloxConnect::getLongitude() {
 }
 int32_t TeenyUbloxConnect::getLatitude() {
   return ubloxNAVPVTInfo.latitude;
+}
+int32_t TeenyUbloxConnect::getAltitude() {
+  return ubloxNAVPVTInfo.altitude;
 }
 int32_t TeenyUbloxConnect::getAltitudeMSL() {
   return ubloxNAVPVTInfo.altitudeMSL;

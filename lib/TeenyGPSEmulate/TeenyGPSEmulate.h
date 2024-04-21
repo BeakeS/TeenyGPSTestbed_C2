@@ -133,6 +133,7 @@ typedef struct {
   uint8_t  pad01a;
   int32_t  longitude;
   int32_t  latitude;
+  int32_t  altitude;
   int32_t  altitudeMSL;
   uint32_t hAcc;
   uint32_t vAcc;

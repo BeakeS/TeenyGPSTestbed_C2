@@ -244,6 +244,7 @@ void loop() {
           ubxLoggingFileWriteCount++;
           if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
           // GPX track logging
+          // See "https://www.topografix.com/GPX/1/1/" for details
           char _latStr[11];
           dtostrf(gps.getLatitude(), -9, 6, _latStr);
           char _lonStr[11];

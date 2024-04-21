@@ -62,6 +62,7 @@ struct GnssData {
   // Position
   float_t latitude;     // Longitude in degrees
   float_t longitude;    // Longitude in degrees
+  int32_t altitude;     // Altitude above ellipsoid in meters
   int32_t altitudeMSL;  // Altitude above mean sea level in meters
   float_t heading;      // Heading of motion (2-D)
   // Confidence
@@ -157,6 +158,7 @@ class TeenyGPSConnect {
     // Position and orientation
     float getLatitude();       // Longitude in degrees
     float getLongitude();      // Longitude in degrees
+    int32_t getAltitude();     // Altitude above ellipsoid in meters
     int32_t getAltitudeMSL();  // Altitude above mean sea level in meters
     float getHeading();        // Heading of motion (2-D)
     // Confidence

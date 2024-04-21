@@ -206,6 +206,7 @@ bool TeenyGPSConnect::getNAVPVT() {
       location_timer.restart();
       data.latitude = (float)(gnss.getLatitude() * 1e-7);
       data.longitude = (float)(gnss.getLongitude() * 1e-7);
+      data.altitude = gnss.getAltitude() / 1000;
       data.altitudeMSL = gnss.getAltitudeMSL() / 1000;
       data.heading = (float)(gnss.getHeading() * 1e-5);
       data.numSV = gnss.getSIV();
@@ -260,6 +261,7 @@ bool TeenyGPSConnect::pollNAVPVT() {
     data.location_valid = gnss.getGnssFixOk();
     data.longitude = (float)(gnss.getLongitude() * 1e-7);
     data.latitude = (float)(gnss.getLatitude() * 1e-7);
+    data.altitude = gnss.getAltitude() / 1000;
     data.altitudeMSL = gnss.getAltitudeMSL() / 1000;
     data.heading = (float)(gnss.getHeading() * 1e-5);
     data.numSV = gnss.getSIV();
@@ -299,6 +301,9 @@ float TeenyGPSConnect::getLatitude() {
 }
 float TeenyGPSConnect::getLongitude() {
   return data.longitude;
+}
+int32_t TeenyGPSConnect::getAltitude() {
+  return data.altitude;
 }
 int32_t TeenyGPSConnect::getAltitudeMSL() {
   return data.altitudeMSL;

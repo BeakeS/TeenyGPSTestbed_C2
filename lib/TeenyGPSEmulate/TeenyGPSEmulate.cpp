@@ -497,6 +497,10 @@ ubxNAVPVTInfo_t TeenyGPSEmulate::getNAVPVTPacketInfo() {
   ubxNAVPVTInfo.latitude      |= ubxNAVPVTPacket.payload[29] << 8;
   ubxNAVPVTInfo.latitude      |= ubxNAVPVTPacket.payload[30] << 16;
   ubxNAVPVTInfo.latitude      |= ubxNAVPVTPacket.payload[31] << 24;
+  ubxNAVPVTInfo.altitude      =  ubxNAVPVTPacket.payload[32];
+  ubxNAVPVTInfo.altitude      |= ubxNAVPVTPacket.payload[33] << 8;
+  ubxNAVPVTInfo.altitude      |= ubxNAVPVTPacket.payload[34] << 16;
+  ubxNAVPVTInfo.altitude      |= ubxNAVPVTPacket.payload[35] << 24;
   ubxNAVPVTInfo.altitudeMSL   =  ubxNAVPVTPacket.payload[36];
   ubxNAVPVTInfo.altitudeMSL   |= ubxNAVPVTPacket.payload[37] << 8;
   ubxNAVPVTInfo.altitudeMSL   |= ubxNAVPVTPacket.payload[38] << 16;

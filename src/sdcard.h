@@ -104,6 +104,7 @@ uint16_t sdcard_closeLoggingFile() {
 
 /********************************************************************/
 // GPX Logging File Writer
+// See "https://www.topografix.com/GPX/1/1/" for details
 /********************************************************************/
 uint8_t  gpxLoggingFileNum = 0;
 char     gpxLoggingFileName[14]={0};

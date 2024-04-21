@@ -202,6 +202,7 @@ typedef struct {
   uint8_t  pad01a;
   int32_t  longitude;
   int32_t  latitude;
+  int32_t  altitude;
   int32_t  altitudeMSL;
   uint32_t hAcc;
   uint32_t vAcc;
@@ -337,6 +338,7 @@ class TeenyUbloxConnect {
     uint8_t  getSIV();
     int32_t  getLongitude();
     int32_t  getLatitude();
+    int32_t  getAltitude();
     int32_t  getAltitudeMSL();
     uint32_t getHorizontalAccEst();
     uint32_t getVerticalAccEst();
