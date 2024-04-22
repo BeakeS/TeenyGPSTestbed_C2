@@ -17,7 +17,7 @@ TeenyGPSTestbed_C2 offers five modes of operation:
 GPSRCV: Basic GPS Receiver - Displays PVT packet info including date/time, lat/lon/alt, heading, and positional accuracy data.
 ![PXL_20240303_170936265](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/4e2b1242-d968-42f4-b2d3-a8b80f035e75)
 
-GPSLOG: UBLOX Packet Logger - For logging UBX-NAV-PVT and/or UBX-NAV-SAT packets for analysis and/or emulation.
+GPSLOG: UBLOX Packet Logger - For logging UBX-NAV-PVT and/or UBX-NAV-SAT raw packets for analysis and/or emulation. Logger can also output GPX or KML files for analysis or animation.
 ![PXL_20240303_171040320](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/937f2e26-c376-4e52-9304-112ede750657)
 
 NAVSAT: UBX-NAV-SAT Receiver - For testing satellite reception.  Displays a list of tracked satellites sorted by signal strength.

@@ -154,7 +154,7 @@ void display_refresh() {
             displayPV.prt_str(_dispStr, 20, 0, 84);
             sprintf(_dispStr, "Lon:     %s", getLongitudeStr(gps.getLongitude()));
             displayPV.prt_str(_dispStr, 20, 0, 102);
-            sprintf(_dispStr, "Alt:     %03d", max(min(gps.getAltitudeMSL(), 999), -99));
+            sprintf(_dispStr, "Alt:     %03d", max(min(gps.getAltitude(), 999), -99));
             displayPV.prt_str(_dispStr, 20, 0, 120);
             sprintf(_dispStr, "Heading: %s", getHeadingStr(gps.getHeading()));
             displayPV.prt_str(_dispStr, 20, 0, 138);
@@ -194,7 +194,7 @@ void display_refresh() {
             displayPV.prt_str(_dispStr, 20, 0, 84);
             sprintf(_dispStr, "Lon=%s", getLongitudeStr(gps.getLongitude()));
             displayPV.prt_str(_dispStr, 20, 0, 102);
-            sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitudeMSL(), 999), -99));
+            sprintf(_dispStr, "ALT=%03d", max(min(gps.getAltitude(), 999), -99));
             displayPV.prt_str(_dispStr, 8, 0, 120);
             sprintf(_dispStr, "HA=%03d", min(gps.getHAccEst(), 999));
             displayPV.prt_str(_dispStr, 8, 90, 120);
@@ -357,7 +357,7 @@ void display_refresh() {
         displayPV.prt_str(_dispStr, 20, 0, 172);
         sprintf(_dispStr, "Lon=%s", getLongitudeStr(_ubxNAVPVTInfo.longitude * 1e-7));
         displayPV.prt_str(_dispStr, 20, 0, 188);
-        sprintf(_dispStr, "ALT=%03d", max(min(_ubxNAVPVTInfo.altitudeMSL / 1000, 999), -99));
+        sprintf(_dispStr, "ALT=%03d", max(min(_ubxNAVPVTInfo.altitude / 1000, 999), -99));
         displayPV.prt_str(_dispStr, 8, 0, 204);
         sprintf(_dispStr, "HA=%03d", min(_ubxNAVPVTInfo.hAcc / 1000, 999));
         displayPV.prt_str(_dispStr, 8, 90, 204);

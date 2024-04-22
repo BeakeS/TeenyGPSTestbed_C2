@@ -9,6 +9,7 @@ bool sdcardEnabled;
 const int sdChipSelect = 4;
 File sdFile; // SD file pointer
 File sdFile_gpx; // SD file pointer
+File sdFile_kml; // SD file pointer
 
 /********************************************************************/
 bool sdcard_setup() {
@@ -76,7 +77,7 @@ char     ubxLoggingFileName[14]={0};
 uint16_t ubxLoggingFileWriteCount;
 uint16_t ubxLoggingFileWriteValidCount;
 /********************************************************************/
-bool sdcard_openLoggingFile() {
+bool sdcard_openUBXLoggingFile() {
   if(!sdcardEnabled) return false;
   sprintf(ubxLoggingFileName, "/GPSLOG%02d.hex", ubxLoggingFileNum);
   if(SD.exists(ubxLoggingFileName)) {
@@ -90,12 +91,12 @@ bool sdcard_openLoggingFile() {
   return true;
 }
 /********************************************************************/
-void sdcard_writeLoggingFile(const uint8_t *buf, size_t size) {
+void sdcard_writeUBXLoggingFile(const uint8_t *buf, size_t size) {
   sdFile.write(buf, size);
   //ubxLoggingFileWriteCount++; //done in loop along with fixed count
 }
 /********************************************************************/
-uint16_t sdcard_closeLoggingFile() {
+uint16_t sdcard_closeUBXLoggingFile() {
   sdFile.close();
   ubxLoggingFileNum++;
   if(ubxLoggingFileNum > 99) ubxLoggingFileNum = 0;
@@ -145,6 +146,57 @@ uint16_t sdcard_closeGPXLoggingFile() {
   gpxLoggingFileNum++;
   if(gpxLoggingFileNum > 99) gpxLoggingFileNum = 0;
   return gpxLoggingFileWriteCount;
+}
+
+/********************************************************************/
+// KML Logging File Writer
+// See "https://developers.google.com/kml/documentation/kmlreference#gxtrack" for details 
+/********************************************************************/
+uint8_t  kmlLoggingFileNum = 0;
+char     kmlLoggingFileName[14]={0};
+uint16_t kmlLoggingFileWriteCount;
+/********************************************************************/
+bool sdcard_openKMLLoggingFile() {
+  if(!sdcardEnabled) return false;
+  sprintf(kmlLoggingFileName, "/GPSLOG%02d.kml", kmlLoggingFileNum);
+  if(SD.exists(kmlLoggingFileName)) {
+    if(!SD.remove(kmlLoggingFileName)) return false;
+  }
+  //SdFile::dateTimeCallback(sdDateTimeCB);
+  sdFile_kml = SD.open(kmlLoggingFileName, FILE_WRITE);
+  if(!sdFile_kml) return false;
+  sdFile_kml.write((uint8_t*)"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+                   strlen("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"));
+  sdFile_kml.write((uint8_t*)"<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\">\n",
+                   strlen("<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\">\n"));
+  sdFile_kml.write((uint8_t*)"<Folder>\n",
+                   strlen("<Folder>\n"));
+  sdFile_kml.write((uint8_t*)"  <Placemark>\n",
+                   strlen("  <Placemark>\n"));
+  sdFile_kml.write((uint8_t*)"    <gx:Track>\n",
+                   strlen("    <gx:Track>\n"));
+  kmlLoggingFileWriteCount = 0;
+  return true;
+}
+/********************************************************************/
+void sdcard_writeKMLLoggingFile(const uint8_t *buf, size_t size) {
+  sdFile_kml.write(buf, size);
+  kmlLoggingFileWriteCount++;
+}
+/********************************************************************/
+uint16_t sdcard_closeKMLLoggingFile() {
+  sdFile_kml.write((uint8_t*)"    </gx:Track>\n",
+                   strlen("    </gx:Track>\n"));
+  sdFile_kml.write((uint8_t*)"  </Placemark>\n",
+                   strlen("  </Placemark>\n"));
+  sdFile_kml.write((uint8_t*)"</Folder>\n",
+                   strlen("</Folder>\n"));
+  sdFile_kml.write((uint8_t*)"</kml>\n",
+                   strlen("</kml>\n"));
+  sdFile_kml.close();
+  kmlLoggingFileNum++;
+  if(kmlLoggingFileNum > 99) kmlLoggingFileNum = 0;
+  return kmlLoggingFileWriteCount;
 }
 
 /********************************************************************/

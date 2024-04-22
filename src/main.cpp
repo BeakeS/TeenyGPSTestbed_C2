@@ -235,42 +235,57 @@ void loop() {
                          gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         if(ubxLoggingInProgress &&
-           ((deviceState.GPSLOGMODE == GPSLOG_NAVPVT) ||
-            (deviceState.GPSLOGMODE == GPSLOG_NAVPVTNAVSAT))) {
+           ((deviceState.UBXLOGMODE == UBXLOG_NAVPVT) ||
+            (deviceState.UBXLOGMODE == UBXLOG_NAVPVTNAVSAT))) {
           // UBX packet logging
           uint8_t navpvtPacket[UBX_NAV_PVT_PACKETLENGTH];
           gps.getNAVPVTPacket(navpvtPacket);
-          sdcard_writeLoggingFile(navpvtPacket, UBX_NAV_PVT_PACKETLENGTH);
+          sdcard_writeUBXLoggingFile(navpvtPacket, UBX_NAV_PVT_PACKETLENGTH);
           ubxLoggingFileWriteCount++;
           if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
-          // GPX track logging
-          // See "https://www.topografix.com/GPX/1/1/" for details
-          char _latStr[11];
-          dtostrf(gps.getLatitude(), -9, 6, _latStr);
-          char _lonStr[11];
-          dtostrf(gps.getLongitude(), -9, 6, _lonStr);
-          rtc_datetime_t dateTime;
-          dateTime.year   = gps.getYear();
-          dateTime.month  = gps.getMonth();
-          dateTime.day    = gps.getDay();
-          dateTime.hour   = gps.getHour();
-          dateTime.minute = gps.getMinute();
-          dateTime.second = gps.getSecond();
-          char* _itdStr = rtc.getISO8601DateTimeStr(dateTime);
-          // trkpt - "<trkpt lat=\"45.4431641\" lon=\"-121.7295456\"><ele>122</ele><time>2001-06-02T00:18:15Z</time></trkpt>\n"
-          char _trkptStr[256];
-          sprintf(_trkptStr, "      <trkpt lat=\"%s\" lon=\"%s\"><ele>%d</ele><time>%sZ</time></trkpt>\n",
-                  _latStr, _lonStr, gps.getAltitudeMSL(), _itdStr);
-          sdcard_writeGPXLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
+          // GPS track logging
+          if(deviceState.GPSLOGMODE != GPSLOG_NONE) {
+            char _latStr[11];
+            dtostrf(gps.getLatitude(), -9, 6, _latStr);
+            char _lonStr[11];
+            dtostrf(gps.getLongitude(), -9, 6, _lonStr);
+            rtc_datetime_t dateTime;
+            dateTime.year   = gps.getYear();
+            dateTime.month  = gps.getMonth();
+            dateTime.day    = gps.getDay();
+            dateTime.hour   = gps.getHour();
+            dateTime.minute = gps.getMinute();
+            dateTime.second = gps.getSecond();
+            char* _itdStr = rtc.getISO8601DateTimeStr(dateTime);
+            // GPX track logging
+            if(deviceState.UBXLOGMODE == GPSLOG_GPX) {
+              // trkpt - "      <trkpt lat=\"45.4431641\" lon=\"-121.7295456\"><ele>122</ele><time>2001-06-02T00:18:15Z</time></trkpt>\n"
+              char _trkptStr[256];
+              sprintf(_trkptStr, "      <trkpt lat=\"%s\" lon=\"%s\"><ele>%d</ele><time>%sZ</time></trkpt>\n",
+                      _latStr, _lonStr, gps.getAltitude(), _itdStr);
+              sdcard_writeGPXLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
+            }
+            // KML track logging
+            if(deviceState.UBXLOGMODE == GPSLOG_KML) {
+              // trkpt - "      <when>2010-05-28T02:02:09Z</when>"
+              // trkpt - "      <gx:coord>-122.207881 37.371915 156.000000</gx:coord>"
+              char _trkptStr[256];
+              sprintf(_trkptStr, "      <when>%sZ</when>\n", _itdStr);
+              sdcard_writeKMLLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
+              sprintf(_trkptStr, "      <gx:coord>%s %s %d.000000</gx:coord>\n",
+                      _lonStr, _latStr, gps.getAltitude());
+              sdcard_writeKMLLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
+            }
+          }
         }
         displayRefresh = true;
       } else if(gps.getNAVSAT()) {
         if(ubxLoggingInProgress &&
-           ((deviceState.GPSLOGMODE == GPSLOG_NAVSAT) ||
-            (deviceState.GPSLOGMODE == GPSLOG_NAVPVTNAVSAT))) {
+           ((deviceState.UBXLOGMODE == UBXLOG_NAVSAT) ||
+            (deviceState.UBXLOGMODE == UBXLOG_NAVPVTNAVSAT))) {
           uint8_t navsatPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
           gps.getNAVSATPacket(navsatPacket);
-          sdcard_writeLoggingFile(navsatPacket, gps.getNAVSATPacketLength());
+          sdcard_writeUBXLoggingFile(navsatPacket, gps.getNAVSATPacketLength());
           ubxLoggingFileWriteCount++;
           if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
         }
