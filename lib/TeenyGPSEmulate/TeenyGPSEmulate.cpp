@@ -30,10 +30,15 @@ TeenyGPSEmulate::TeenyGPSEmulate() { }
 TeenyGPSEmulate::~TeenyGPSEmulate() { }
 
 /********************************************************************/
-bool TeenyGPSEmulate::init(HardwareSerial &serialPort_, uint32_t baudRate_) {
+bool TeenyGPSEmulate::init(HardwareSerial &serialPort_, uint32_t baudRate_, tgpse_ubx_module_type_t ubxModuleType_) {
   reset();
   serialPort = &serialPort_;
   emulatorSettings.baudRate = baudRate_;
+  ubxModuleType = ubxModuleType_;
+  if((ubxModuleType != TGPSE_UBX_M8_MODULE) &&
+     (ubxModuleType != TGPSE_UBX_M10_MODULE)) {
+    return false;
+  }
   serialPort->begin(emulatorSettings.baudRate);
   return true;
 }
@@ -171,7 +176,8 @@ void TeenyGPSEmulate::processIncomingPacket() {
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
     // Set CFG-PRT COM_PORT_UART1
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_PRT) &&
               (receivedPacket.payloadLength == TGPSE_UBX_CFG_PRT_PAYLOADLENGTH) &&
               (receivedPacket.payload[0] == TGPSE_COM_PORT_UART1)) {
@@ -184,7 +190,7 @@ void TeenyGPSEmulate::processIncomingPacket() {
         if((requestedBaudRate == 9600) ||
            (requestedBaudRate == 38400) ||
            (requestedBaudRate == 115200)) {
-          init(*serialPort, requestedBaudRate);
+          init(*serialPort, requestedBaudRate, ubxModuleType);
           receivedPacket.validPacket = false;
           return;
         } else {
@@ -198,36 +204,39 @@ void TeenyGPSEmulate::processIncomingPacket() {
         buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
       }
 
-    // Poll CFG-RATE (measureRate and navigationRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    // Poll CFG-RATE (measurementRate and navigationRate)
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_RATE) &&
               (receivedPacket.payloadLength == 0)) {
-      // Return measureRate and navigationRate
+      // Return measurementRate and navigationRate
       responsePacket.messageClass = receivedPacket.messageClass;
       responsePacket.messageID = receivedPacket.messageID;
       responsePacket.payloadLength = TGPSE_UBX_CFG_RATE_PAYLOADLENGTH;
       memcpy(responsePacket.payload, TGPSE_UBX_CFG_RATE_PAYLOAD, TGPSE_UBX_CFG_RATE_PAYLOADLENGTH);
-      responsePacket.payload[0] = emulatorSettings.measureRate & 0xFF;
-      responsePacket.payload[1] = emulatorSettings.measureRate >> 8;
+      responsePacket.payload[0] = emulatorSettings.measurementRate & 0xFF;
+      responsePacket.payload[1] = emulatorSettings.measurementRate >> 8;
       responsePacket.payload[2] = emulatorSettings.navigationRate & 0xFF;
       responsePacket.payload[3] = emulatorSettings.navigationRate >> 8;
       calcChecksum(&responsePacket);
       responsePacket.validPacket = true;
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
-    // Set CFG-RATE (measureRate and navigationRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    // Set CFG-RATE (measurementRate and navigationRate)
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_RATE) &&
               (receivedPacket.payloadLength == TGPSE_UBX_CFG_RATE_PAYLOADLENGTH)) {
-      // Update measureRate and navigationRate
-      emulatorSettings.measureRate = receivedPacket.payload[0];
-      emulatorSettings.measureRate |= receivedPacket.payload[1] << 8;
+      // Update measurementRate and navigationRate
+      emulatorSettings.measurementRate = receivedPacket.payload[0];
+      emulatorSettings.measurementRate |= receivedPacket.payload[1] << 8;
       emulatorSettings.navigationRate = receivedPacket.payload[2];
       emulatorSettings.navigationRate |= receivedPacket.payload[3] << 8;
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
     // Poll CFG-MSG (autoNAVPVTRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 2) &&
               (receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
@@ -244,7 +253,8 @@ void TeenyGPSEmulate::processIncomingPacket() {
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
     // Set CFG-MSG (autoNAVPVTRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 3) &&
               (receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
@@ -267,7 +277,8 @@ void TeenyGPSEmulate::processIncomingPacket() {
       // *** DON'T ACK UBX-NAV-PVT REQUESTS ***
 
     // Poll CFG-MSG (autoNAVSATRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 2) &&
               (receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
@@ -284,7 +295,8 @@ void TeenyGPSEmulate::processIncomingPacket() {
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
 
     // Set CFG-MSG (autoNAVSATRate)
-    } else if((receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+    } else if((ubxModuleType == TGPSE_UBX_M8_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
               (receivedPacket.messageID == TGPSE_UBX_CFG_MSG) &&
               (receivedPacket.payloadLength == 3) &&
               (receivedPacket.payload[0] == TGPSE_UBX_CLASS_NAV) &&
@@ -314,12 +326,136 @@ void TeenyGPSEmulate::processIncomingPacket() {
       responsePacket.messageClass = receivedPacket.messageClass;
       responsePacket.messageID = receivedPacket.messageID;
       responsePacket.payloadLength = TGPSE_UBX_MON_VER_PAYLOADLENGTH;
-      memcpy(responsePacket.payload, TGPSE_UBX_MON_VER_PAYLOAD, TGPSE_UBX_MON_VER_PAYLOADLENGTH);
+      if(ubxModuleType == TGPSE_UBX_M8_MODULE) {
+        memcpy(responsePacket.payload, TGPSE_UBX_M8_MON_VER_PAYLOAD, TGPSE_UBX_MON_VER_PAYLOADLENGTH);
+      } else {
+        memcpy(responsePacket.payload, TGPSE_UBX_M10_MON_VER_PAYLOAD, TGPSE_UBX_MON_VER_PAYLOADLENGTH);
+      }
       calcChecksum(&responsePacket);
       responsePacket.validPacket = true;
       // *** DON'T ACK UBX-MON-VER REQUESTS ***
 
-    // NAK anything else (because it is not supported
+    // Poll CFG-VALGET (UART1Port UART1 Enabled)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALGET) &&
+              (receivedPacket.payloadLength == 8) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_UART1_ENABLED & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_UART1_ENABLED >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_UART1_ENABLED >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_UART1_ENABLED >> 24) & 0xFF))) {
+      // Return configuration for COM_PORT_UART1
+      responsePacket = receivedPacket;
+      responsePacket.payloadLength = 9;
+      responsePacket.payload[8] = true;
+      calcChecksum(&responsePacket);
+      responsePacket.validPacket = true;
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (UART1Port UBX Output Enabled)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 9) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_UART1OUTPROT_UBX & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_UBX >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_UBX >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_UBX >> 24) & 0xFF))) {
+      emulatorSettings.outputUBX = (receivedPacket.payload[8] == 0) ? false : true;
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (UART1Port NMEA Output Enabled - ignored but still have to ACK)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 9) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_UART1OUTPROT_NMEA & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_NMEA >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_NMEA >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_UART1OUTPROT_NMEA >> 24) & 0xFF))) {
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (UART1Port Baudrate)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 12) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_UART1_BAUDRATE & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_UART1_BAUDRATE >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_UART1_BAUDRATE >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_UART1_BAUDRATE >> 24) & 0xFF))) {
+      // Update COM_PORT_UART1 baudrate and ACK if not changing baudRate
+      requestedBaudRate = receivedPacket.payload[8];
+      requestedBaudRate |= receivedPacket.payload[9] << 8;
+      requestedBaudRate |= receivedPacket.payload[10] << 16;
+      requestedBaudRate |= receivedPacket.payload[11] << 24;
+      if(requestedBaudRate != emulatorSettings.baudRate) {
+        if((requestedBaudRate == 9600) ||
+           (requestedBaudRate == 38400) ||
+           (requestedBaudRate == 115200)) {
+          init(*serialPort, requestedBaudRate, ubxModuleType);
+          receivedPacket.validPacket = false;
+          return;
+        } else {
+          buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, false);
+        }
+      }
+
+    // Set CFG-VALSET (measurementRate)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 10) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_RATE_MEAS & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_RATE_MEAS >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_RATE_MEAS >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_RATE_MEAS >> 24) & 0xFF))) {
+      // Update measurementRate and navigationRate
+      emulatorSettings.measurementRate = receivedPacket.payload[8];
+      emulatorSettings.measurementRate |= receivedPacket.payload[9] << 8;
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (navigationRate)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 10) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_RATE_NAV & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_RATE_NAV >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_RATE_NAV >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_RATE_NAV >> 24) & 0xFF))) {
+      // Update measurementRate and navigationRate
+      emulatorSettings.navigationRate = receivedPacket.payload[8];
+      emulatorSettings.navigationRate |= receivedPacket.payload[9] << 8;
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (autoNAVPVTRate)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 9) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 >> 24) & 0xFF))) {
+      // Update autoNAVPVTRate
+      emulatorSettings.autoNAVPVTRate = receivedPacket.payload[8];
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // Set CFG-VALSET (autoNAVSATRate)
+    } else if((ubxModuleType == TGPSE_UBX_M10_MODULE) &&
+              (receivedPacket.messageClass == TGPSE_UBX_CLASS_CFG) &&
+              (receivedPacket.messageID == TGPSE_UBX_CFG_VALSET) &&
+              (receivedPacket.payloadLength == 9) &&
+              (receivedPacket.payload[4] == (TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 & 0xFF)) &&
+              (receivedPacket.payload[5] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 >> 8) & 0xFF)) &&
+              (receivedPacket.payload[6] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 >> 16) & 0xFF)) &&
+              (receivedPacket.payload[7] == ((TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 >> 24) & 0xFF))) {
+      // Update autoNAVSATRate
+      emulatorSettings.autoNAVSATRate = receivedPacket.payload[8];
+      buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, true);
+
+    // NAK anything else (because it is not supported/needed)
     } else {
       unknownPacket = receivedPacket;
       buildAcknowledgePacket(receivedPacket.messageClass, receivedPacket.messageID, false);
@@ -387,7 +523,7 @@ bool TeenyGPSEmulate::getOutputUBX() {
 
 /********************************************************************/
 uint16_t TeenyGPSEmulate::getMeasurementRate() {
-  return emulatorSettings.measureRate;
+  return emulatorSettings.measurementRate;
 }
 
 /********************************************************************/
@@ -414,7 +550,7 @@ uint32_t TeenyGPSEmulate::getNAVPVTTransmissionRate() {
   if(emulatorSettings.autoNAVPVTRate == 0) {
     return 0;
   }
-  return ((uint32_t)emulatorSettings.measureRate *
+  return ((uint32_t)emulatorSettings.measurementRate *
                     emulatorSettings.navigationRate) / emulatorSettings.autoNAVPVTRate;
 }
 
@@ -567,7 +703,7 @@ uint32_t TeenyGPSEmulate::getNAVSATTransmissionRate() {
   if(emulatorSettings.autoNAVSATRate == 0) {
     return 0;
   }
-  return ((uint32_t)emulatorSettings.measureRate *
+  return ((uint32_t)emulatorSettings.measurementRate *
                     emulatorSettings.navigationRate) / emulatorSettings.autoNAVSATRate;
 }
 

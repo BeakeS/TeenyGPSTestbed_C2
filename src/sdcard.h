@@ -200,6 +200,40 @@ uint16_t sdcard_closeKMLLoggingFile() {
 }
 
 /********************************************************************/
+// Rx Pkt File Writer
+/********************************************************************/
+uint8_t rxPktFileNum = 0;
+char rxPktFileName[14]={0};
+uint16_t rxPktWriteCount;
+/********************************************************************/
+bool sdcard_openRxPktFile() {
+  if(!sdcardEnabled) return false;
+  rxPktWriteCount = 0;
+  while(gpsSerial->available()) gpsSerial->read();
+  sprintf(rxPktFileName, "/RXPKT%03d.hex", rxPktFileNum);
+  if(SD.exists(rxPktFileName)) {
+    if(!SD.remove(rxPktFileName)) return false;
+  }
+  //SdFile::dateTimeCallback(sdDateTimeCB);
+  sdFile = SD.open(rxPktFileName, FILE_WRITE);
+  if(!sdFile) return false;
+  return true;
+}
+/********************************************************************/
+void sdcard_writeRxPktFile() {
+  while(gpsSerial->available()) {
+    sdFile.write(gpsSerial->read());
+    rxPktWriteCount++;
+  }
+}
+/********************************************************************/
+uint16_t sdcard_closeRxPktFile() {
+  sdFile.close();
+  rxPktFileNum++;
+  return rxPktWriteCount;
+}
+
+/********************************************************************/
 // UBX Emulation Loop File Reader
 /********************************************************************/
 // TBD

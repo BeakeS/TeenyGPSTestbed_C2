@@ -19,7 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TeenyGPSEmulate_h
 
 // Emulator Config Variables
-const uint32_t EMULATOR_BAUD_RATE = 9600;
+const uint32_t UBLOX_M8_EMULATOR_BAUD_RATE = 9600;
+const uint32_t UBLOX_M10_EMULATOR_BAUD_RATE = 38400;
 
 /*
 poll UBX-CFG-PRT  for begin() and setOutputUBX - Return UBX-CFG-PRT and ACK
@@ -32,10 +33,19 @@ poll UBX-MON-VER  for getProtocolVersion - Returns UBX-MON-VER only
 */
 
 /********************************************************************/
+// UBX Emulation Types
+/********************************************************************/
+enum tgpse_ubx_module_type_t : uint8_t {
+  TGPSE_UBX_M8_MODULE  = 8,
+  TGPSE_UBX_M10_MODULE = 10
+};
+
+/********************************************************************/
 // UBX Packet Frame Defines
 /********************************************************************/
 const uint8_t  TGPSE_COM_PORT_UART1 = 1;
-const uint8_t  TGPSE_COM_TYPE_UBX = 1;
+const uint8_t  TGPSE_COM_TYPE_UBX  = 0x01;
+const uint8_t  TGPSE_COM_TYPE_NMEA = 0x02;
 //const uint16_t TGPSE_UBX_MAXPAYLOADLENGTH = 872; // NAV-SAT message with 72 satellites
 const uint16_t TGPSE_UBX_MAXPAYLOADLENGTH = 392; // NAV-SAT message with 32 tracking channels
 const uint8_t  TGPSE_UBX_SYNCH_1 = 0xB5;
@@ -54,24 +64,40 @@ const uint8_t    TGPSE_UBX_ACK_NAK   = 0x00;
 const uint8_t    TGPSE_UBX_ACK_ACK   = 0x01;
 const uint16_t   TGPSE_UBX_ACKNAK_PAYLOADLENGTH = 2;
 const uint8_t  TGPSE_UBX_CLASS_CFG = 0x06;
-const uint8_t    TGPSE_UBX_CFG_PRT   = 0x00;
-const uint16_t   TGPSE_UBX_CFG_PRT_PAYLOADLENGTH = 20;
-const uint8_t    TGPSE_UBX_CFG_MSG   = 0x01;
+const uint8_t    TGPSE_UBX_CFG_PRT   = 0x00;               // M8 only (with one exception!)
+const uint16_t   TGPSE_UBX_CFG_PRT_PAYLOADLENGTH = 20;     // M8 only
+const uint8_t    TGPSE_UBX_CFG_MSG   = 0x01;               // M8 only
 const uint8_t    TGPSE_UBX_CFG_RST   = 0x04;
 const uint16_t   TGPSE_UBX_CFG_RST_PAYLOADLENGTH = 4;
-const uint8_t    TGPSE_UBX_CFG_RATE  = 0x08;
-const uint16_t   TGPSE_UBX_CFG_RATE_PAYLOADLENGTH = 6;
+const uint8_t    TGPSE_UBX_CFG_RATE  = 0x08;               // M8 only
+const uint16_t   TGPSE_UBX_CFG_RATE_PAYLOADLENGTH = 6;     // M8 only
 const uint8_t    TGPSE_UBX_CFG_CFG   = 0x09;
-const uint8_t    TGPSE_UBX_CFG_NAVX5 = 0x23;
-const uint16_t   TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH = 40;
-const uint8_t    TGPSE_UBX_CFG_GNSS  = 0x3E;
-const uint16_t   TGPSE_UBX_CFG_GNSS_MINPAYLOADLENGTH = 4;
-const uint16_t   TGPSE_UBX_CFG_GNSS_MAXPAYLOADLENGTH = 68;
+const uint8_t    TGPSE_UBX_CFG_NAVX5 = 0x23;               // M8 only
+const uint16_t   TGPSE_UBX_CFG_NAVX5_PAYLOADLENGTH = 40;   // M8 only
+const uint8_t    TGPSE_UBX_CFG_GNSS  = 0x3E;               // M8 only
+const uint16_t   TGPSE_UBX_CFG_GNSS_MINPAYLOADLENGTH = 4;  // M8 only
+const uint16_t   TGPSE_UBX_CFG_GNSS_MAXPAYLOADLENGTH = 68; // M8 only
+const uint8_t    TGPSE_UBX_CFG_VALSET = 0x8A;              // M10 only
+const uint8_t    TGPSE_UBX_CFG_VALGET = 0x8B;              // M10 only
+const uint8_t    TGPSE_UBX_CFG_VALDEL = 0x8C;              // M10 only
 const uint8_t  TGPSE_UBX_CLASS_MON = 0x0A;
 const uint8_t    TGPSE_UBX_MON_VER   = 0x04;
 const uint16_t   TGPSE_UBX_MON_VER_PAYLOADLENGTH = 160;
 const uint8_t    TGPSE_UBX_MON_GNSS   = 0x28;
 const uint16_t   TGPSE_UBX_MON_GNSS_PAYLOADLENGTH = 8;
+
+/********************************************************************/
+// UBX Configuration Keys
+/********************************************************************/
+// port keys
+const uint32_t TGPSE_UBLOX_CFG_UART1_ENABLED     = 0x10520005; // bool
+const uint32_t TGPSE_UBLOX_CFG_UART1OUTPROT_UBX  = 0x10740001; // bool
+const uint32_t TGPSE_UBLOX_CFG_UART1OUTPROT_NMEA = 0x10740002; // bool
+const uint32_t TGPSE_UBLOX_CFG_UART1_BAUDRATE    = 0x40520001; // uint32_t
+const uint32_t TGPSE_UBLOX_CFG_RATE_MEAS = 0x30210001; // uint16_t
+const uint32_t TGPSE_UBLOX_CFG_RATE_NAV  = 0x30210002; // uint16_t
+const uint32_t TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 = 0x20910007; // uint8_t
+const uint32_t TGPSE_UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 = 0x20910016; // uint8_t
 
 /********************************************************************/
 // UBX Packet Struct
@@ -177,7 +203,7 @@ const uint8_t TGPSE_UBX_CFG_PRT_PAYLOAD[TGPSE_UBX_CFG_PRT_PAYLOADLENGTH] = {
 const uint8_t TGPSE_UBX_CFG_RATE_PAYLOAD[TGPSE_UBX_CFG_RATE_PAYLOADLENGTH] = {
   0xE8,0x03,0x01,0x00,0x01,0x00
 };
-const uint8_t TGPSE_UBX_MON_VER_PAYLOAD[TGPSE_UBX_MON_VER_PAYLOADLENGTH] = {
+const uint8_t TGPSE_UBX_M8_MON_VER_PAYLOAD[TGPSE_UBX_MON_VER_PAYLOADLENGTH] = {
   0x52,0x4F,0x4D,0x20,0x43,0x4F,0x52,0x45,0x20,0x33,
   0x2E,0x30,0x31,0x20,0x28,0x31,0x30,0x37,0x38,0x38,
   0x38,0x29,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -193,6 +219,24 @@ const uint8_t TGPSE_UBX_MON_VER_PAYLOAD[TGPSE_UBX_MON_VER_PAYLOADLENGTH] = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x53,0x42,0x41,0x53,0x3B,0x49,0x4D,0x45,0x53,0x3B,
   0x51,0x5A,0x53,0x53,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+const uint8_t TGPSE_UBX_M10_MON_VER_PAYLOAD[TGPSE_UBX_MON_VER_PAYLOADLENGTH] = {
+  0x52,0x4F,0x4D,0x20,0x53,0x50,0x47,0x20,0x35,0x2E,
+  0x31,0x30,0x20,0x28,0x37,0x62,0x32,0x30,0x32,0x65,
+  0x29,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x30,0x30,0x30,0x41,0x30,0x30,0x30,0x30,0x00,0x00,
+  0x46,0x57,0x56,0x45,0x52,0x3D,0x53,0x50,0x47,0x20,
+  0x35,0x2E,0x31,0x30,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x50,0x52,0x4F,0x54,0x56,0x45,0x52,0x3D,0x33,0x34,
+  0x2E,0x31,0x30,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x47,0x50,0x53,0x3B,0x47,0x4C,0x4F,0x3B,0x47,0x41,
+  0x4C,0x3B,0x42,0x44,0x53,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x53,0x42,0x41,0x53,0x3B,0x51,0x5A,0x53,0x53,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 const uint8_t TGPSE_UBX_NAV_PVT_COLD_PAYLOAD[TGPSE_UBX_NAV_PVT_PAYLOADLENGTH] = {
@@ -220,7 +264,7 @@ typedef struct {
   uint8_t  pad00a;
   uint8_t  pad00b;
   uint8_t  pad00c;
-  uint16_t measureRate = 1000;
+  uint16_t measurementRate = 1000;
   uint8_t  pad01a;
   uint8_t  pad01b;
   uint16_t navigationRate = 1;
@@ -250,7 +294,7 @@ class TeenyGPSEmulate {
     TeenyGPSEmulate& operator=(const TeenyGPSEmulate&);
 
     // Setup
-    bool init(HardwareSerial &serialPort_, uint32_t baudRate_);
+    bool init(HardwareSerial &serialPort_, uint32_t baudRate_, tgpse_ubx_module_type_t ubxModuleType_);
     bool reset();
 
     // Methods for process incoming commands/requests from host
@@ -313,6 +357,7 @@ class TeenyGPSEmulate {
   private:
 
     HardwareSerial *serialPort;
+    tgpse_ubx_module_type_t ubxModuleType;
     emulatorSettings_t emulatorSettings;
     emulatorSettings_t emulatorSettings_default;
     uint32_t requestedBaudRate;

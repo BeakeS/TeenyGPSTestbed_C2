@@ -318,23 +318,45 @@ void display_refresh() {
         sprintf(_dispStr, "Simultaneous: %d", gnssSelectInfo.simultaneousGNSS);
         displayPV.prt_str(_dispStr, 20, 0, 84);
       } else if(menu.isMenuPageCurrent(menuPageGNSSCfgInfo)) {
-        ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();
-        sprintf(_dispStr, "numTrkChHw=%02d", gnssConfigInfo.numTrkChHw);
-        displayPV.prt_str(_dispStr, 20, 0, 24);
-        sprintf(_dispStr, "numTrkChUse=%02d", gnssConfigInfo.numTrkChUse);
-        displayPV.prt_str(_dispStr, 20, 0, 44);
-        sprintf(_dispStr, "numConfigBlocks=%02d", gnssConfigInfo.numConfigBlocks);
-        displayPV.prt_str(_dispStr, 20, 0, 64);
-        for(uint8_t i=0; i<min(gnssConfigInfo.numConfigBlocks, 8); i++) {
-          sprintf(_dispStr, "S=%c E=%c C=%02d/%02d M=%02X",
-                  gnssConfigInfo.configBlockList[i].gnssIdType,
-                  gnssConfigInfo.configBlockList[i].enable ? 'T' : 'F',
-                  gnssConfigInfo.configBlockList[i].resTrkCh,
-                  gnssConfigInfo.configBlockList[i].maxTrkCh,
-                  gnssConfigInfo.configBlockList[i].sigCfgMask);
-          displayPV.prt_str(_dispStr, 20, 0, (i*18)+84);
+        uint8_t ubloxModuleType = gps.getUbloxModuleType();
+        ubloxCFGGNSSInfo_t ubloxCFGGNSSInfo = gps.getGNSSConfigInfo();
+        if(ubloxModuleType == UBLOX_M8_MODULE) {
+          sprintf(_dispStr, "numTrkChHw=%02d", ubloxCFGGNSSInfo.M8.numTrkChHw);
+          displayPV.prt_str(_dispStr, 20, 0, 24);
+          sprintf(_dispStr, "numTrkChUse=%02d", ubloxCFGGNSSInfo.M8.numTrkChUse);
+          displayPV.prt_str(_dispStr, 20, 0, 44);
+          sprintf(_dispStr, "numConfigBlocks=%02d", ubloxCFGGNSSInfo.M8.numConfigBlocks);
+          displayPV.prt_str(_dispStr, 20, 0, 64);
+          for(uint8_t i=0; i<min(ubloxCFGGNSSInfo.M8.numConfigBlocks, 7); i++) {
+            sprintf(_dispStr, "S=%c E=%c C=%02d/%02d M=%02X",
+                    ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType,
+                    (ubloxCFGGNSSInfo.M8.configBlockList[i].enable ? 'T' : 'F'),
+                    ubloxCFGGNSSInfo.M8.configBlockList[i].resTrkCh,
+                    ubloxCFGGNSSInfo.M8.configBlockList[i].maxTrkCh,
+                    ubloxCFGGNSSInfo.M8.configBlockList[i].sigCfgMask);
+            displayPV.prt_str(_dispStr, 20, 0, (i*18)+84);
+          }
+        } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+          sprintf(_dispStr, "numConfigBlocks=%02d", ubloxCFGGNSSInfo.M10.numConfigBlocks);
+          displayPV.prt_str(_dispStr, 20, 0, 24);
+          for(uint8_t i=0; i<min(ubloxCFGGNSSInfo.M10.numConfigBlocks, 6); i++) {
+            sprintf(_dispStr, "C:%c=%c S:%s%s%c%s%s%s%c",
+                    ubloxCFGGNSSInfo.M10.configBlockList[i].gnssIdType,
+                    (ubloxCFGGNSSInfo.M10.configBlockList[i].enable ? 'T' : 'F'),
+                    ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[0].name,
+                    "=",
+                    (ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[0].enable ? 'T' : 'F'),
+                    ((ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs > 1) ? "," : ""),
+                    (ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs > 1) ?
+                      ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[1].name : "",
+                    (ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs > 1) ? "=" : "",
+                    (ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs > 1) ?
+                      (ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[1].enable ? 'T' : 'F') : ' ');
+            displayPV.prt_str(_dispStr, 20, 0, (i*18)+64);
+          }
         }
-      } else if(menu.isMenuPageCurrent(menuPageGPSEmul)) {
+      } else if(menu.isMenuPageCurrent(menuPageGPSEmuM8) ||
+                menu.isMenuPageCurrent(menuPageGPSEmuM10)) {
         sprintf(_dispStr, "   EMULATOR STATE");
         displayPV.prt_str(_dispStr, 20, 0, 24);
         sprintf(_dispStr, "BaudRate=%d", emulator.getBaudRate());

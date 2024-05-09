@@ -36,7 +36,9 @@ SelectOptionUint8t selectMenuModeOptions[] = {
   {"NAVSAT", DM_GPSNSAT},
   {"SATMAP", DM_GPSSMAP},
   {"SATCFG", DM_GPSSCFG},
-  {"GPSEMU", DM_GPSEMUL}};
+  {"GPSSST", DM_GPSSSTP},
+  {"EMUM8",  DM_GPSEMU_M8},
+  {"EMUM10", DM_GPSEMU_M10}};
 TeenyMenuSelect selectMenuMode(sizeof(selectMenuModeOptions)/sizeof(SelectOptionUint8t), selectMenuModeOptions);
 TeenyMenuItem menuItemMenuMode("Device Mode", MENU_MODE, selectMenuMode, menu_menuModeCB);
 //
@@ -164,15 +166,37 @@ TeenyMenuItem menuItemGNSSCfgIMESToggle(   "", menu_gnssCfgIMESToggleCB);
 TeenyMenuItem menuItemGNSSCfgQZSSToggle(   "", menu_gnssCfgQZSSToggleCB);
 TeenyMenuItem menuItemGNSSCfgGLONASSToggle("", menu_gnssCfgGLONASSToggleCB);
 //
-// gps emulator unit
+// gps single step unit
 //
-void menu_entrGPSEmulCB(); // forward declaration
-void menu_exitGPSEmulCB(); // forward declaration
-TeenyMenuPage menuPageGPSEmul("GPS EMULATOR MODE", menu_entrGPSEmulCB, menu_exitGPSEmulCB);
-TeenyMenuItem menuItemGPSEmul("*START EMULATOR*", menuPageGPSEmul);
-TeenyMenuItem menuItemGPSEmulExit(false); // optional return menu item
-TeenyMenuItem menuItemGPSEmulLabel0("");
-TeenyMenuItem menuItemGPSEmulLabel1("");
+void menu_entrGPSStepCB(); // forward declaration
+void menu_exitGPSStepCB(); // forward declaration
+TeenyMenuPage menuPageGPSStep("GPS SINGLESTEP MODE", menu_entrGPSStepCB, menu_exitGPSStepCB);
+TeenyMenuItem menuItemGPSStep("*START GPS STEPPER*", menuPageGPSStep);
+TeenyMenuItem menuItemGPSStepExit(false); // optional return menu item
+void menu_sstBeginCB(); // forward declaration
+TeenyMenuItem menuItemGPSStepBegin("gnss.begin", menu_sstBeginCB);
+void menu_sstReqMonVerCB(); // forward declaration
+TeenyMenuItem menuItemGPSStepReqMonVer("reqMonVer_CMD", menu_sstReqMonVerCB);
+//
+// gps ublox M8 emulator unit
+//
+void menu_entrGPSEmuM8CB(); // forward declaration
+void menu_exitGPSEmuM8CB(); // forward declaration
+TeenyMenuPage menuPageGPSEmuM8("UBLOX M8 EMULATOR", menu_entrGPSEmuM8CB, menu_exitGPSEmuM8CB);
+TeenyMenuItem menuItemGPSEmuM8("*START EMULATOR*", menuPageGPSEmuM8);
+TeenyMenuItem menuItemGPSEmuM8Exit(false); // optional return menu item
+TeenyMenuItem menuItemGPSEmuM8Label0("");
+TeenyMenuItem menuItemGPSEmuM8Label1("");
+//
+// gps ublox M10 emulator unit
+//
+void menu_entrGPSEmuM10CB(); // forward declaration
+void menu_exitGPSEmuM10CB(); // forward declaration
+TeenyMenuPage menuPageGPSEmuM10("UBLOX M10 EMULATOR", menu_entrGPSEmuM10CB, menu_exitGPSEmuM10CB);
+TeenyMenuItem menuItemGPSEmuM10("*START EMULATOR*", menuPageGPSEmuM10);
+TeenyMenuItem menuItemGPSEmuM10Exit(false); // optional return menu item
+TeenyMenuItem menuItemGPSEmuM10Label0("");
+TeenyMenuItem menuItemGPSEmuM10Label1("");
 //
 // gps reset
 //
@@ -186,7 +210,7 @@ SelectOptionUint8t selectGPSResetOptions[] = {
 TeenyMenuSelect selectGPSReset(sizeof(selectGPSResetOptions)/sizeof(SelectOptionUint8t), selectGPSResetOptions);
 TeenyMenuItem menuItemGPSReset("GPS Reset", deviceState.GPSRESET, selectGPSReset, menu_GPSResetCB);
 //
-// TEENYGPSEMULATOR SETTINGS
+// TEENYGPSTESTBED SETTINGS
 //
 // settings menu
 TeenyMenuPage menuPageTopLevelSettings("SETTINGS MENU");
@@ -425,10 +449,18 @@ void menu_setup() {
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSToggle);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgExit);
-  menuPageMain.addMenuItem(menuItemGPSEmul);
-  menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel0);
-  menuPageGPSEmul.addMenuItem(menuItemGPSEmulLabel1);
-  //menuPageGPSEmul.addMenuItem(menuItemGPSEmulExit);
+  menuPageMain.addMenuItem(menuItemGPSStep);
+  menuPageGPSStep.addMenuItem(menuItemGPSStepBegin);
+  menuPageGPSStep.addMenuItem(menuItemGPSStepReqMonVer);
+  //menuPageGPSStep.addMenuItem(menuItemGPSStepExit);
+  menuPageMain.addMenuItem(menuItemGPSEmuM8);
+  menuPageGPSEmuM8.addMenuItem(menuItemGPSEmuM8Label0);
+  menuPageGPSEmuM8.addMenuItem(menuItemGPSEmuM8Label1);
+  //menuPageGPSEmuM8.addMenuItem(menuItemGPSEmuM8Exit);
+  menuPageMain.addMenuItem(menuItemGPSEmuM10);
+  menuPageGPSEmuM10.addMenuItem(menuItemGPSEmuM10Label0);
+  menuPageGPSEmuM10.addMenuItem(menuItemGPSEmuM10Label1);
+  //menuPageGPSEmuM10.addMenuItem(menuItemGPSEmuM10Exit);
   menuPageMain.addMenuItem(menuItemGPSReset);
   menuPageMain.addMenuItem(menuItemLabel1);
   menuPageMain.addMenuItem(menuItemLabel2);
@@ -490,8 +522,14 @@ void menu_setup() {
     case DM_GPSSCFG:
       menu.linkMenuPage(menuPageGPSScfg);
       break;
-    case DM_GPSEMUL:
-      menu.linkMenuPage(menuPageGPSEmul);
+    case DM_GPSSSTP:
+      menu.linkMenuPage(menuPageGPSStep);
+      break;
+    case DM_GPSEMU_M8:
+      menu.linkMenuPage(menuPageGPSEmuM8);
+      break;
+    case DM_GPSEMU_M10:
+      menu.linkMenuPage(menuPageGPSEmuM10);
       break;
   }
   // init and enter menu
@@ -551,7 +589,9 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.show();
       break;
     case DM_GPSRCVR:
@@ -562,7 +602,9 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
       break;
     case DM_GPSLOGR:
@@ -573,7 +615,9 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
       menuItemUBXLogMode.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogMode.hide(ubxLoggingInProgress ? true : false);
@@ -588,7 +632,9 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
       break;
     case DM_GPSSMAP:
@@ -599,7 +645,9 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
       break;
     case DM_GPSSCFG:
@@ -610,10 +658,12 @@ void menu_menuModeCB() {
       menuItemGPSScfg.show();
       menuItemGPSReset.show();
       menuItemLabel2.hide();
-      menuItemGPSEmul.hide();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
       break;
-    case DM_GPSEMUL:
+    case DM_GPSSSTP:
       menuItemGPSRcvr.hide();
       menuItemGPSLogr.hide();
       menuItemGPSNsat.hide();
@@ -621,7 +671,35 @@ void menu_menuModeCB() {
       menuItemGPSScfg.hide();
       menuItemGPSReset.hide();
       menuItemLabel2.show();
-      menuItemGPSEmul.show();
+      menuItemGPSStep.show();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.hide();
+      menuItemLabel3.hide();
+      break;
+    case DM_GPSEMU_M8:
+      menuItemGPSRcvr.hide();
+      menuItemGPSLogr.hide();
+      menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.show();
+      menuItemGPSEmuM10.hide();
+      menuItemLabel3.hide();
+      break;
+    case DM_GPSEMU_M10:
+      menuItemGPSRcvr.hide();
+      menuItemGPSLogr.hide();
+      menuItemGPSNsat.hide();
+      menuItemGPSSmap.hide();
+      menuItemGPSScfg.hide();
+      menuItemGPSReset.hide();
+      menuItemLabel2.show();
+      menuItemGPSStep.hide();
+      menuItemGPSEmuM8.hide();
+      menuItemGPSEmuM10.show();
       menuItemLabel3.hide();
       break;
   }
@@ -772,45 +850,84 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
   // Reset State
   // Poll GNSS config state
   bool pollRC = gps.pollGNSSConfigInfo();
-  ubloxCFGGNSSInfo_t gnssConfigInfo = gps.getGNSSConfigInfo();
+  uint8_t ubloxModuleType = gps.getUbloxModuleType();
+  ubloxCFGGNSSInfo_t ubloxCFGGNSSInfo = gps.getGNSSConfigInfo();
+  menuItemGNSSCfgIMESToggle.hide((ubloxModuleType == UBLOX_M8_MODULE) ? false : true);
   uint8_t gnssId;
   char gnssIdType;
   uint8_t gnssEnable;
   bool toggleRC;
   // Toggle selected GNSS
   if(pollRC) {
-    for(uint8_t i=0; i<min(gnssConfigInfo.numConfigBlocks, 7); i++) {
-      gnssId = gnssConfigInfo.configBlockList[i].gnssId;
-      gnssIdType = gnssConfigInfo.configBlockList[i].gnssIdType;
-      gnssEnable = gnssConfigInfo.configBlockList[i].enable;
-      if(toggleGnssIdType == gnssIdType) {
-        toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
-        if(toggleRC) gnssEnable = !gnssEnable;
-        sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
-        msg_update(_msgStr);
+    if(ubloxModuleType == UBLOX_M8_MODULE) {
+      for(uint8_t i=0; i<min(ubloxCFGGNSSInfo.M8.numConfigBlocks, 7); i++) {
+        gnssId     = ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId;
+        gnssIdType = ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType;
+        gnssEnable = ubloxCFGGNSSInfo.M8.configBlockList[i].enable;
+        if(toggleGnssIdType == gnssIdType) {
+          toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
+          if(toggleRC) gnssEnable = !gnssEnable;
+          sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
+          msg_update(_msgStr);
+        }
+        switch(gnssIdType) {
+          case  'G':
+            gnssState.GPS = gnssEnable;
+            break;
+          case  'S':
+            gnssState.SBAS = gnssEnable;
+            break;
+          case  'E':
+            gnssState.Galileo = gnssEnable;
+            break;
+          case  'B':
+            gnssState.BeiDou = gnssEnable;
+            break;
+          case  'I':
+            gnssState.IMES = gnssEnable;
+            break;
+          case  'Q':
+            gnssState.QZSS = gnssEnable;
+            break;
+          case  'R':
+            gnssState.GLONASS = gnssEnable;
+            break;
+        }
       }
-      switch(gnssIdType) {
-        case  'G':
-          gnssState.GPS = gnssEnable;
-          break;
-        case  'S':
-          gnssState.SBAS = gnssEnable;
-          break;
-        case  'E':
-          gnssState.Galileo = gnssEnable;
-          break;
-        case  'B':
-          gnssState.BeiDou = gnssEnable;
-          break;
-        case  'I':
-          gnssState.IMES = gnssEnable;
-          break;
-        case  'Q':
-          gnssState.QZSS = gnssEnable;
-          break;
-        case  'R':
-          gnssState.GLONASS = gnssEnable;
-          break;
+    } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+      for(uint8_t i=0; i<min(ubloxCFGGNSSInfo.M10.numConfigBlocks, 6); i++) {
+        gnssId     = ubloxCFGGNSSInfo.M10.configBlockList[i].gnssId;
+        gnssIdType = ubloxCFGGNSSInfo.M10.configBlockList[i].gnssIdType;
+        gnssEnable = ubloxCFGGNSSInfo.M10.configBlockList[i].enable;
+        if(toggleGnssIdType == gnssIdType) {
+          toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
+          if(toggleRC) gnssEnable = !gnssEnable;
+          sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
+          msg_update(_msgStr);
+        }
+        switch(gnssIdType) {
+          case  'G':
+            gnssState.GPS = gnssEnable;
+            break;
+          case  'S':
+            gnssState.SBAS = gnssEnable;
+            break;
+          case  'E':
+            gnssState.Galileo = gnssEnable;
+            break;
+          case  'B':
+            gnssState.BeiDou = gnssEnable;
+            break;
+          case  'I':
+            gnssState.IMES = gnssEnable;
+            break;
+          case  'Q':
+            gnssState.QZSS = gnssEnable;
+            break;
+          case  'R':
+            gnssState.GLONASS = gnssEnable;
+            break;
+        }
       }
     }
   }
@@ -934,14 +1051,71 @@ void menu_exitGPSScfgCB() {
 }
 
 /********************************************************************/
-void menu_entrGPSEmulCB() {
-  deviceState.DEVICE_MODE = DM_GPSEMUL;
+void menu_entrGPSStepCB() {
+  deviceState.DEVICE_MODE = DM_GPSSSTP;
   deviceMode_init();
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_exitGPSEmulCB() {
+void menu_exitGPSStepCB() {
+  deviceMode_end();
+  menu.exitToParentMenuPage();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_sstBeginCB() {
+  char _msgStr[22];
+  gpsSerial->begin(GPS_BAUD_RATE);
+  bool rcode = gps.gnss_init(*gpsSerial, GPS_BAUD_RATE);
+  sprintf(_msgStr, "gnss.begin rc=%d", rcode);
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_sstReqMonVerCB() {
+  char _msgStr[22];
+  uint8_t host_reqMONVER[8]  = {0xb5,0x62,0x0a,0x04,0x00,0x00,0x0e,0x34};
+  while(gpsSerial->available()) gpsSerial->read();
+  if(!sdcard_openRxPktFile()) return;
+  uint32_t _nowMS = millis();
+  gpsSerial->write(host_reqMONVER, sizeof(host_reqMONVER));
+  while((millis()-_nowMS)<500) {
+    sdcard_writeRxPktFile();
+  }
+  sdcard_closeRxPktFile();
+  sprintf(_msgStr, "%s l=%d",
+          rxPktFileName,
+          min(rxPktWriteCount, 999));
+  msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_entrGPSEmuM8CB() {
+  deviceState.DEVICE_MODE = DM_GPSEMU_M8;
+  deviceMode_init();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_exitGPSEmuM8CB() {
+  deviceMode_end();
+  menu.exitToParentMenuPage();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_entrGPSEmuM10CB() {
+  deviceState.DEVICE_MODE = DM_GPSEMU_M10;
+  deviceMode_init();
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_exitGPSEmuM10CB() {
   deviceMode_end();
   menu.exitToParentMenuPage();
   displayRefresh = true;

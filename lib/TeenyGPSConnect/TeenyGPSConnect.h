@@ -97,15 +97,6 @@ struct GnssData {
   uint8_t pad11a;
   uint8_t pad11b;
   uint8_t pad11c;
-  // Version
-  uint8_t protocolVersionHigh;
-  uint8_t pad12a;
-  uint8_t pad12b;
-  uint8_t pad12c;
-  uint8_t protocolVersionLow;
-  uint8_t pad13a;
-  uint8_t pad13b;
-  uint8_t pad13c;
 } __attribute__ ((__packed__));
 
 /********************************************************************/
@@ -129,9 +120,12 @@ class TeenyGPSConnect {
     // Recommend calling ever 10-50ms - depends on queue size, baud rate and packets
     void gnss_checkUblox();
 
+    // GPS ublox module type
+    uint8_t getUbloxModuleType();
+
     // GPS protocol version
-    byte getProtocolVersionHigh();
-    byte getProtocolVersionLow();
+    uint8_t getProtocolVersionHigh();
+    uint8_t getProtocolVersionLow();
 
     // Factory Reset - So we can make sure app can configure a factory default module
     bool factoryReset();
@@ -204,7 +198,6 @@ class TeenyGPSConnect {
     // GPS setup
     bool gnss_setSerialRate();
     void gnss_config();
-    void gnss_getProtocolVersion();
 
     // Age each item. If the corresponding timer times out, it's stale.
     RBD::Timer time_getnavpvt{NAVPVT_FIX_AGE_LIMIT};  // if no response from getNAVPVT()

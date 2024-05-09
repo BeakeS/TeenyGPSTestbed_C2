@@ -8,8 +8,8 @@ uint8_t emulatorColdStartPacketCount = 0;
 bool emulatorLoopEnabled = false;
 
 /********************************************************************/
-bool emulator_setup(HardwareSerial &serialPort, uint32_t baudRate) {
-  if(emulator.init(serialPort, baudRate)) {
+bool emulator_setup(HardwareSerial &serialPort, uint32_t baudRate, tgpse_ubx_module_type_t ubxModuleType) {
+  if(emulator.init(serialPort, baudRate, ubxModuleType)) {
     emulatorEnabled = true;
     emulatorColdStartPacketCount = 0;
     emulatorLoopEnabled = false;

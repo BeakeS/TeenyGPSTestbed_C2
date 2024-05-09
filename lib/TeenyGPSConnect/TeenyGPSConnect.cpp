@@ -80,9 +80,7 @@ bool TeenyGPSConnect::gnss_setSerialRate() {
       gnss.setSerialRate(baudRate);
       delay(100); // recovery time for gnss module baud rate change
       serialPort->begin(baudRate);
-      if(gnss.begin(*serialPort)) {
-        return true;
-      }
+      return gnss.begin(*serialPort);
     }
   }
   return false;
@@ -90,9 +88,6 @@ bool TeenyGPSConnect::gnss_setSerialRate() {
 
 /********************************************************************/
 void TeenyGPSConnect::gnss_config() {
-
-  // Get protocol version
-  gnss_getProtocolVersion();
 
   gnss.setPortOutput(COM_PORT_UART1, COM_TYPE_UBX); //Set the UART port to output UBX only
   gnss.setMeasurementRate(1000);          //Produce a measurement every 1000ms
@@ -109,19 +104,18 @@ void TeenyGPSConnect::gnss_config() {
 }
 
 /********************************************************************/
-void TeenyGPSConnect::gnss_getProtocolVersion() {
-  data.protocolVersionHigh = gnss.getProtocolVersionHigh();
-  data.protocolVersionLow = gnss.getProtocolVersionLow();
+uint8_t TeenyGPSConnect::getUbloxModuleType() {
+  return gnss.getUbloxModuleType();
 }
 
 /********************************************************************/
-byte TeenyGPSConnect::getProtocolVersionHigh() {
-  return data.protocolVersionHigh;
+uint8_t TeenyGPSConnect::getProtocolVersionHigh() {
+  return gnss.getProtocolVersionHigh();
 }
 
 /********************************************************************/
-byte TeenyGPSConnect::getProtocolVersionLow() {
-  return data.protocolVersionLow;
+uint8_t TeenyGPSConnect::getProtocolVersionLow() {
+  return gnss.getProtocolVersionLow();
 }
 
 /********************************************************************/

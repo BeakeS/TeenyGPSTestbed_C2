@@ -30,10 +30,27 @@ TeenyUbloxConnect::~TeenyUbloxConnect() { }
 /********************************************************************/
 bool TeenyUbloxConnect::begin(Stream &serialPort_, uint16_t maxWait_) {
   serialPort = &serialPort_;
+  ubloxModuleType = UBLOX_UNKNOWN_MODULE;
   // Try three times
-  if(pollUART1Port(maxWait_)) return true;
-  if(pollUART1Port(maxWait_)) return true;
-  if(pollUART1Port(maxWait_)) return true;
+  bool connected = false;
+  if(pollUART1Port_M8(maxWait_, true)) {
+    connected = true;
+  } else if(pollUART1Port_M8(maxWait_, true)) {
+    connected = true;
+  } else if(pollUART1Port_M8(maxWait_, true)) {
+    connected = true;
+  }
+  if(connected) {
+    if(pollProtocolVersion(maxWait_)) {
+      if((protocolVersionHigh == 18) && (protocolVersionLow == 00)) {
+        ubloxModuleType = UBLOX_M8_MODULE;
+        return true;
+      } else if((protocolVersionHigh == 34) && (protocolVersionLow == 10)) {
+        ubloxModuleType = UBLOX_M10_MODULE;
+        return true;
+      }
+    }
+  }
   return false;
 }
 
@@ -42,18 +59,56 @@ bool TeenyUbloxConnect::begin(Stream &serialPort_, uint16_t maxWait_) {
 // ublox commands
 /********************************************************************/
 /********************************************************************/
+uint8_t TeenyUbloxConnect::getUbloxModuleType() {
+  return ubloxModuleType;
+}
+
+/********************************************************************/
 bool TeenyUbloxConnect::pollUART1Port(uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return pollUART1Port_M8(maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return pollUART1Port_M10(maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::pollUART1Port_M8(uint16_t maxWait_, bool flushPort_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_PRT;
   commandPacket.payloadLength = 1;
   commandPacket.payload[0] = COM_PORT_UART1;
   commandPacket.validPacket = true;
-  while(serialPort->available()) serialPort->read();
+  if(flushPort_) while(serialPort->available()) serialPort->read();
+  return sendCommandPacket(true, true, maxWait_);
+}
+/********************************************************************/
+bool TeenyUbloxConnect::pollUART1Port_M10(uint16_t maxWait_, bool flushPort_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALGET;
+  commandPacket.payloadLength = 8;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALGET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = UBLOX_CFG_UART1_ENABLED >> (8 * i);
+  commandPacket.validPacket = true;
+  if(flushPort_) while(serialPort->available()) serialPort->read();
   return sendCommandPacket(true, true, maxWait_);
 }
 
 /********************************************************************/
 bool TeenyUbloxConnect::setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setPortOutput_M8(portID_, comSettings_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setPortOutput_M10(portID_, comSettings_, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setPortOutput_M8(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_PRT;
   commandPacket.payloadLength = 1;
@@ -67,9 +122,41 @@ bool TeenyUbloxConnect::setPortOutput(uint8_t portID_, uint8_t comSettings_, uin
   }
   return false;
 }
+/********************************************************************/
+bool TeenyUbloxConnect::setPortOutput_M10(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 9;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  if(portID_ == COM_PORT_UART1) {
+    for(uint8_t i = 0; i < 4; i++)
+      commandPacket.payload[4 + i] = UBLOX_CFG_UART1OUTPROT_UBX >> (8 * i);
+    commandPacket.payload[8] = (comSettings_ & COM_TYPE_UBX) == 0 ? false : true;
+    commandPacket.validPacket = true;
+    if(sendCommandPacket(false, true, maxWait_)) {
+      for(uint8_t i = 0; i < 4; i++)
+        commandPacket.payload[4 + i] = UBLOX_CFG_UART1OUTPROT_NMEA >> (8 * i);
+      commandPacket.payload[8] = (comSettings_ & COM_TYPE_NMEA) == 0 ? false : true;
+      commandPacket.validPacket = true;
+      return sendCommandPacket(false, true, maxWait_);
+    }
+  }
+  return false;
+}
 
 /********************************************************************/
 void TeenyUbloxConnect::setSerialRate(uint32_t baudrate_, uint8_t uartPort_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    setSerialRate_M8(baudrate_, uartPort_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    setSerialRate_M10(baudrate_, uartPort_, maxWait_);
+  }
+}
+/********************************************************************/
+void TeenyUbloxConnect::setSerialRate_M8(uint32_t baudrate_, uint8_t uartPort_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_PRT;
   commandPacket.payloadLength = 1;
@@ -77,10 +164,26 @@ void TeenyUbloxConnect::setSerialRate(uint32_t baudrate_, uint8_t uartPort_, uin
   commandPacket.validPacket = true;
   if(sendCommandPacket(true, true, maxWait_)) {
     commandPacket = responsePacket;
-    commandPacket.payload[8] = baudrate_;
-    commandPacket.payload[9] = baudrate_ >> 8;
-    commandPacket.payload[10] = baudrate_ >> 16;
-    commandPacket.payload[11] = baudrate_ >> 24;
+    for(uint8_t i = 0; i < 4; i++)
+      commandPacket.payload[8 + i] = baudrate_ >> (8 * i);
+    commandPacket.validPacket = true;
+    sendCommandPacket(false, false, maxWait_); // ACK lost due to baudrate change
+  }
+}
+/********************************************************************/
+void TeenyUbloxConnect::setSerialRate_M10(uint32_t baudrate_, uint8_t uartPort_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 12;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  if(uartPort_ == COM_PORT_UART1) {
+    for(uint8_t i = 0; i < 4; i++)
+      commandPacket.payload[4 + i] = UBLOX_CFG_UART1_BAUDRATE >> (8 * i);
+    for(uint8_t i = 0; i < 4; i++)
+      commandPacket.payload[8 + i] = baudrate_ >> (8 * i);
     commandPacket.validPacket = true;
     sendCommandPacket(false, false, maxWait_); // ACK lost due to baudrate change
   }
@@ -167,23 +270,19 @@ bool TeenyUbloxConnect::pollProtocolVersion(uint16_t maxWait_) {
                           (responsePacket.payload[82] - '0');
     return true;
   }
+  protocolVersionHigh = 0;
+  protocolVersionLow = 0;
   return false;
 }
 
 /********************************************************************/
 uint8_t TeenyUbloxConnect::getProtocolVersionHigh(uint16_t maxWait_) {
-  if(pollProtocolVersion(maxWait_)) {
-    return protocolVersionHigh;
-  }
-  return 0;
+  return protocolVersionHigh;
 }
 
 /********************************************************************/
 uint8_t TeenyUbloxConnect::getProtocolVersionLow(uint16_t maxWait_) {
-  if(pollProtocolVersion(maxWait_)) {
-    return protocolVersionLow;
-  }
-  return 0;
+  return protocolVersionLow;
 }
 
 /********************************************************************/
@@ -208,38 +307,202 @@ bool TeenyUbloxConnect::pollGNSSSelectionInfo(uint16_t maxWait_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::pollGNSSConfigInfo(uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return pollGNSSConfigInfo_M8(maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return pollGNSSConfigInfo_M10(maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::pollGNSSConfigInfo_M8(uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_GNSS;
   commandPacket.payloadLength = 0;
   commandPacket.validPacket = true;
   if(sendCommandPacket(true, true, maxWait_)) {
-    ubloxCFGGNSSInfo.numTrkChHw      = responsePacket.payload[1];
-    ubloxCFGGNSSInfo.numTrkChUse     = responsePacket.payload[2];
-    ubloxCFGGNSSInfo.numConfigBlocks = responsePacket.payload[3];
+    ubloxCFGGNSSInfo.M8.numTrkChHw      = responsePacket.payload[1];
+    ubloxCFGGNSSInfo.M8.numTrkChUse     = responsePacket.payload[2];
+    ubloxCFGGNSSInfo.M8.numConfigBlocks = responsePacket.payload[3];
     char gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
-    for(uint8_t i = 0; i < ubloxCFGGNSSInfo.numConfigBlocks; i++) {
-      ubloxCFGGNSSInfo.configBlockList[i].gnssId = responsePacket.payload[4+(i*8)];
-      if(ubloxCFGGNSSInfo.configBlockList[i].gnssId > 7) {
-        ubloxCFGGNSSInfo.configBlockList[i].gnssIdType = '?';
+    for(uint8_t i = 0; i < ubloxCFGGNSSInfo.M8.numConfigBlocks; i++) {
+      ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId = responsePacket.payload[4+(i*8)];
+      if(ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId > 7) {
+        ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType = '?';
       } else {
-        ubloxCFGGNSSInfo.configBlockList[i].gnssIdType =
-          gnssIdTypeMap[ubloxCFGGNSSInfo.configBlockList[i].gnssId];
+        ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType =
+          gnssIdTypeMap[ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId];
       }
-      ubloxCFGGNSSInfo.configBlockList[i].resTrkCh = responsePacket.payload[4+(i*8)+1];
-      ubloxCFGGNSSInfo.configBlockList[i].maxTrkCh = responsePacket.payload[4+(i*8)+2];
-      ubloxCFGGNSSInfo.configBlockList[i].enable = responsePacket.payload[4+(i*8)+4];
-      ubloxCFGGNSSInfo.configBlockList[i].sigCfgMask = responsePacket.payload[4+(i*8)+6];
+      ubloxCFGGNSSInfo.M8.configBlockList[i].resTrkCh = responsePacket.payload[4+(i*8)+1];
+      ubloxCFGGNSSInfo.M8.configBlockList[i].maxTrkCh = responsePacket.payload[4+(i*8)+2];
+      ubloxCFGGNSSInfo.M8.configBlockList[i].enable = responsePacket.payload[4+(i*8)+4];
+      ubloxCFGGNSSInfo.M8.configBlockList[i].sigCfgMask = responsePacket.payload[4+(i*8)+6];
     }
     return true;
   }
-  ubloxCFGGNSSInfo.numTrkChHw = 0;
-  ubloxCFGGNSSInfo.numTrkChUse = 0;
-  ubloxCFGGNSSInfo.numConfigBlocks = 0;
+  ubloxCFGGNSSInfo.M8.numTrkChHw = 0;
+  ubloxCFGGNSSInfo.M8.numTrkChUse = 0;
+  ubloxCFGGNSSInfo.M8.numConfigBlocks = 0;
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::pollGNSSConfigInfo_M10(uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALGET;
+  commandPacket.payloadLength = 60;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALGET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[4 + i]  = UBLOX_CFG_SIGNAL_GPS_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[8 + i]  = UBLOX_CFG_SIGNAL_GPS_L1CA_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[12 + i] = UBLOX_CFG_SIGNAL_SBAS_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[16 + i] = UBLOX_CFG_SIGNAL_SBAS_L1CA_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[20 + i] = UBLOX_CFG_SIGNAL_GAL_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[24 + i] = UBLOX_CFG_SIGNAL_GAL_E1_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[28 + i] = UBLOX_CFG_SIGNAL_BDS_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[32 + i] = UBLOX_CFG_SIGNAL_BDS_B1_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[36 + i] = UBLOX_CFG_SIGNAL_BDS_B1C_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[40 + i] = UBLOX_CFG_SIGNAL_QZSS_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[44 + i] = UBLOX_CFG_SIGNAL_QZSS_L1CA_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[48 + i] = UBLOX_CFG_SIGNAL_QZSS_L1S_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[52 + i] = UBLOX_CFG_SIGNAL_GLO_ENA >> (8 * i);
+  for(uint8_t i = 0; i < 4; i++) commandPacket.payload[56 + i] = UBLOX_CFG_SIGNAL_GLO_L1_ENA >> (8 * i);
+  commandPacket.validPacket = true;
+  if(sendCommandPacket(true, true, maxWait_) &&
+     (responsePacket.payloadLength == 74)) {
+    uint32_t gnssKey;
+    bool gnssEnable;
+    uint8_t cfgBlkNum = 0;
+    uint8_t cfgSigNum = 0;
+    for(uint8_t i = 0; i < 14; i++) {
+      gnssKey =  responsePacket.payload[4+(i*5)+0];
+      gnssKey |= responsePacket.payload[4+(i*5)+1] << 8;
+      gnssKey |= responsePacket.payload[4+(i*5)+2] << 16;
+      gnssKey |= responsePacket.payload[4+(i*5)+3] << 24;
+      gnssEnable = responsePacket.payload[4+(i*5)+4];
+      switch(gnssKey) {
+        case UBLOX_CFG_SIGNAL_GPS_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'G';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_GPS_L1CA_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "L1CA", 5);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_SBAS_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 1;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'S';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_SBAS_L1CA_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "L1CA", 5);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_GAL_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 2;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'E';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_GAL_E1_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "E1", 3);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_BDS_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 3;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'B';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_BDS_B1_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "B1", 3);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_BDS_B1C_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "B1C", 4);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_QZSS_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 5;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'Q';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_QZSS_L1CA_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "L1CA", 5);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_QZSS_L1S_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "L1S", 4);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+        case UBLOX_CFG_SIGNAL_GLO_ENA:
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssId = 6;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].gnssIdType = 'R';
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].enable = gnssEnable;
+          cfgSigNum = 0;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum].numSigs = cfgSigNum;
+          cfgBlkNum++;
+          ubloxCFGGNSSInfo.M10.numConfigBlocks = cfgBlkNum;
+          break;
+        case UBLOX_CFG_SIGNAL_GLO_L1_ENA:
+          strncpy(ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].name, "L1", 3);
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].signalList[cfgSigNum].enable = gnssEnable;
+          cfgSigNum++;
+          ubloxCFGGNSSInfo.M10.configBlockList[cfgBlkNum-1].numSigs = cfgSigNum;
+          break;
+      }
+    }
+    return true;
+  }
+  ubloxCFGGNSSInfo.M10.numConfigBlocks = 24;
   return false;
 }
 
 /********************************************************************/
 bool TeenyUbloxConnect::setGNSSConfig(uint8_t gnssId, bool enable, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setGNSSConfig_M8(gnssId, enable, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setGNSSConfig_M10(gnssId, enable, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setGNSSConfig_M8(uint8_t gnssId, bool enable, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_GNSS;
   commandPacket.payloadLength = 0;
@@ -266,9 +529,43 @@ bool TeenyUbloxConnect::setGNSSConfig(uint8_t gnssId, bool enable, uint16_t maxW
   }
   return false;
 }
+/********************************************************************/
+bool TeenyUbloxConnect::setGNSSConfig_M10(uint8_t gnssId, bool enable, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 9;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_ALL;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  uint32_t gnssKey;
+  switch(gnssId) {
+    case 0: gnssKey = UBLOX_CFG_SIGNAL_GPS_ENA; break;
+    case 1: gnssKey = UBLOX_CFG_SIGNAL_SBAS_ENA; break;
+    case 2: gnssKey = UBLOX_CFG_SIGNAL_GAL_ENA; break;
+    case 3: gnssKey = UBLOX_CFG_SIGNAL_BDS_ENA; break;
+    case 5: gnssKey = UBLOX_CFG_SIGNAL_QZSS_ENA; break;
+    case 6: gnssKey = UBLOX_CFG_SIGNAL_GLO_ENA; break;
+    default: return false;
+  }
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = gnssKey >> (8 * i);
+  commandPacket.payload[8] = enable;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
 
 /********************************************************************/
 bool TeenyUbloxConnect::setMeasurementRate(uint16_t rate_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setMeasurementRate_M8(rate_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setMeasurementRate_M10(rate_, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setMeasurementRate_M8(uint16_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RATE;
   commandPacket.payloadLength = 0;
@@ -282,9 +579,34 @@ bool TeenyUbloxConnect::setMeasurementRate(uint16_t rate_, uint16_t maxWait_) {
   }
   return false;
 }
+/********************************************************************/
+bool TeenyUbloxConnect::setMeasurementRate_M10(uint16_t rate_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 10;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = UBLOX_CFG_RATE_MEAS >> (8 * i);
+  commandPacket.payload[8] = rate_;
+  commandPacket.payload[9] = rate_ >> 8;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
 
 /********************************************************************/
 bool TeenyUbloxConnect::setNavigationRate(uint16_t rate_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setNavigationRate_M8(rate_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setNavigationRate_M10(rate_, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setNavigationRate_M8(uint16_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RATE;
   commandPacket.payloadLength = 0;
@@ -298,6 +620,22 @@ bool TeenyUbloxConnect::setNavigationRate(uint16_t rate_, uint16_t maxWait_) {
   }
   return false;
 }
+/********************************************************************/
+bool TeenyUbloxConnect::setNavigationRate_M10(uint16_t rate_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 10;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = UBLOX_CFG_RATE_NAV >> (8 * i);
+  commandPacket.payload[8] = rate_;
+  commandPacket.payload[9] = rate_ >> 8;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoNAVPVT(bool enable_, uint16_t maxWait_) {
@@ -306,12 +644,36 @@ bool TeenyUbloxConnect::setAutoNAVPVT(bool enable_, uint16_t maxWait_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoNAVPVTRate(uint8_t rate_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setAutoNAVPVTRate_M8(rate_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setAutoNAVPVTRate_M10(rate_, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setAutoNAVPVTRate_M8(uint8_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_MSG;
   commandPacket.payloadLength = 3;
   commandPacket.payload[0] = UBX_CLASS_NAV;
   commandPacket.payload[1] = UBX_NAV_PVT;
   commandPacket.payload[2] = (rate_ <= 127) ? rate_ : 127;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setAutoNAVPVTRate_M10(uint8_t rate_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 9;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 >> (8 * i);
+  commandPacket.payload[8] = (rate_ <= 127) ? rate_ : 127;
   commandPacket.validPacket = true;
   return sendCommandPacket(false, true, maxWait_);
 }
@@ -333,12 +695,36 @@ bool TeenyUbloxConnect::setAutoNAVSAT(bool enable_, uint16_t maxWait_) {
 
 /********************************************************************/
 bool TeenyUbloxConnect::setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setAutoNAVSATRate_M8(rate_, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setAutoNAVSATRate_M10(rate_, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setAutoNAVSATRate_M8(uint8_t rate_, uint16_t maxWait_) {
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_MSG;
   commandPacket.payloadLength = 3;
   commandPacket.payload[0] = UBX_CLASS_NAV;
   commandPacket.payload[1] = UBX_NAV_SAT;
   commandPacket.payload[2] = (rate_ <= 127) ? rate_ : 127;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setAutoNAVSATRate_M10(uint8_t rate_, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 9;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_RAM;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 >> (8 * i);
+  commandPacket.payload[8] = (rate_ <= 127) ? rate_ : 127;
   commandPacket.validPacket = true;
   return sendCommandPacket(false, true, maxWait_);
 }

@@ -8,7 +8,9 @@ enum device_mode_t : int16_t {
   DM_GPSNSAT,
   DM_GPSSMAP,
   DM_GPSSCFG,
-  DM_GPSEMUL
+  DM_GPSSSTP,
+  DM_GPSEMU_M8,
+  DM_GPSEMU_M10
 };
 
 /********************************************************************/

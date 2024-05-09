@@ -314,7 +314,8 @@ void loop() {
         displayRefresh = true;
       }
       break;
-    case DM_GPSEMUL:
+    case DM_GPSEMU_M8:
+    case DM_GPSEMU_M10:
       // Process host commands
       emulator.processIncomingPacket();
 //*** NEED TO INCORPORATE TRANSMISSION RATE INTO sendNAVPVTPacket()

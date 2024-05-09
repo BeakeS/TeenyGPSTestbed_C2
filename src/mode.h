@@ -86,11 +86,28 @@ void deviceMode_init() {
         msg_update("ERROR - GPS Missing");
       }
       break;
-    case DM_GPSEMUL:
+    case DM_GPSSSTP:
+      //statusLED.pulse_repeat(1);
+      rtc.setValid(false);
+      gpsSerial = &Serial2;
+      gpsSerial->begin(GPS_BAUD_RATE);
+      msg_update("GPS Serial Enabled");
+      break;
+    case DM_GPSEMU_M8:
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       emulatorSerial = &Serial2;
-      if(emulator_setup(*emulatorSerial, EMULATOR_BAUD_RATE)) {
+      if(emulator_setup(*emulatorSerial, UBLOX_M8_EMULATOR_BAUD_RATE, TGPSE_UBX_M8_MODULE)) {
+        msg_update("EMU Serial Enabled");
+      } else {
+        msg_update("ERROR - EMU Setup");
+      }
+      break;
+    case DM_GPSEMU_M10:
+      //statusLED.pulse_repeat(1);
+      rtc.setValid(false);
+      emulatorSerial = &Serial2;
+      if(emulator_setup(*emulatorSerial, UBLOX_M10_EMULATOR_BAUD_RATE, TGPSE_UBX_M10_MODULE)) {
         msg_update("EMU Serial Enabled");
       } else {
         msg_update("ERROR - EMU Setup");
@@ -127,7 +144,14 @@ void deviceMode_end() {
       gpsEnabled = false;
       msg_update("GPS SATCFG Stopped");
       break;
-    case DM_GPSEMUL:
+    case DM_GPSSSTP:
+      msg_update("Stepper Mode Stopped");
+      break;
+    case DM_GPSEMU_M8:
+      emulator_end();
+      msg_update("Emulator Stopped");
+      break;
+    case DM_GPSEMU_M10:
       emulator_end();
       msg_update("Emulator Stopped");
       break;
