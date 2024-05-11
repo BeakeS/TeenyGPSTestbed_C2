@@ -1,8 +1,11 @@
 # TeenyGPSTestbed_C2
 
 TeenyGPSTestbed_C2 is an application for testing Ublox GPS modules.  This application runs on the M5Stack Core2 ESP32 IoT Development Kit.
-The application was developed to test Ublox GPS modules connected to the Core2's Serial2 interface.  The application also has a Ublox GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
-TeenyGPSTestbed_C2 utilizes the TeenyMenu library for menu/page navigation via a three button interface.  The TeenyMenu library was derived from the GEM (Good Enough Menu) Arduino library back in 2021 to use with the Adafruit 128x64 OLED Feather (and its three button interface).
+The application was developed to test Ublox M8 and M10 GPS modules connected to the Core2's Serial2 interface.  The application also has a Ublox GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
+
+Navigation:
+TeenyGPSTestbed_C2 utilizes the TeenyMenu library for menu/page navigation via a three button interface.
+The TeenyMenu library was derived from the GEM (Good Enough Menu) Arduino library in 2021.
 
 Navigating the TeenyGPSTestbed_C2 menu pages on the Core2 utilizes the Core2's three touch buttons adjacent to the display as follows:
 - The top button single touch is SCROLL_UP.
@@ -35,5 +38,5 @@ SATMAP: Satellite Constellation Map - View of satellite position data including 
 SATCFG: Satellite Configuration Tool - View GNSS system configuration and enable/disable selected GNSS.
 ![PXL_20240410_140034278](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/a930ee04-f1bd-4229-a14a-501317c313ff)
 
-GPSEMU: GPS Emulation - Emulates Beitian BN-880Q GPS module including replay of NAV-PVT and NAV-SAT packets from ROM or SDCARD with progressive date/time updates.
+EMUM8 & EMUM10: GPS Emulation - EMUM8 emulates Beitian BN-880Q (Ublox M8) GPS module and EMUM10 emulates BE-880Q (Ublox M10) GPS module including replay of NAV-PVT and NAV-SAT packets from ROM or SDCARD with progressive date/time updates.
 ![PXL_20240229_005625834](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/f4011f04-dae2-459f-9b68-648e4ca00ba4)
