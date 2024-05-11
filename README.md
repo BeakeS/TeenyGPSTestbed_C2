@@ -5,12 +5,18 @@ The application was developed to test Ublox GPS modules connected to the Core2's
 TeenyGPSTestbed_C2 utilizes the TeenyMenu library for menu/page navigation via a three button interface.  The TeenyMenu library was derived from the GEM (Good Enough Menu) Arduino library back in 2021 to use with the Adafruit 128x64 OLED Feather (and its three button interface).
 
 Navigating the TeenyGPSTestbed_C2 menu pages on the Core2 utilizes the Core2's three touch buttons adjacent to the display as follows:
+- The top button single touch is SCROLL_UP.
+- The bottom button single touch is SCROLL_DOWN.
 - The middle button single touch is SELECT.
-- If the menu item you selected is a MENU LINK item (with '>' on the right), it switches to the linked menu page.  Middle button double touch returns you to the previous menu page.
-- If the menu item you selected is a PARAMETER ITEM (name:value) the item switches to edit mode (with '+/-' on the right).  You can then scroll up and down to change the value.  While in edit mode, middle button single touch will save the selected value and exit edit mode.  Middle button double touch will exit edit mode without saving.
-- If the menu item you selected is a BOOLEAN ITEM (parameter:value with values ON/OFF, YES/NO, TRUE/FALSE, or any defined label pair), select will toggle the value.
-- If the menu item you selected is an ACTION ITEM (with '>>' on the left side), the action (function call) is executed.
-- Some menus also have an optional EXIT ITEM ('<exit') which returns to the previous menu page just like middle button double touch does.
+  - If the menu item you selected is a MENU LINK item (with '>' on the right), it switches to the linked menu page.
+    - Middle button double touch returns you to the previous menu page.
+  - If the menu item you selected is a PARAMETER ITEM (name:value) the item switches to edit mode (with '+/-' on the right).
+    - Use scroll up and down to change the value.
+    - Middle button single touch will save the selected value and exit edit mode.
+    - Middle button double touch will exit edit mode without saving.
+  - If the menu item you selected is a BOOLEAN ITEM, select will toggle the item's value.
+  - If the menu item you selected is an ACTION ITEM (with '>>' on the left side), the action (function call) is executed.
+  - Some menus also have an optional EXIT ITEM ('<exit') which returns to the previous menu page just like middle button double touch does.
 
 TeenyGPSTestbed_C2 offers five modes of operation:
 
