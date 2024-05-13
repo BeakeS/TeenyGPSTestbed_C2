@@ -36,7 +36,7 @@ SelectOptionUint8t selectMenuModeOptions[] = {
   {"NAVSAT", DM_GPSNSAT},
   {"SATMAP", DM_GPSSMAP},
   {"SATCFG", DM_GPSSCFG},
-  {"GPSSST", DM_GPSSSTP},
+//{"GPSSST", DM_GPSSSTP},
   {"EMUM8",  DM_GPSEMU_M8},
   {"EMUM10", DM_GPSEMU_M10}};
 TeenyMenuSelect selectMenuMode(sizeof(selectMenuModeOptions)/sizeof(SelectOptionUint8t), selectMenuModeOptions);
@@ -154,17 +154,25 @@ void menu_gnssCfgGPSToggleCB(); // forward declaration
 void menu_gnssCfgSBASToggleCB(); // forward declaration
 void menu_gnssCfgGalileoToggleCB(); // forward declaration
 void menu_gnssCfgBeiDouToggleCB(); // forward declaration
+void menu_gnssCfgBeiDouB1ToggleCB(); // forward declaration
+void menu_gnssCfgBeiDouB1CToggleCB(); // forward declaration
 void menu_gnssCfgIMESToggleCB(); // forward declaration
 void menu_gnssCfgQZSSToggleCB(); // forward declaration
+void menu_gnssCfgQZSSL1CAToggleCB(); // forward declaration
+void menu_gnssCfgQZSSL1SToggleCB(); // forward declaration
 void menu_gnssCfgGLONASSToggleCB(); // forward declaration
 // Note:  Toggle menu item titles set by menu_gnssConfigurator()
-TeenyMenuItem menuItemGNSSCfgGPSToggle(    "", menu_gnssCfgGPSToggleCB);
-TeenyMenuItem menuItemGNSSCfgSBASToggle(   "", menu_gnssCfgSBASToggleCB);
-TeenyMenuItem menuItemGNSSCfgGalileoToggle("", menu_gnssCfgGalileoToggleCB);
-TeenyMenuItem menuItemGNSSCfgBeiDouToggle( "", menu_gnssCfgBeiDouToggleCB);
-TeenyMenuItem menuItemGNSSCfgIMESToggle(   "", menu_gnssCfgIMESToggleCB);
-TeenyMenuItem menuItemGNSSCfgQZSSToggle(   "", menu_gnssCfgQZSSToggleCB);
-TeenyMenuItem menuItemGNSSCfgGLONASSToggle("", menu_gnssCfgGLONASSToggleCB);
+TeenyMenuItem menuItemGNSSCfgGPSToggle(      "", menu_gnssCfgGPSToggleCB);
+TeenyMenuItem menuItemGNSSCfgSBASToggle(     "", menu_gnssCfgSBASToggleCB);
+TeenyMenuItem menuItemGNSSCfgGalileoToggle(  "", menu_gnssCfgGalileoToggleCB);
+TeenyMenuItem menuItemGNSSCfgBeiDouToggle(   "", menu_gnssCfgBeiDouToggleCB);
+TeenyMenuItem menuItemGNSSCfgBeiDouB1Toggle( "", menu_gnssCfgBeiDouB1ToggleCB);
+TeenyMenuItem menuItemGNSSCfgBeiDouB1CToggle("", menu_gnssCfgBeiDouB1CToggleCB);
+TeenyMenuItem menuItemGNSSCfgIMESToggle(     "", menu_gnssCfgIMESToggleCB);
+TeenyMenuItem menuItemGNSSCfgQZSSToggle(     "", menu_gnssCfgQZSSToggleCB);
+TeenyMenuItem menuItemGNSSCfgQZSSL1CAToggle( "", menu_gnssCfgQZSSL1CAToggleCB);
+TeenyMenuItem menuItemGNSSCfgQZSSL1SToggle(  "", menu_gnssCfgQZSSL1SToggleCB);
+TeenyMenuItem menuItemGNSSCfgGLONASSToggle(  "", menu_gnssCfgGLONASSToggleCB);
 //
 // gps single step unit
 //
@@ -419,7 +427,7 @@ void menu_setup() {
   menuPageGPSSmap.addMenuItem(menuItemGPSSmapLabel0);
   //menuPageGPSSmap.addMenuItem(menuItemGPSSmapExit);
   menuPageMain.addMenuItem(menuItemGPSScfg);
-  menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel0);
+  //menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel0);
   menuPageGPSScfg.addMenuItem(menuItemGNSSSelInfo);
   menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel0);
   menuPageGNSSSelInfo.addMenuItem(menuItemGNSSSelInfoLabel1);
@@ -444,10 +452,14 @@ void menu_setup() {
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgSBASToggle);
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGalileoToggle);
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouB1Toggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgBeiDouB1CToggle);
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgIMESToggle);
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgQZSSToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgQZSSL1CAToggle);
+  menuPageGPSScfg.addMenuItem(menuItemGNSSCfgQZSSL1SToggle);
   menuPageGPSScfg.addMenuItem(menuItemGNSSCfgGLONASSToggle);
-  menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
+  //menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel2);
   menuPageGPSScfg.addMenuItem(menuItemGPSScfgExit);
   menuPageMain.addMenuItem(menuItemGPSStep);
   menuPageGPSStep.addMenuItem(menuItemGPSStepBegin);
@@ -833,7 +845,7 @@ void menu_exitGPSSmapCB() {
 }
 
 /********************************************************************/
-void menu_gnssConfigurator(char toggleGnssIdType) {
+void menu_gnssConfigurator(const char toggleGnssIdType, const char* toggleGnssSigName) {
   char _msgStr[22];
   // GNSS State - Unknown=-1, Disabled=0, Enabled=1
   typedef struct {
@@ -841,8 +853,12 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
     int8_t SBAS = -1;
     int8_t Galileo = -1;
     int8_t BeiDou = -1;
+    int8_t BeiDouB1 = -1;
+    int8_t BeiDouB1C = -1;
     int8_t IMES = -1;
     int8_t QZSS = -1;
+    int8_t QZSSL1CA = -1;
+    int8_t QZSSL1S = -1;
     int8_t GLONASS = -1;
     int8_t spare00;
   } gnss_state_t;
@@ -853,9 +869,14 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
   uint8_t ubloxModuleType = gps.getUbloxModuleType();
   ubloxCFGGNSSInfo_t ubloxCFGGNSSInfo = gps.getGNSSConfigInfo();
   menuItemGNSSCfgIMESToggle.hide((ubloxModuleType == UBLOX_M8_MODULE) ? false : true);
+  menuItemGNSSCfgBeiDouB1Toggle.hide((ubloxModuleType == UBLOX_M10_MODULE) ? false : true);
+  menuItemGNSSCfgBeiDouB1CToggle.hide((ubloxModuleType == UBLOX_M10_MODULE) ? false : true);
+  menuItemGNSSCfgQZSSL1CAToggle.hide((ubloxModuleType == UBLOX_M10_MODULE) ? false : true);
+  menuItemGNSSCfgQZSSL1SToggle.hide((ubloxModuleType == UBLOX_M10_MODULE) ? false : true);
   uint8_t gnssId;
   char gnssIdType;
   uint8_t gnssEnable;
+  uint8_t gnssSignalEnable;
   bool toggleRC;
   // Toggle selected GNSS
   if(pollRC) {
@@ -864,6 +885,7 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
         gnssId     = ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId;
         gnssIdType = ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType;
         gnssEnable = ubloxCFGGNSSInfo.M8.configBlockList[i].enable;
+        // Toggle selected GNSS enable
         if(toggleGnssIdType == gnssIdType) {
           toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
           if(toggleRC) gnssEnable = !gnssEnable;
@@ -899,11 +921,26 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
         gnssId     = ubloxCFGGNSSInfo.M10.configBlockList[i].gnssId;
         gnssIdType = ubloxCFGGNSSInfo.M10.configBlockList[i].gnssIdType;
         gnssEnable = ubloxCFGGNSSInfo.M10.configBlockList[i].enable;
+        // Toggle selected GNSS enable
         if(toggleGnssIdType == gnssIdType) {
-          toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
-          if(toggleRC) gnssEnable = !gnssEnable;
-          sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
-          msg_update(_msgStr);
+          if(toggleGnssSigName == "") {
+            toggleRC = gps.setGNSSConfig(gnssId, !gnssEnable);
+            if(toggleRC) gnssEnable = !gnssEnable;
+            sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
+            msg_update(_msgStr);
+          } else {
+            for(uint8_t j=0; j<ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs; j++) {
+              if(strcmp(ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].name, toggleGnssSigName)==0) {
+                gnssSignalEnable = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable;
+                toggleRC = gps.setGNSSSignalConfig(gnssId, toggleGnssSigName, !gnssSignalEnable);
+                if(toggleRC) {
+                  ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable = !gnssSignalEnable;
+                }
+                sprintf(_msgStr, "Set CFG-GNSS rc=%d", toggleRC);
+                msg_update(_msgStr);
+              }
+            }
+          }
         }
         switch(gnssIdType) {
           case  'G':
@@ -917,12 +954,25 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
             break;
           case  'B':
             gnssState.BeiDou = gnssEnable;
-            break;
-          case  'I':
-            gnssState.IMES = gnssEnable;
+            for(uint8_t j=0; j<ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs; j++) {
+              if(strcmp(ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].name, "B1")==0) {
+                gnssState.BeiDouB1 = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable;
+              } else if(strcmp(ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].name, "B1C")==0) {
+                gnssState.BeiDouB1C = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable;
+              }
+            }
+            //gnssState.BeiDouB1 = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[0].enable;
+            //gnssState.BeiDouB1C = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[1].enable;
             break;
           case  'Q':
             gnssState.QZSS = gnssEnable;
+            for(uint8_t j=0; j<ubloxCFGGNSSInfo.M10.configBlockList[i].numSigs; j++) {
+              if(strcmp(ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].name, "L1CA")==0) {
+                gnssState.QZSSL1CA = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable;
+              } else if(strcmp(ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].name, "L1S")==0) {
+                gnssState.QZSSL1S = ubloxCFGGNSSInfo.M10.configBlockList[i].signalList[j].enable;
+              }
+            }
             break;
           case  'R':
             gnssState.GLONASS = gnssEnable;
@@ -957,6 +1007,16 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
     case  0: menuItemGNSSCfgBeiDouToggle.setTitle("BeiDou :Disabled"); break;
     case  1: menuItemGNSSCfgBeiDouToggle.setTitle("BeiDou :Enabled"); break;
   }
+  switch(gnssState.BeiDouB1) {
+    case -1: menuItemGNSSCfgBeiDouB1Toggle.setTitle(" B_B1  :Unknown"); break;
+    case  0: menuItemGNSSCfgBeiDouB1Toggle.setTitle(" B_B1  :Disabled"); break;
+    case  1: menuItemGNSSCfgBeiDouB1Toggle.setTitle(" B_B1  :Enabled"); break;
+  }
+  switch(gnssState.BeiDouB1C) {
+    case -1: menuItemGNSSCfgBeiDouB1CToggle.setTitle(" B_B1C :Unknown"); break;
+    case  0: menuItemGNSSCfgBeiDouB1CToggle.setTitle(" B_B1C :Disabled"); break;
+    case  1: menuItemGNSSCfgBeiDouB1CToggle.setTitle(" B_B1C :Enabled"); break;
+  }
   switch(gnssState.IMES) {
     case -1: menuItemGNSSCfgIMESToggle.setTitle("IMES   :Unknown"); break;
     case  0: menuItemGNSSCfgIMESToggle.setTitle("IMES   :Disabled"); break;
@@ -966,6 +1026,16 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
     case -1: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Unknown"); break;
     case  0: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Disabled"); break;
     case  1: menuItemGNSSCfgQZSSToggle.setTitle("QZSS   :Enabled"); break;
+  }
+  switch(gnssState.QZSSL1CA) {
+    case -1: menuItemGNSSCfgQZSSL1CAToggle.setTitle(" Q_L1CA:Unknown"); break;
+    case  0: menuItemGNSSCfgQZSSL1CAToggle.setTitle(" Q_L1CA:Disabled"); break;
+    case  1: menuItemGNSSCfgQZSSL1CAToggle.setTitle(" Q_L1CA:Enabled"); break;
+  }
+  switch(gnssState.QZSSL1S) {
+    case -1: menuItemGNSSCfgQZSSL1SToggle.setTitle(" Q_L1S :Unknown"); break;
+    case  0: menuItemGNSSCfgQZSSL1SToggle.setTitle(" Q_L1S :Disabled"); break;
+    case  1: menuItemGNSSCfgQZSSL1SToggle.setTitle(" Q_L1S :Enabled"); break;
   }
   switch(gnssState.GLONASS) {
     case -1: menuItemGNSSCfgGLONASSToggle.setTitle("GLONASS:Unknown"); break;
@@ -979,7 +1049,7 @@ void menu_gnssConfigurator(char toggleGnssIdType) {
 void menu_entrGPSScfgCB() {
   deviceState.DEVICE_MODE = DM_GPSSCFG;
   deviceMode_init();
-  menu_gnssConfigurator('\0');
+  menu_gnssConfigurator('\0', "");
   displayRefresh = true;
 }
 
@@ -1003,43 +1073,67 @@ void menu_pollGNSSCfgInfoCB() {
 
 /********************************************************************/
 void menu_gnssCfgGPSToggleCB() {
-  menu_gnssConfigurator('G');
+  menu_gnssConfigurator('G', "");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgSBASToggleCB() {
-  menu_gnssConfigurator('S');
+  menu_gnssConfigurator('S', "");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgGalileoToggleCB() {
-  menu_gnssConfigurator('E');
+  menu_gnssConfigurator('E', "");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgBeiDouToggleCB() {
-  menu_gnssConfigurator('B');
+  menu_gnssConfigurator('B', "");
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgBeiDouB1ToggleCB() {
+  menu_gnssConfigurator('B', "B1");
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgBeiDouB1CToggleCB() {
+  menu_gnssConfigurator('B', "B1C");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgIMESToggleCB() {
-  menu_gnssConfigurator('I');
+  menu_gnssConfigurator('I', "");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgQZSSToggleCB() {
-  menu_gnssConfigurator('Q');
+  menu_gnssConfigurator('Q', "");
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgQZSSL1CAToggleCB() {
+  menu_gnssConfigurator('Q', "L1CA");
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_gnssCfgQZSSL1SToggleCB() {
+  menu_gnssConfigurator('Q', "L1S");
   displayRefresh = true;
 }
 
 /********************************************************************/
 void menu_gnssCfgGLONASSToggleCB() {
-  menu_gnssConfigurator('R');
+  menu_gnssConfigurator('R', "");
   displayRefresh = true;
 }
 

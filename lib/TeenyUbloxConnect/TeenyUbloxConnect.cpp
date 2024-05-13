@@ -556,6 +556,87 @@ bool TeenyUbloxConnect::setGNSSConfig_M10(uint8_t gnssId, bool enable, uint16_t 
 }
 
 /********************************************************************/
+bool TeenyUbloxConnect::setGNSSSignalConfig(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_) {
+  if(ubloxModuleType == UBLOX_M8_MODULE) {
+    return setGNSSSignalConfig_M8(gnssId, signalName, enable, maxWait_);
+  } else if(ubloxModuleType == UBLOX_M10_MODULE) {
+    return setGNSSSignalConfig_M10(gnssId, signalName, enable, maxWait_);
+  }
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setGNSSSignalConfig_M8(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_) {
+  return false;
+}
+/********************************************************************/
+bool TeenyUbloxConnect::setGNSSSignalConfig_M10(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_) {
+  commandPacket.messageClass = UBX_CLASS_CFG;
+  commandPacket.messageID = UBX_CFG_VALSET;
+  commandPacket.payloadLength = 9;
+  commandPacket.payload[0] = 0;
+  commandPacket.payload[1] = VALSET_LAYER_ALL;
+  commandPacket.payload[2] = 0;
+  commandPacket.payload[3] = 0;
+  uint32_t gnssKey;
+  switch(gnssId) {
+    case 0:
+      if(strcmp(signalName, "L1CA") == 0) {
+        gnssKey =  UBLOX_CFG_SIGNAL_GPS_L1CA_ENA;
+        break;
+      } else {
+        return false;
+      }
+    case 1:
+      if(strcmp(signalName, "L1CA") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_SBAS_L1CA_ENA;
+        break;
+      } else {
+        return false;
+      }
+    case 2:
+      if(strcmp(signalName, "E1") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_GAL_E1_ENA;
+        break;
+      } else {
+        return false;
+      }
+    case 3:
+      if(strcmp(signalName, "B1") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_BDS_B1_ENA;
+        break;
+      } else if(strcmp(signalName, "B1C") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_BDS_B1C_ENA;
+        break;
+      } else {
+        return false;
+      }
+    case 5:
+      if(strcmp(signalName, "L1CA") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_QZSS_L1CA_ENA;
+        break;
+      } else if(strcmp(signalName, "L1S") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_QZSS_L1S_ENA;
+        break;
+      } else {
+        return false;
+      }
+    case 6:
+      if(strcmp(signalName, "L1") == 0) {
+        gnssKey = UBLOX_CFG_SIGNAL_GLO_L1_ENA;
+        break;
+      } else {
+        return false;
+      }
+    default: return false;
+  }
+  for(uint8_t i = 0; i < 4; i++)
+    commandPacket.payload[4 + i] = gnssKey >> (8 * i);
+  commandPacket.payload[8] = enable;
+  commandPacket.validPacket = true;
+  return sendCommandPacket(false, true, maxWait_);
+}
+
+/********************************************************************/
 bool TeenyUbloxConnect::setMeasurementRate(uint16_t rate_, uint16_t maxWait_) {
   if(ubloxModuleType == UBLOX_M8_MODULE) {
     return setMeasurementRate_M8(rate_, maxWait_);

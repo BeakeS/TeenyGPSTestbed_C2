@@ -134,6 +134,7 @@ class TeenyGPSConnect {
     bool pollGNSSSelectionInfo();
     bool pollGNSSConfigInfo();
     bool setGNSSConfig(uint8_t gnssId, bool enable);
+    bool setGNSSSignalConfig(uint8_t gnssId, const char* signalName, bool enable);
     // GNSS config info
     ubloxMONGNSSInfo_t getGNSSSelectionInfo();
     ubloxCFGGNSSInfo_t getGNSSConfigInfo();

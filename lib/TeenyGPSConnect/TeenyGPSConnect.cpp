@@ -183,6 +183,29 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
 }
 
 /********************************************************************/
+bool TeenyGPSConnect::setGNSSSignalConfig(uint8_t gnssId, const char* signalName, bool enable) {
+  if(gnss.setGNSSSignalConfig(gnssId, signalName, enable)) {
+    //Applying the GNSS system configuration takes some time.
+    //After issuing UBX-CFG-GNSS, wait first for the acknowledgement
+    //from the receiver and then 0.5 seconds before sending the next command.
+    delay(500);
+    //If Galileo is enabled, UBX-CFG-GNSS must be followed by
+    //UBX-CFG-CFG to save current configuration to BBR and then
+    // by UBX-CFG-RST with resetMode set to Hardware reset.
+    if(gnss.saveConfiguration(0x00000010)) {
+      gnss.hardwareReset();
+      // Re-establish comms after cold start and hardware reset
+      delay(100); // recovery time for possible gnss module baud rate change;
+      if(gnss_setSerialRate()) {
+        gnss_config();
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/********************************************************************/
 // UBX-NAV-PVT
 /********************************************************************/
 bool TeenyGPSConnect::getNAVPVT() {

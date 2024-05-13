@@ -386,6 +386,7 @@ class TeenyUbloxConnect {
     bool    pollGNSSSelectionInfo(uint16_t maxWait_ = defaultMaxWait);
     bool    pollGNSSConfigInfo(uint16_t maxWait_ = defaultMaxWait);
     bool    setGNSSConfig(uint8_t gnssId, bool enable, uint16_t maxWait_ = defaultMaxWait);
+    bool    setGNSSSignalConfig(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_ = defaultMaxWait);
     bool    setMeasurementRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool    setNavigationRate(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool    setAutoNAVPVT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
@@ -459,6 +460,8 @@ class TeenyUbloxConnect {
     bool pollGNSSConfigInfo_M10(uint16_t maxWait_ = defaultMaxWait);
     bool setGNSSConfig_M8(uint8_t gnssId, bool enable, uint16_t maxWait_ = defaultMaxWait);
     bool setGNSSConfig_M10(uint8_t gnssId, bool enable, uint16_t maxWait_ = defaultMaxWait);
+    bool setGNSSSignalConfig_M8(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_ = defaultMaxWait);
+    bool setGNSSSignalConfig_M10(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_ = defaultMaxWait);
     bool setMeasurementRate_M8(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setMeasurementRate_M10(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setNavigationRate_M8(uint16_t rate_, uint16_t maxWait_ = defaultMaxWait);
