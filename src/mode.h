@@ -38,11 +38,11 @@ void deviceMode_init() {
         msg_update("ERROR - GPS Missing");
       }
       break;
-    case DM_GPSNSAT:
+    case DM_GPSSTAT:
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       gpsSerial = &Serial2;
-      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET, 1, 10)) {
+      if(gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, deviceState.GPSRESET, 1, 0, 10)) {
         gpsEnabled = true;
         sprintf(_dispStr, "GPS CONN UBPV=%02d.%02d",
                 gps.getProtocolVersionHigh(),
@@ -54,7 +54,7 @@ void deviceMode_init() {
         msg_update("ERROR - GPS Missing");
       }
       break;
-    case DM_GPSSMAP:
+    case DM_GPSNSAT:
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       gpsSerial = &Serial2;
@@ -120,27 +120,27 @@ void deviceMode_init() {
 void deviceMode_end() {
   switch(deviceState.DEVICE_MODE) {
     case DM_GPSRCVR:
-      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0);
       gpsEnabled = false;
       msg_update("GPS Receiver Stopped");
       break;
     case DM_GPSLOGR:
-      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0);
       gpsEnabled = false;
       msg_update("GPS Logger Stopped");
       break;
+    case DM_GPSSTAT:
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0);
+      gpsEnabled = false;
+      msg_update("GPS NAVSTAT Stopped");
+      break;
     case DM_GPSNSAT:
-      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0);
       gpsEnabled = false;
       msg_update("GPS NAVSAT Stopped");
       break;
-    case DM_GPSSMAP:
-      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
-      gpsEnabled = false;
-      msg_update("GPS SATMAP Stopped");
-      break;
     case DM_GPSSCFG:
-      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0, 0);
+      if(gpsEnabled) gps.gnss_init(*gpsSerial, GPS_BAUD_RATE, GPS_NORESET, 0);
       gpsEnabled = false;
       msg_update("GPS SATCFG Stopped");
       break;

@@ -33,7 +33,7 @@ TeenyGPSConnect::~TeenyGPSConnect() { }
 /********************************************************************/
 // GPS SETUP
 /********************************************************************/
-bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode_, uint8_t autoNAVPVTRate_, uint8_t autoNAVSATRate_) {
+bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode_, uint8_t autoNAVPVTRate_, uint8_t autoNAVSATRate_, uint8_t autoNAVSTATUSRate_) {
 
   // Assign serial port
   serialPort = &serialPort_;
@@ -45,6 +45,7 @@ bool TeenyGPSConnect::gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_,
   // Save gnss config
   autoNAVPVTRate = autoNAVPVTRate_;
   autoNAVSATRate = autoNAVSATRate_;
+  autoNAVSTATUSRate = autoNAVSTATUSRate_;
 
   // Optional startup mode
   if((startMode_ > 0) && (startMode_ < 5)) {
@@ -90,10 +91,11 @@ bool TeenyGPSConnect::gnss_setSerialRate() {
 void TeenyGPSConnect::gnss_config() {
 
   gnss.setPortOutput(COM_PORT_UART1, COM_TYPE_UBX); //Set the UART port to output UBX only
-  gnss.setMeasurementRate(1000);          //Produce a measurement every 1000ms
-  gnss.setNavigationRate(1);              //Produce a navigation solution every measurement
-  gnss.setAutoNAVPVTRate(autoNAVPVTRate); //Include NAV-PVT reports 
-  gnss.setAutoNAVSATRate(autoNAVSATRate); //Include NAV-SAT reports 
+  gnss.setMeasurementRate(1000);                //Produce a measurement every 1000ms
+  gnss.setNavigationRate(1);                    //Produce a navigation solution every measurement
+  gnss.setAutoNAVPVTRate(autoNAVPVTRate);       //Include NAV-PVT reports 
+  gnss.setAutoNAVSATRate(autoNAVSATRate);       //Include NAV-SAT reports 
+  gnss.setAutoNAVSTATUSRate(autoNAVSTATUSRate); //Include NAV-STATUS reports 
 
   // Mark the fix items invalid to start
   data.packet_valid = false;
@@ -412,5 +414,48 @@ uint16_t TeenyGPSConnect::getNAVSATPacketLength() {
 /********************************************************************/
 void TeenyGPSConnect::getNAVSATInfo(ubloxNAVSATInfo_t &info_) {
   info_ = navsatInfo;
+}
+
+/********************************************************************/
+// UBX-NAV-STATUS
+/********************************************************************/
+bool TeenyGPSConnect::getNAVSTATUS() {
+  // getNAVSTATUS will return true if there actually is fresh
+  // navigation satellite data.
+  if(gnss.getNAVSTATUS()) {
+    time_getnavstatus.restart();
+    gnss.getNAVSTATUSInfo(navstatusInfo);
+    return true;
+  }
+  // else lost packet(s)
+  if(time_getnavstatus.isExpired()) {
+    navstatusInfo.gpsFix = 0;
+    navstatusInfo.gpsFixOk = false;
+    navstatusInfo.psmState = 0;
+    navstatusInfo.spoofDetState = 0;
+    navstatusInfo.carrSoln = 0;
+    navstatusInfo.ttff = 0;
+    navstatusInfo.msss = 0;
+  }
+  return false;
+}
+
+/********************************************************************/
+bool TeenyGPSConnect::pollNAVSTATUS() {
+  if(gnss.pollNAVSTATUS()) {
+    return true;
+  }
+  return false;
+}
+
+
+/********************************************************************/
+void TeenyGPSConnect::getNAVSTATUSPacket(uint8_t *packet) {
+  gnss.getNAVSTATUSPacket(packet);
+}
+
+/********************************************************************/
+void TeenyGPSConnect::getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_) {
+  info_ = navstatusInfo;
 }
 

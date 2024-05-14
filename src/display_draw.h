@@ -228,6 +228,33 @@ void display_refresh() {
       //        gps.isPacketValid(), gps.isLocationValid(),
       //        gps.isDateValid(), gps.isTimeValid());
       //displayPV.prt_str(_dispStr, 20, 0, 284);
+      } else if(menu.isMenuPageCurrent(menuPageGPSStat)) {
+        if(gps.isPacketValid()) {
+          // GPS Clock
+          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 20);
+        } else {
+          sprintf(_dispStr, "** NO NAVPVT DATA **");
+          displayPV.prt_str(_dispStr, 20, 0, 20);
+        }
+        // NAVSTATUS Data
+        ubloxNAVSTATUSInfo_t navstatusInfo;
+        gps.getNAVSTATUSInfo(navstatusInfo);
+        if(navstatusInfo.validPacket) {
+          sprintf(_dispStr, "   NAVSTATUS INFO");
+          displayPV.prt_str(_dispStr, 20, 0, 48);
+          sprintf(_dispStr, "GPSFixOK=%c", navstatusInfo.gpsFixOk ? 'T' : 'F');
+          displayPV.prt_str(_dispStr, 20, 0, 68);
+          sprintf(_dispStr, "GPSFix=%02X", navstatusInfo.gpsFix);
+          displayPV.prt_str(_dispStr, 20, 0, 86);
+          sprintf(_dispStr, "PSMState=%02X", navstatusInfo.psmState);
+          displayPV.prt_str(_dispStr, 20, 0, 104);
+          sprintf(_dispStr, "SpoofDetState=%02d", navstatusInfo.spoofDetState);
+          displayPV.prt_str(_dispStr, 20, 0, 122);
+          sprintf(_dispStr, "CarrSoln=%02d", navstatusInfo.carrSoln);
+          displayPV.prt_str(_dispStr, 20, 0, 140);
+          sprintf(_dispStr, "TTFF=%08d", navstatusInfo.ttff / 1000);
+          displayPV.prt_str(_dispStr, 20, 0, 158);
+        }
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
         // GPS Clock
         if(gps.isPacketValid()) {
@@ -285,15 +312,6 @@ void display_refresh() {
       //        navsatInfo.validPacket, navsatInfo.numSvs,
       //        navsatInfo.numSvsHealthy, navsatInfo.numSvsUsed);
       //displayPV.prt_str(_dispStr, 20, 0, 284);
-      } else if(menu.isMenuPageCurrent(menuPageGPSSmap)) {
-        if(gps.isPacketValid()) {
-          // GPS Clock
-          displayPV.prt_str(getGPSISO8601DateTimeStr(), 19, 6, 20);
-        } else {
-          sprintf(_dispStr, "** NO NAVPVT DATA **");
-          displayPV.prt_str(_dispStr, 20, 0, 20);
-        }
-        drawSatConstellation(0);
       } else if(menu.isMenuPageCurrent(menuPageGPSScfg)) {
       } else if(menu.isMenuPageCurrent(menuPageGNSSSelInfo)) {
         ubloxMONGNSSInfo_t gnssSelectInfo = gps.getGNSSSelectionInfo();

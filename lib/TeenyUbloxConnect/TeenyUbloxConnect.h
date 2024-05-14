@@ -82,10 +82,13 @@ const uint16_t UBX_MAXPAYLOADLENGTH = 392; // NAV-SAT message with 32 tracking c
 const uint8_t  UBX_SYNCH_1 = 0xB5;
 const uint8_t  UBX_SYNCH_2 = 0x62;
 const uint8_t  UBX_CLASS_NAV = 0x01;
-const uint8_t    UBX_NAV_PVT   = 0x07;
+const uint8_t    UBX_NAV_STATUS = 0x03;
+const uint16_t   UBX_NAV_STATUS_PAYLOADLENGTH = 16;
+const uint16_t   UBX_NAV_STATUS_PACKETLENGTH = 24;
+const uint8_t    UBX_NAV_PVT    = 0x07;
 const uint16_t   UBX_NAV_PVT_PAYLOADLENGTH = 92;
 const uint16_t   UBX_NAV_PVT_PACKETLENGTH = 100;
-const uint8_t    UBX_NAV_SAT = 0x35;
+const uint8_t    UBX_NAV_SAT    = 0x35;
 const uint16_t   UBX_NAV_SAT_MINPAYLOADLENGTH = 8;
 const uint16_t   UBX_NAV_SAT_MINPACKETLENGTH = UBX_NAV_SAT_MINPAYLOADLENGTH + 8;
 const uint16_t   UBX_NAV_SAT_MAXPAYLOADLENGTH = UBX_MAXPAYLOADLENGTH;
@@ -161,8 +164,9 @@ const uint32_t UBLOX_CFG_SIGNAL_GLO_L1_ENA    = 0x10310018; // bool // GLONASS L
 // rate keys
 const uint32_t UBLOX_CFG_RATE_MEAS = 0x30210001; // uint16_t
 const uint32_t UBLOX_CFG_RATE_NAV  = 0x30210002; // uint16_t
-const uint32_t UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1 = 0x20910007; // uint8_t
-const uint32_t UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1 = 0x20910016; // uint8_t
+const uint32_t UBLOX_CFG_MSGOUT_UBX_NAV_PVT_UART1    = 0x20910007; // uint8_t
+const uint32_t UBLOX_CFG_MSGOUT_UBX_NAV_SAT_UART1    = 0x20910016; // uint8_t
+const uint32_t UBLOX_CFG_MSGOUT_UBX_NAV_STATUS_UART1 = 0x2091001B; // uint8_t
 
 /********************************************************************/
 // UBX Packet Struct
@@ -265,6 +269,22 @@ typedef struct {
   uint8_t  enabledGNSS;
   uint8_t  simultaneousGNSS;
 } ubloxMONGNSSInfo_t;
+
+/********************************************************************/
+// UBX-NAV-STATUS Info Struct
+/********************************************************************/
+typedef struct {
+  bool     validPacket = false;
+  uint8_t  gpsFix;
+  bool     gpsFixOk;
+  uint8_t  psmState;
+  uint8_t  spoofDetState;
+  uint8_t  carrSoln;
+  uint8_t  pad00a;
+  uint8_t  pad00b;
+  uint32_t ttff;
+  uint32_t msss;
+} ubloxNAVSTATUSInfo_t;
 
 /********************************************************************/
 // UBX-NAV-PVT Info Struct
@@ -395,6 +415,8 @@ class TeenyUbloxConnect {
     bool    setAutoPVTRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait); // Same as setAutoNAVPVTRate
     bool    setAutoNAVSAT(bool enable_, uint16_t maxWait_ = defaultMaxWait);
     bool    setAutoNAVSATRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoNAVSTATUS(bool enable_, uint16_t maxWait_ = defaultMaxWait);
+    bool    setAutoNAVSTATUSRate(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
 
     // Get the latest Position/Velocity/Time solution and fill all global variables
     // Returns true when a packet has been received
@@ -403,9 +425,14 @@ class TeenyUbloxConnect {
     bool    pollNAVPVT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoPVTRate = 0
 
     // Get the latest satellite information
-    //Returns true when a packet has been received
+    // Returns true when a packet has been received
     bool    getNAVSAT(); // Use only when autoNAVSATRate > 0
     bool    pollNAVSAT(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSATRate = 0
+
+    // Get the latest navigation status
+    // Returns true when a packet has been received
+    bool    getNAVSTATUS(); // Use only when autoNAVSTATUSRate > 0
+    bool    pollNAVSTATUS(uint16_t maxWait_ = defaultMaxWait); // Use only when autoNAVSTATUSRate = 0
 
     // Ublox GNSS info data access
     ubloxMONGNSSInfo_t getGNSSSelectionInfo();
@@ -439,11 +466,16 @@ class TeenyUbloxConnect {
     uint16_t getNAVSATPacketLength(); // Get the actual NAV-SAT packet length
     void     getNAVSATInfo(ubloxNAVSATInfo_t &info_); // summary and sorted sat details
 
+    // Ublox navstatus data access
+    void     getNAVSTATUSPacket(uint8_t *packet_); // Get the full NAV-STATUS packet
+    void     getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_); // summary
+
     // Access lost packet counts
     uint8_t  getLostRxPacketCount();
     uint8_t  getUnknownRxPacketCount();
     uint8_t  getLostNAVPVTPacketCount();
     uint8_t  getLostNAVSATPacketCount();
+    uint8_t  getLostNAVSTATUSPacketCount();
 
   private:
     Stream   *serialPort;
@@ -470,21 +502,26 @@ class TeenyUbloxConnect {
     bool setAutoNAVPVTRate_M10(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setAutoNAVSATRate_M8(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
     bool setAutoNAVSATRate_M10(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool setAutoNAVSTATUSRate_M8(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
+    bool setAutoNAVSTATUSRate_M10(uint8_t rate_, uint16_t maxWait_ = defaultMaxWait);
 
-    ubloxPacket_t       commandPacket;
-    ubloxPacket_t       incomingPacket;
-    ubloxPacket_t       receivedPacket;
-    ubloxPacket_t       responsePacket;
-    ubloxACKNAKPacket_t acknowledgePacket;
-    ubloxMONGNSSInfo_t  ubloxMONGNSSInfo;
-    ubloxCFGGNSSInfo_t  ubloxCFGGNSSInfo;
-    ubloxPacket_t       ubloxNAVPVTPacketBuffer;
-    uint8_t             ubloxNAVPVTPacket[UBX_NAV_PVT_PACKETLENGTH];
-    ubloxNAVPVTInfo_t   ubloxNAVPVTInfo;
-    ubloxPacket_t       ubloxNAVSATPacketBuffer;
-    uint8_t             ubloxNAVSATPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
-    uint16_t            ubloxNAVSATPacketLength;
-    ubloxNAVSATInfo_t   ubloxNAVSATInfo;
+    ubloxPacket_t        commandPacket;
+    ubloxPacket_t        incomingPacket;
+    ubloxPacket_t        receivedPacket;
+    ubloxPacket_t        responsePacket;
+    ubloxACKNAKPacket_t  acknowledgePacket;
+    ubloxMONGNSSInfo_t   ubloxMONGNSSInfo;
+    ubloxCFGGNSSInfo_t   ubloxCFGGNSSInfo;
+    ubloxPacket_t        ubloxNAVPVTPacketBuffer;
+    uint8_t              ubloxNAVPVTPacket[UBX_NAV_PVT_PACKETLENGTH];
+    ubloxNAVPVTInfo_t    ubloxNAVPVTInfo;
+    ubloxPacket_t        ubloxNAVSATPacketBuffer;
+    uint8_t              ubloxNAVSATPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
+    uint16_t             ubloxNAVSATPacketLength;
+    ubloxNAVSATInfo_t    ubloxNAVSATInfo;
+    ubloxPacket_t        ubloxNAVSTATUSPacketBuffer;
+    uint8_t              ubloxNAVSTATUSPacket[UBX_NAV_STATUS_PACKETLENGTH];
+    ubloxNAVSTATUSInfo_t ubloxNAVSTATUSInfo;
 
     void     calcCommandPacketChecksum();
     bool     sendCommandPacket(bool expectResp_, bool expectAck_, uint16_t maxWait_);
@@ -503,6 +540,9 @@ class TeenyUbloxConnect {
     uint8_t  lostNAVSATPacketCount;
     bool     processNAVSATPacket();
     void     setNAVSATPacketInfo();
+    uint8_t  lostNAVSTATUSPacketCount;
+    bool     processNAVSTATUSPacket();
+    void     setNAVSTATUSPacketInfo();
 
 };
 

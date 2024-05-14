@@ -34,9 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "TeenyUbloxConnect.h"
 
 // GNSS Config Variables
-const uint32_t GPS_BAUD_RATE      = 38400;
-const uint32_t NAVPVT_FIX_AGE_LIMIT  = 1500;  // when autoNAVPVTrate=1second
-const uint32_t NAVSAT_FIX_AGE_LIMIT  = 11000;  // when autoNAVSATrate=10seconds
+const uint32_t GPS_BAUD_RATE = 38400;
+const uint32_t NAVPVT_FIX_AGE_LIMIT     = 1500;  // when autoNAVPVTrate=1second
+const uint32_t NAVSAT_FIX_AGE_LIMIT     = 11000; // when autoNAVSATrate=10seconds
+const uint32_t NAVSTATUS_FIX_AGE_LIMIT  = 11000; // when autoNAVSTATUSrate=10seconds
 
 struct GnssData {
   bool    packet_valid;
@@ -113,7 +114,7 @@ class TeenyGPSConnect {
     TeenyGPSConnect& operator=(const TeenyGPSConnect&);
 
     // GPS SETUP
-    bool gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode=0, uint8_t autoNAVPVTRate=1, uint8_t autoNAVSATRate=0);
+    bool gnss_init(HardwareSerial &serialPort_, uint32_t baudRate_, uint8_t startMode=0, uint8_t autoNAVPVTRate=1, uint8_t autoNAVSATRate=0, uint8_t autoNAVSTATUSRate=0);
 
     // Host methods for process incoming responses/acknowledges from ublox receiver
     // Can be called inside a timer ISR
@@ -180,6 +181,14 @@ class TeenyGPSConnect {
     // NAVSAT packet info
     void getNAVSATInfo(ubloxNAVSATInfo_t &info_);
 
+    // UBX-NAV-STATUS
+    bool getNAVSTATUS();
+    bool pollNAVSTATUS();
+    // full NAVSTATUS packet
+    void getNAVSTATUSPacket(uint8_t* packet);
+    // NAVSTATUS packet info
+    void getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_);
+
   private:
     /* u-blox UBX protocol query NAVPVT gets position, velocity & time in one call.
      * The call returns false if no new fix has been received. In other words,
@@ -190,11 +199,15 @@ class TeenyGPSConnect {
     uint32_t baudRate;
     uint8_t autoNAVPVTRate;
     uint8_t autoNAVSATRate;
+    uint8_t autoNAVSTATUSRate;
     TeenyUbloxConnect gnss;
     volatile GnssData data;
 
     // NAV-SAT data
     ubloxNAVSATInfo_t navsatInfo;
+
+    // NAV-STATUS data
+    ubloxNAVSTATUSInfo_t navstatusInfo;
 
     // GPS setup
     bool gnss_setSerialRate();
@@ -205,7 +218,8 @@ class TeenyGPSConnect {
     RBD::Timer location_timer{NAVPVT_FIX_AGE_LIMIT};
     RBD::Timer date_timer{NAVPVT_FIX_AGE_LIMIT};
     RBD::Timer time_timer{NAVPVT_FIX_AGE_LIMIT};
-    RBD::Timer time_getnavsat{NAVSAT_FIX_AGE_LIMIT};  // if no response from getNAVSAT()
+    RBD::Timer time_getnavsat{NAVSAT_FIX_AGE_LIMIT};       // if no response from getNAVSAT()
+    RBD::Timer time_getnavstatus{NAVSTATUS_FIX_AGE_LIMIT}; // if no response from getNAVSTATUS()
 
 };
 

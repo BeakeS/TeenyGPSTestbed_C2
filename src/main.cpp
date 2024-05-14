@@ -292,18 +292,18 @@ void loop() {
         displayRefresh = true;
       }
       break;
-    case DM_GPSNSAT:
+    case DM_GPSSTAT:
       if(gps.getNAVPVT()) {
         if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
           rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
                          gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         displayRefresh = true;
-      } else if(gps.getNAVSAT()) {
+      } else if(gps.getNAVSTATUS()) {
         displayRefresh = true;
       }
       break;
-    case DM_GPSSMAP:
+    case DM_GPSNSAT:
       if(gps.getNAVPVT()) {
         if((!rtc.isValid()) && gps.isDateValid() && gps.isTimeValid()) {
           rtc.setRTCTime(gps.getYear(), gps.getMonth(), gps.getDay(),
