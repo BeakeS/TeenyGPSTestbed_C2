@@ -68,22 +68,6 @@ TeenyMenuItem menuItemGPSLogrLabel5("");
 TeenyMenuItem menuItemGPSLogrLabel6("");
 TeenyMenuItem menuItemGPSLogrLabel7("");
 //
-// ubx logging mode
-SelectOptionUint8t selectUBXLogModeOptions[] = {
-  {"PVT",    UBXLOG_NAVPVT},
-  {"SAT",    UBXLOG_NAVSAT},
-  {"PVTSAT", UBXLOG_NAVPVTNAVSAT}};
-TeenyMenuSelect selectUBXLogMode(sizeof(selectUBXLogModeOptions)/sizeof(SelectOptionUint8t), selectUBXLogModeOptions);
-TeenyMenuItem menuItemUBXLogMode("UBX Log Mode", deviceState.UBXLOGMODE, selectUBXLogMode);
-//
-// gps logging mode
-SelectOptionUint8t selectGPSLogModeOptions[] = {
-  {"NONE", GPSLOG_NONE},
-  {"GPX", GPSLOG_GPX},
-  {"KML", GPSLOG_KML}};
-TeenyMenuSelect selectGPSLogMode(sizeof(selectGPSLogModeOptions)/sizeof(SelectOptionUint8t), selectGPSLogModeOptions);
-TeenyMenuItem menuItemGPSLogMode("GPS Log Mode", deviceState.GPSLOGMODE, selectGPSLogMode);
-//
 // gps start/stop logging
 void menu_startGPSLogrCB(); // forward declaration
 TeenyMenuItem menuItemGPSLogrStrtLog("Start GPS Logging", menu_startGPSLogrCB);
@@ -298,6 +282,23 @@ TeenyMenuPage menuPageGPSSettings("GPS SETTINGS");
 TeenyMenuItem menuItemGPSSettings("GPS Settings", menuPageGPSSettings);
 TeenyMenuItem menuItemGPSSettingsExit(false); // optional return menu item
 //
+// ubx logging mode
+SelectOptionUint8t selectUBXPktLogModeOptions[] = {
+  {"NAVPVT", UBXPKTLOG_NAVPVT},
+  {"STATUS", UBXPKTLOG_NAVSTATUS},
+  {"NAVSAT", UBXPKTLOG_NAVSAT},
+  {"ALL",    UBXPKTLOG_ALL}};
+TeenyMenuSelect selectUBXPktLogMode(sizeof(selectUBXPktLogModeOptions)/sizeof(SelectOptionUint8t), selectUBXPktLogModeOptions);
+TeenyMenuItem menuItemUBXPktLogMode("UBX Pkt Log", deviceState.UBXPKTLOGMODE, selectUBXPktLogMode);
+//
+// gps logging mode
+SelectOptionUint8t selectGPSLogModeOptions[] = {
+  {"NONE", GPSLOG_NONE},
+  {"GPX",  GPSLOG_GPX},
+  {"KML",  GPSLOG_KML}};
+TeenyMenuSelect selectGPSLogMode(sizeof(selectGPSLogModeOptions)/sizeof(SelectOptionUint8t), selectGPSLogModeOptions);
+TeenyMenuItem menuItemGPSLogMode("GPS Logging", deviceState.GPSLOGMODE, selectGPSLogMode);
+//
 // gps factory reset menu
 void menu_cancelGPSFactoryResetCB(); // forward declaration
 TeenyMenuPage menuPageGPSFactoryReset("GPS FACTORY RESET", nullptr, menu_cancelGPSFactoryResetCB);
@@ -415,8 +416,6 @@ void menu_setup() {
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel5);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel6);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrLabel7);
-  menuPageGPSLogr.addMenuItem(menuItemUBXLogMode);
-  menuPageGPSLogr.addMenuItem(menuItemGPSLogMode);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStrtLog);
   menuPageGPSLogr.addMenuItem(menuItemGPSLogrStopLog);
   //menuPageGPSLogr.addMenuItem(menuItemGPSLogrExit);
@@ -496,6 +495,8 @@ void menu_setup() {
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsLabel2);
   menuPageRTCSettings.addMenuItem(menuItemRTCSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemGPSSettings);
+  menuPageGPSSettings.addMenuItem(menuItemUBXPktLogMode);
+  menuPageGPSSettings.addMenuItem(menuItemGPSLogMode);
   menuPageGPSSettings.addMenuItem(menuItemGPSFactoryReset);
   menuPageGPSFactoryReset.addMenuItem(menuItemConfirmGPSFactoryReset);
   menuPageGPSFactoryReset.addMenuItem(menuItemGPSFactoryResetExit);
@@ -631,8 +632,6 @@ void menu_menuModeCB() {
       menuItemGPSEmuM8.hide();
       menuItemGPSEmuM10.hide();
       menuItemLabel3.hide();
-      menuItemUBXLogMode.hide(ubxLoggingInProgress ? true : false);
-      menuItemGPSLogMode.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogrStrtLog.hide(ubxLoggingInProgress ? true : false);
       menuItemGPSLogrStopLog.hide(ubxLoggingInProgress ? false : true);
       break;
@@ -754,18 +753,16 @@ void menu_startGPSLogrCB() {
   if(ubxLoggingInProgress) return;
   if(sdcard_openUBXLoggingFile()) {
     ubxLoggingInProgress = true;
-    menuItemUBXLogMode.hide();
-    menuItemGPSLogMode.hide();
     menuItemGPSLogrStrtLog.hide();
     menuItemGPSLogrStopLog.show();
     msg_update("GPS Logging Started");
   } else {
     msg_update("SD Card Error");
   }
-  if((deviceState.UBXLOGMODE == GPSLOG_GPX) && !sdcard_openGPXLoggingFile()) {
+  if((deviceState.GPSLOGMODE == GPSLOG_GPX) && !sdcard_openGPXLoggingFile()) {
     msg_update("SD Card Error");
   }
-  if((deviceState.UBXLOGMODE == GPSLOG_KML) && !sdcard_openKMLLoggingFile()) {
+  if((deviceState.GPSLOGMODE == GPSLOG_KML) && !sdcard_openKMLLoggingFile()) {
     msg_update("SD Card Error");
   }
   displayRefresh = true;
@@ -777,14 +774,12 @@ void menu_stopGPSLogrCB() {
   if(!ubxLoggingInProgress) return;
   sdcard_closeUBXLoggingFile();
   ubxLoggingInProgress = false;
-  menuItemUBXLogMode.show();
-  menuItemGPSLogMode.show();
   menuItemGPSLogrStrtLog.show();
   menuItemGPSLogrStopLog.hide();
-  if(deviceState.UBXLOGMODE == GPSLOG_GPX) {
+  if(deviceState.GPSLOGMODE == GPSLOG_GPX) {
     sdcard_closeGPXLoggingFile();
   }
-  if(deviceState.UBXLOGMODE == GPSLOG_KML) {
+  if(deviceState.GPSLOGMODE == GPSLOG_KML) {
     sdcard_closeKMLLoggingFile();
   }
   sprintf(_msgStr, "F%02d TP=%04d VP=%04d",

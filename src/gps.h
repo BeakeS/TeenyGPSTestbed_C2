@@ -12,9 +12,10 @@ enum gpsReset_mode_t : uint8_t {
 /********************************************************************/
 // UBX/GPS Logging Modes
 enum ubxLogging_mode_t : uint8_t {
-  UBXLOG_NAVPVT = 0,
-  UBXLOG_NAVSAT,
-  UBXLOG_NAVPVTNAVSAT
+  UBXPKTLOG_NAVPVT = 0,
+  UBXPKTLOG_NAVSTATUS,
+  UBXPKTLOG_NAVSAT,
+  UBXPKTLOG_ALL
 };
 enum gpsLogging_mode_t : uint8_t {
   GPSLOG_NONE = 0,

@@ -387,35 +387,30 @@ void display_refresh() {
         displayPV.prt_str(_dispStr, 20, 0, 88);
         sprintf(_dispStr, "AutoNAVPVTRate=%d", emulator.getAutoNAVPVTRate());
         displayPV.prt_str(_dispStr, 20, 0, 104);
-        sprintf(_dispStr, "AutoNAVSATRate=%d", emulator.getAutoNAVSATRate());
+        sprintf(_dispStr, "AutoNAVSTATRate=%d", emulator.getAutoNAVSTATUSRate());
         displayPV.prt_str(_dispStr, 20, 0, 120);
+        sprintf(_dispStr, "AutoNAVSATRate=%d", emulator.getAutoNAVSATRate());
+        displayPV.prt_str(_dispStr, 20, 0, 136);
         sprintf(_dispStr, "   PVT OUTPUT PKT");
-        displayPV.prt_str(_dispStr, 20, 0, 140);
-        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 156);
+        displayPV.prt_str(_dispStr, 20, 0, 156);
+        displayPV.prt_str(getRTCClockISO8601DateTimeStr(), 19, 6, 172);
         ubxNAVPVTInfo_t _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
         sprintf(_dispStr, "Lat=%s", getLatitudeStr(_ubxNAVPVTInfo.latitude * 1e-7));
-        displayPV.prt_str(_dispStr, 20, 0, 172);
-        sprintf(_dispStr, "Lon=%s", getLongitudeStr(_ubxNAVPVTInfo.longitude * 1e-7));
         displayPV.prt_str(_dispStr, 20, 0, 188);
-        sprintf(_dispStr, "ALT=%03d", max(min(_ubxNAVPVTInfo.altitude / 1000, 999), -99));
-        displayPV.prt_str(_dispStr, 8, 0, 204);
-        sprintf(_dispStr, "HA=%03d", min(_ubxNAVPVTInfo.hAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 90, 204);
-        sprintf(_dispStr, "VA=%03d", min(_ubxNAVPVTInfo.vAcc / 1000, 999));
-        displayPV.prt_str(_dispStr, 8, 168, 204);
-        sprintf(_dispStr, "H=%s", getHeadingStr((float)_ubxNAVPVTInfo.headMot * 1e-5));
-        displayPV.prt_str(_dispStr, 5, 0, 220);
-        sprintf(_dispStr, "F=%d", min(_ubxNAVPVTInfo.fixType, 9));
-        displayPV.prt_str(_dispStr, 3, 72, 220);
-        sprintf(_dispStr, "S=%02d", min(_ubxNAVPVTInfo.numSV, 99));
-        displayPV.prt_str(_dispStr, 4, 114, 220);
-        displayPV.prt_str("PP=", 3, 168, 220);
-        displayPV.prt_float(min((float)_ubxNAVPVTInfo.pDOP * 1e-2, 9.9), 3, 1, 204, 220);
-        sprintf(_dispStr, "   SAT OUTPUT PKT");
+        sprintf(_dispStr, "Lon=%s", getLongitudeStr(_ubxNAVPVTInfo.longitude * 1e-7));
+        displayPV.prt_str(_dispStr, 20, 0, 204);
+        sprintf(_dispStr, "  STAT OUTPUT PKT");
+        displayPV.prt_str(_dispStr, 20, 6, 224);
+        ubxNAVSTATUSInfo_t _ubxNAVSTATUSInfo = emulator.getNAVSTATUSPacketInfo();
+        sprintf(_dispStr, "Fx=%01X OK=%01X PSM=%01X SD=%01X",
+                _ubxNAVSTATUSInfo.gpsFix, _ubxNAVSTATUSInfo.gpsFixOk,
+                _ubxNAVSTATUSInfo.psmState, _ubxNAVSTATUSInfo.spoofDetState);
         displayPV.prt_str(_dispStr, 20, 0, 240);
+        sprintf(_dispStr, "   SAT OUTPUT PKT");
+        displayPV.prt_str(_dispStr, 20, 0, 260);
         ubxNAVSATInfo_t _ubxNAVSATInfo = emulator.getNAVSATPacketInfo();
-        sprintf(_dispStr, "TotalSats=%02d", _ubxNAVSATInfo.numSvs);
-        displayPV.prt_str(_dispStr, 20, 0, 256);
+        sprintf(_dispStr, "Sats Total=%02d", _ubxNAVSATInfo.numSvs);
+        displayPV.prt_str(_dispStr, 20, 0, 276);
       //sprintf(_dispStr, "RXP CL%02XID%02XPL%02dV%d",
       //        emulator.receivedPacket.messageClass,
       //        emulator.receivedPacket.messageID,

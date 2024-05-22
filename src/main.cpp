@@ -235,8 +235,8 @@ void loop() {
                          gps.getHour(), gps.getMinute(), gps.getSecond());
         }
         if(ubxLoggingInProgress &&
-           ((deviceState.UBXLOGMODE == UBXLOG_NAVPVT) ||
-            (deviceState.UBXLOGMODE == UBXLOG_NAVPVTNAVSAT))) {
+           ((deviceState.UBXPKTLOGMODE == UBXPKTLOG_NAVPVT) ||
+            (deviceState.UBXPKTLOGMODE == UBXPKTLOG_ALL))) {
           // UBX packet logging
           uint8_t navpvtPacket[UBX_NAV_PVT_PACKETLENGTH];
           gps.getNAVPVTPacket(navpvtPacket);
@@ -258,7 +258,7 @@ void loop() {
             dateTime.second = gps.getSecond();
             char* _itdStr = rtc.getISO8601DateTimeStr(dateTime);
             // GPX track logging
-            if(deviceState.UBXLOGMODE == GPSLOG_GPX) {
+            if(deviceState.GPSLOGMODE == GPSLOG_GPX) {
               // trkpt - "      <trkpt lat=\"45.4431641\" lon=\"-121.7295456\"><ele>122</ele><time>2001-06-02T00:18:15Z</time></trkpt>\n"
               char _trkptStr[256];
               sprintf(_trkptStr, "      <trkpt lat=\"%s\" lon=\"%s\"><ele>%d</ele><time>%sZ</time></trkpt>\n",
@@ -266,7 +266,7 @@ void loop() {
               sdcard_writeGPXLoggingFile((uint8_t*)_trkptStr, strlen(_trkptStr));
             }
             // KML track logging
-            if(deviceState.UBXLOGMODE == GPSLOG_KML) {
+            if(deviceState.GPSLOGMODE == GPSLOG_KML) {
               // trkpt - "      <when>2010-05-28T02:02:09Z</when>"
               // trkpt - "      <gx:coord>-122.207881 37.371915 156.000000</gx:coord>"
               char _trkptStr[256];
@@ -279,10 +279,23 @@ void loop() {
           }
         }
         displayRefresh = true;
+      } else if(gps.getNAVSTATUS()) {
+        if(ubxLoggingInProgress &&
+           ((deviceState.UBXPKTLOGMODE == UBXPKTLOG_NAVSTATUS) ||
+            (deviceState.UBXPKTLOGMODE == UBXPKTLOG_ALL))) {
+          // UBX packet logging
+          uint8_t navstatusPacket[UBX_NAV_STATUS_PACKETLENGTH];
+          gps.getNAVSTATUSPacket(navstatusPacket);
+          sdcard_writeUBXLoggingFile(navstatusPacket, UBX_NAV_STATUS_PACKETLENGTH);
+          ubxLoggingFileWriteCount++;
+          if(gps.isLocationValid()) ubxLoggingFileWriteValidCount++;
+        }
+        displayRefresh = true;
       } else if(gps.getNAVSAT()) {
         if(ubxLoggingInProgress &&
-           ((deviceState.UBXLOGMODE == UBXLOG_NAVSAT) ||
-            (deviceState.UBXLOGMODE == UBXLOG_NAVPVTNAVSAT))) {
+           ((deviceState.UBXPKTLOGMODE == UBXPKTLOG_NAVSAT) ||
+            (deviceState.UBXPKTLOGMODE == UBXPKTLOG_ALL))) {
+          // UBX packet logging
           uint8_t navsatPacket[UBX_NAV_SAT_MAXPACKETLENGTH];
           gps.getNAVSATPacket(navsatPacket);
           sdcard_writeUBXLoggingFile(navsatPacket, gps.getNAVSATPacketLength());
@@ -338,7 +351,7 @@ void loop() {
       if(_clockTick_1sec) {
         if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPACKETS) {
           emulatorColdStartPacketCount++;
-          emulator.setEmuColdOutputPackets(); // Sets cold NAVPVT and NAVSAT packets
+          emulator.setEmuColdOutputPackets(); // Sets cold NAVPVT, NAVSTATUS, and NAVSAT packets
           //statusLED.pulse(1);
         } else {
           emulator.setEmuLoopOutputPackets(); // Sets NAVPVT packet and possible adjacent NAVSAT packet
@@ -365,6 +378,11 @@ void loop() {
       if((_clockTick_1sec && emulator.isAutoNAVPVTEnabled()) ||
          emulator.isNAVPVTPacketRequested()) {
         emulator.sendNAVPVTPacket();
+        displayRefresh = true;
+      }
+      if((_clockTick_1sec && emulator.isAutoNAVSTATUSEnabled()) ||
+         emulator.isNAVSTATUSPacketRequested()) {
+        emulator.sendNAVSTATUSPacket();
         displayRefresh = true;
       }
       if((_clockTick_10sec && emulator.isAutoNAVSATEnabled()) ||
