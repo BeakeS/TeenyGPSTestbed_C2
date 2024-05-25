@@ -282,7 +282,7 @@ void display_refresh() {
             sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
             displayPV.prt_str(_dispStr, 20, 0, 122);
             displayPV.prt_str("Satellites(id/snr):", 20, 0, 146);
-            for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 24); i++) {
+            for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 21); i++) {
               sprintf(_dispStr, "%c%02d/%02d",
                       navsatInfo.svSortList[i].gnssIdType,
                       navsatInfo.svSortList[i].svId,

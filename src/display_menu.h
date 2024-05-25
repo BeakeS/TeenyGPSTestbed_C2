@@ -80,20 +80,32 @@ void menu_entrGPSStatCB(); // forward declaration
 void menu_exitGPSStatCB(); // forward declaration
 TeenyMenuPage menuPageGPSStat("GPS NAVSTAT MODE", menu_entrGPSStatCB, menu_exitGPSStatCB);
 TeenyMenuItem menuItemGPSStat("*START GPS NVSTAT*", menuPageGPSStat);
-TeenyMenuItem menuItemGPSStatLabel0("");
 TeenyMenuItem menuItemGPSStatExit(false); // optional return menu item
+TeenyMenuItem menuItemGPSStatLabel0("");
 //
 // gps navsat unit
 //
 void menu_entrGPSNsatCB(); // forward declaration
 void menu_exitGPSNsatCB(); // forward declaration
 bool menu_GPSNsatDisplayMap = false;
-void menu_GPSNsatKeyUpCB(); // forward declaration
-void menu_GPSNsatKeyDnCB(); // forward declaration
-TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGPSNsatCB, menu_GPSNsatKeyUpCB, menu_GPSNsatKeyDnCB);
+void menu_GPSNsatToggleViewCB(); // forward declaration
+TeenyMenuPage menuPageGPSNsat("GPS NAVSAT MODE", menu_entrGPSNsatCB, menu_exitGPSNsatCB, menu_GPSNsatToggleViewCB, menu_GPSNsatToggleViewCB);
 TeenyMenuItem menuItemGPSNsat("*START GPS NAVSAT*", menuPageGPSNsat);
-TeenyMenuItem menuItemGPSNsatLabel0("");
 TeenyMenuItem menuItemGPSNsatExit(false); // optional return menu item
+TeenyMenuItem menuItemGPSNsatLabel0("");
+TeenyMenuItem menuItemGPSNsatLabel1("");
+TeenyMenuItem menuItemGPSNsatLabel2("");
+TeenyMenuItem menuItemGPSNsatLabel3("");
+TeenyMenuItem menuItemGPSNsatLabel4("");
+TeenyMenuItem menuItemGPSNsatLabel5("");
+TeenyMenuItem menuItemGPSNsatLabel6("");
+TeenyMenuItem menuItemGPSNsatLabel7("");
+TeenyMenuItem menuItemGPSNsatLabel8("");
+TeenyMenuItem menuItemGPSNsatLabel9("");
+TeenyMenuItem menuItemGPSNsatLabel10("");
+TeenyMenuItem menuItemGPSNsatLabel11("");
+TeenyMenuItem menuItemGPSNsatLabel12("");
+TeenyMenuItem menuItemGPSNsatToggleView("", menu_GPSNsatToggleViewCB);
 //
 // gps satellite config unit
 //
@@ -101,26 +113,27 @@ void menu_entrGPSScfgCB(); // forward declaration
 void menu_exitGPSScfgCB(); // forward declaration
 TeenyMenuPage menuPageGPSScfg("GNSS CONFIG TOOLS", menu_entrGPSScfgCB, menu_exitGPSScfgCB);
 TeenyMenuItem menuItemGPSScfg("*START GPS SATCFG*", menuPageGPSScfg);
+TeenyMenuItem menuItemGPSScfgExit(false); // optional return menu item
 TeenyMenuItem menuItemGPSScfgLabel0("");
 TeenyMenuItem menuItemGPSScfgLabel1("");
 TeenyMenuItem menuItemGPSScfgLabel2("");
-TeenyMenuItem menuItemGPSScfgExit(false); // optional return menu item
 //
 // gnss satellite select info
 void menu_pollGNSSSelInfoCB(); // forward declaration
 TeenyMenuPage menuPageGNSSSelInfo("GNSS SELECT INFO", menu_pollGNSSSelInfoCB);
 TeenyMenuItem menuItemGNSSSelInfo("GNSS Select Info", menuPageGNSSSelInfo);
+TeenyMenuItem menuItemGNSSSelInfoExit(false); // optional return menu item
 TeenyMenuItem menuItemGNSSSelInfoLabel0("");
 TeenyMenuItem menuItemGNSSSelInfoLabel1("");
 TeenyMenuItem menuItemGNSSSelInfoLabel2("");
 TeenyMenuItem menuItemGNSSSelInfoLabel3("");
 TeenyMenuItem menuItemGNSSSelInfoLabel4("");
-TeenyMenuItem menuItemGNSSSelInfoExit(false); // optional return menu item
 //
 // gnss satellite config info
 void menu_pollGNSSCfgInfoCB(); // forward declaration
 TeenyMenuPage menuPageGNSSCfgInfo("GNSS CONFIG INFO", menu_pollGNSSCfgInfoCB);
 TeenyMenuItem menuItemGNSSCfgInfo("GNSS Config Info", menuPageGNSSCfgInfo);
+TeenyMenuItem menuItemGNSSCfgInfoExit(false); // optional return menu item
 TeenyMenuItem menuItemGNSSCfgInfoLabel0("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel1("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel2("");
@@ -131,7 +144,6 @@ TeenyMenuItem menuItemGNSSCfgInfoLabel6("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel7("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel8("");
 TeenyMenuItem menuItemGNSSCfgInfoLabel9("");
-TeenyMenuItem menuItemGNSSCfgInfoExit(false); // optional return menu item
 //
 // gnss satellite toggle items
 void menu_gnssCfgGPSToggleCB(); // forward declaration
@@ -231,10 +243,10 @@ void menu_getRTC_CB(); // forward declaration
 void menu_setRTC_CB(); // forward declaration
 TeenyMenuPage menuPageRTCSettings("REAL TIME CLOCK", menu_getRTC_CB);
 TeenyMenuItem menuItemRTCSettings("RT Clock Settings", menuPageRTCSettings);
+TeenyMenuItem menuItemRTCSettingsExit(false); // optional return menu item
 TeenyMenuItem menuItemRTCSettingsLabel0("");
 TeenyMenuItem menuItemRTCSettingsLabel1("");
 TeenyMenuItem menuItemRTCSettingsLabel2("");
-TeenyMenuItem menuItemRTCSettingsExit(false); // optional return menu item
 //
 // rtc year
 int16_t menuRTCYear = 2024;
@@ -424,6 +436,19 @@ void menu_setup() {
   //menuPageGPSStat.addMenuItem(menuItemGPSStatExit);
   menuPageMain.addMenuItem(menuItemGPSNsat);
   menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel0);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel1);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel2);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel3);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel4);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel5);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel6);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel7);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel8);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel9);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel10);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel11);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatLabel12);
+  menuPageGPSNsat.addMenuItem(menuItemGPSNsatToggleView);
   //menuPageGPSNsat.addMenuItem(menuItemGPSNsatExit);
   menuPageMain.addMenuItem(menuItemGPSScfg);
   //menuPageGPSScfg.addMenuItem(menuItemGPSScfgLabel0);
@@ -817,18 +842,15 @@ void menu_entrGPSNsatCB() {
   deviceState.DEVICE_MODE = DM_GPSNSAT;
   deviceMode_init();
   menu_GPSNsatDisplayMap = false;
+  menuItemGPSNsatToggleView.setTitle("Map View");
   displayRefresh = true;
 }
 
 /********************************************************************/
-void menu_GPSNsatKeyUpCB() {
+void menu_GPSNsatToggleViewCB() {
   menu_GPSNsatDisplayMap = !menu_GPSNsatDisplayMap;
-  displayRefresh = true;
-}
-
-/********************************************************************/
-void menu_GPSNsatKeyDnCB() {
-  menu_GPSNsatDisplayMap = !menu_GPSNsatDisplayMap;
+  menuItemGPSNsatToggleView.setTitle(
+    menu_GPSNsatDisplayMap ? "Data View" : "Map View");
   displayRefresh = true;
 }
 

@@ -9,7 +9,7 @@ uint8_t drawSatConstellation(int16_t compAngle) {
   int16_t  mapRadius = 118;
   int16_t  mapSatRadius = 106; // Keep sat graphics inside map
   int16_t  mapCenterX = 120;
-  int16_t  mapCenterY = 180;
+  int16_t  mapCenterY = 162;
   uint8_t  numSats = 0;
   int16_t  xCoord;
   int16_t  yCoord;

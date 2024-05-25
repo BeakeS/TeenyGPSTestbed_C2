@@ -26,17 +26,17 @@ TeenyGPSTestbed_C2 offers five modes of operation:
 GPSRCV: Basic GPS Receiver - Displays PVT packet info including date/time, lat/lon/alt, heading, and positional accuracy data.
 ![PXL_20240303_170936265](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/4e2b1242-d968-42f4-b2d3-a8b80f035e75)
 
-GPSLOG: UBLOX Packet Logger - For logging UBX-NAV-PVT and/or UBX-NAV-SAT raw packets for analysis and/or emulation. Logger can also output GPX or KML files for analysis or animation.
+GPSLOG: UBLOX Packet Logger - For logging Ublox NAV-PVT, NAV-STATUS, and NAV-SAT raw packets for analysis and/or emulation. Logger can also output GPX or KML files for mapping or animation.
 ![PXL_20240303_171040320](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/937f2e26-c376-4e52-9304-112ede750657)
 
-NAVSAT: UBX-NAV-SAT Receiver - For testing satellite reception.  Displays a list of tracked satellites sorted by signal strength.
+NAVSAT: UBX-NAV-SAT Receiver - For testing satellite reception.  Displays data for tracked satellites sorted by signal strength.
 ![PXL_20240308_224714124](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/3de865b5-92e7-4fd6-8090-d8b94a51ce38)
 
-SATMAP: Satellite Constellation Map - View of satellite position data including individual satellite status - usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>=20db,orange<20db).
+Satellite Constellation Map (via UBX-NAV-SAT Receiver) - View of satellite position data including individual satellite status - usedForNav (sat color blue=true,red=false) and signal strength (sat ring white>=35db,yellow>=20db,orange<20db).
 ![IMG_1043](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/0a825537-1c38-4cab-9103-e406b6bcbade)
 
 SATCFG: Satellite Configuration Tool - View GNSS system configuration and enable/disable selected GNSS.
 ![PXL_20240410_140034278](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/a930ee04-f1bd-4229-a14a-501317c313ff)
 
-EMUM8 & EMUM10: GPS Emulation - EMUM8 emulates Beitian BN-880Q (Ublox M8) GPS module and EMUM10 emulates BE-880Q (Ublox M10) GPS module including replay of NAV-PVT and NAV-SAT packets from ROM or SDCARD with progressive date/time updates.
+EMUM8 & EMUM10: GPS Emulation - EMUM8 emulates Beitian BN-880Q (Ublox M8) GPS module and EMUM10 emulates BE-880Q (Ublox M10) GPS module including replay of Ublox NAV-PVT, NAV-STATUS, and NAV-SAT packets from ROM or SDCARD with progressive date/time updates.
 ![PXL_20240229_005625834](https://github.com/BeakeS/TeenyGPSTestbed_C2/assets/27782001/f4011f04-dae2-459f-9b68-648e4ca00ba4)
