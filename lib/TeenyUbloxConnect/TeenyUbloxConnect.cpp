@@ -30,6 +30,7 @@ TeenyUbloxConnect::~TeenyUbloxConnect() { }
 /********************************************************************/
 bool TeenyUbloxConnect::begin(Stream &serialPort_, uint16_t maxWait_) {
   serialPort = &serialPort_;
+  resetNAVSTATUSInfo(); // reset spoofing flags
   ubloxModuleType = UBLOX_UNKNOWN_MODULE;
   // Try three times
   bool connected = false;
@@ -191,6 +192,7 @@ void TeenyUbloxConnect::setSerialRate_M10(uint32_t baudrate_, uint8_t uartPort_,
 
 /********************************************************************/
 void TeenyUbloxConnect::hardwareReset() {
+  resetNAVSTATUSInfo(); // reset spoofing flags
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RST;
   commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
@@ -201,6 +203,7 @@ void TeenyUbloxConnect::hardwareReset() {
 
 /********************************************************************/
 void TeenyUbloxConnect::coldStart() {
+  resetNAVSTATUSInfo(); // reset spoofing flags
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RST;
   commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
@@ -211,6 +214,7 @@ void TeenyUbloxConnect::coldStart() {
 
 /********************************************************************/
 void TeenyUbloxConnect::warmStart() {
+  resetNAVSTATUSInfo(); // reset spoofing flags
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RST;
   commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
@@ -221,6 +225,7 @@ void TeenyUbloxConnect::warmStart() {
 
 /********************************************************************/
 void TeenyUbloxConnect::hotStart() {
+  resetNAVSTATUSInfo(); // reset spoofing flags
   commandPacket.messageClass = UBX_CLASS_CFG;
   commandPacket.messageID = UBX_CFG_RST;
   commandPacket.payloadLength = UBX_CFG_RST_PAYLOADLENGTH;
@@ -1414,6 +1419,12 @@ void TeenyUbloxConnect::setNAVSTATUSPacketInfo() {
   ubloxNAVSTATUSInfo.gpsFixOk = ubloxNAVSTATUSPacketBuffer.payload[5] & 0x01;
   ubloxNAVSTATUSInfo.psmState = ubloxNAVSTATUSPacketBuffer.payload[7] & 0x03;
   ubloxNAVSTATUSInfo.spoofDetState = (ubloxNAVSTATUSPacketBuffer.payload[7] & 0x18) >> 3;
+  if(ubloxNAVSTATUSInfo.spoofDetState == 2) {
+    ubloxNAVSTATUSInfo.spoofingIndicated = true;
+  }
+  if(ubloxNAVSTATUSInfo.spoofDetState == 3) {
+    ubloxNAVSTATUSInfo.multipleSpoofingIndications = true;
+  }
   ubloxNAVSTATUSInfo.carrSoln = (ubloxNAVSTATUSPacketBuffer.payload[7] & 0xC0) >> 6;
   ubloxNAVSTATUSInfo.ttff = ubloxNAVSTATUSPacketBuffer.payload[8];
   ubloxNAVSTATUSInfo.ttff |= ubloxNAVSTATUSPacketBuffer.payload[9] << 8;
@@ -1433,6 +1444,12 @@ void TeenyUbloxConnect::getNAVSTATUSPacket(uint8_t *packet_) {
 /********************************************************************/
 void TeenyUbloxConnect::getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_) {
   info_ = ubloxNAVSTATUSInfo;
+}
+
+/********************************************************************/
+void TeenyUbloxConnect::resetNAVSTATUSInfo() {
+  ubloxNAVSTATUSInfo.spoofingIndicated = false;
+  ubloxNAVSTATUSInfo.multipleSpoofingIndications = false;
 }
 
 

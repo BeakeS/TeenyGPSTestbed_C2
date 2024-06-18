@@ -279,9 +279,9 @@ typedef struct {
   bool     gpsFixOk;
   uint8_t  psmState;
   uint8_t  spoofDetState;
+  bool     spoofingIndicated;
+  bool     multipleSpoofingIndications;
   uint8_t  carrSoln;
-  uint8_t  pad00a;
-  uint8_t  pad00b;
   uint32_t ttff;
   uint32_t msss;
 } ubloxNAVSTATUSInfo_t;
@@ -464,6 +464,7 @@ class TeenyUbloxConnect {
     // Ublox navstatus data access
     void     getNAVSTATUSPacket(uint8_t *packet_); // Get the full NAV-STATUS packet
     void     getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_); // summary
+    void     resetNAVSTATUSInfo(); // reset spoofing flags
 
     // Ublox navsat data access
     void     getNAVSATPacket(uint8_t *packet_); // Get the full NAV-SAT packet

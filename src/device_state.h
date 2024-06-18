@@ -21,6 +21,7 @@ typedef struct {
   uint8_t  GPSRESET = GPS_NORESET;
   uint8_t  UBXPKTLOGMODE = UBXPKTLOG_ALL;
   uint8_t  GPSLOGMODE = GPSLOG_NONE;
+  uint8_t  EMUL_UBXPKTSOURCE = EMU_PGMINPUT;
   uint8_t  EMUL_NUMCOLDSTARTPACKETS = 10;
   uint8_t  DISPLAYBRIGHTNESS = 50;
   uint8_t  DISPLAYTIMEOUT = 10;
@@ -48,6 +49,9 @@ bool writeDeviceStateKVS() {
   if(!rc) return false;
   rc = deviceStateKVS.set("DEVICE_MODE", strlen("DEVICE_MODE"),
                           (uint8_t*)&deviceState.DEVICE_MODE, sizeof(deviceState.DEVICE_MODE));
+  if(!rc) return false;
+  rc = deviceStateKVS.set("EMUL_UBXPKTSOURCE", strlen("EMUL_UBXPKTSOURCE"),
+                          (uint8_t*)&deviceState.EMUL_UBXPKTSOURCE, sizeof(deviceState.EMUL_UBXPKTSOURCE));
   if(!rc) return false;
   rc = deviceStateKVS.set("EMUL_NUMCOLDSTARTPACKETS", strlen("EMUL_NUMCOLDSTARTPACKETS"),
                           (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPACKETS));
@@ -81,6 +85,9 @@ bool readDeviceStateKVS() {
   if(!rc) return false;
   rc = deviceStateKVS.get("DEVICE_MODE", strlen("DEVICE_MODE"),
                           (uint8_t*)&deviceState.DEVICE_MODE, sizeof(deviceState.DEVICE_MODE));
+  if(!rc) return false;
+  rc = deviceStateKVS.get("EMUL_UBXPKTSOURCE", strlen("EMUL_UBXPKTSOURCE"),
+                          (uint8_t*)&deviceState.EMUL_UBXPKTSOURCE, sizeof(deviceState.EMUL_UBXPKTSOURCE));
   if(!rc) return false;
   rc = deviceStateKVS.get("EMUL_NUMCOLDSTARTPACKETS", strlen("EMUL_NUMCOLDSTARTPACKETS"),
                           (uint8_t*)&deviceState.EMUL_NUMCOLDSTARTPACKETS, sizeof(deviceState.EMUL_NUMCOLDSTARTPACKETS));

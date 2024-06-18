@@ -25,8 +25,10 @@ void itimer0_handler() {
 //if(deviceState.STATUSLED) statusLED.tick(); //update every 10ms
   switch(newClockSubTickCount%4) {
     case 0:
-      if(deviceState.DEVICE_MODE==DM_GPSEMU_M8) emulator.tick(); //update every 40ms
-      if(deviceState.DEVICE_MODE==DM_GPSEMU_M10) emulator.tick(); //update every 40ms
+      if(emulatorEnabled) {
+        if(deviceState.DEVICE_MODE==DM_GPSEMU_M8) emulator.tick(); //update every 40ms
+        if(deviceState.DEVICE_MODE==DM_GPSEMU_M10) emulator.tick(); //update every 40ms
+      }
       break;
   }
 }

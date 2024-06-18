@@ -97,7 +97,8 @@ void deviceMode_init() {
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       emulatorSerial = &Serial2;
-      if(emulator_setup(*emulatorSerial, UBLOX_M8_EMULATOR_BAUD_RATE, TGPSE_UBX_M8_MODULE)) {
+      if(emulator_setup(*emulatorSerial, UBLOX_M8_EMULATOR_BAUD_RATE, TGPSE_UBX_M8_MODULE,
+                        deviceState.EMUL_UBXPKTSOURCE)) {
         msg_update("EMU Serial Enabled");
       } else {
         msg_update("ERROR - EMU Setup");
@@ -107,7 +108,8 @@ void deviceMode_init() {
       //statusLED.pulse_repeat(1);
       rtc.setValid(false);
       emulatorSerial = &Serial2;
-      if(emulator_setup(*emulatorSerial, UBLOX_M10_EMULATOR_BAUD_RATE, TGPSE_UBX_M10_MODULE)) {
+      if(emulator_setup(*emulatorSerial, UBLOX_M10_EMULATOR_BAUD_RATE, TGPSE_UBX_M10_MODULE,
+                        deviceState.EMUL_UBXPKTSOURCE)) {
         msg_update("EMU Serial Enabled");
       } else {
         msg_update("ERROR - EMU Setup");

@@ -1,27 +1,51 @@
 
 /********************************************************************/
+// forward declarations
+bool sdcard_openUBXInputFile();
+uint8_t sdcard_readUBXInputFile();
+void sdcard_closeUBXInputFile();
+
+/********************************************************************/
+// EMULATOR UBX Packet Source
+enum emuUbxPktSource_t : uint8_t {
+  EMU_PGMINPUT = 0,
+  EMU_SDCINPUT
+};
+
+/********************************************************************/
 // EMULATOR
 bool emulatorEnabled;
 #include "TeenyGPSEmulate.h"
 TeenyGPSEmulate emulator;
+uint8_t emuUbxPktSource;
 uint8_t emulatorColdStartPacketCount = 0;
 bool emulatorLoopEnabled = false;
 
 /********************************************************************/
-bool emulator_setup(HardwareSerial &serialPort, uint32_t baudRate, tgpse_ubx_module_type_t ubxModuleType) {
-  if(emulator.init(serialPort, baudRate, ubxModuleType)) {
-    emulatorEnabled = true;
-    emulatorColdStartPacketCount = 0;
-    emulatorLoopEnabled = false;
-    // TBD - Open optional SD card emulation loop file
+bool emulator_setup(HardwareSerial &serialPort, uint32_t baudRate,
+                    tgpse_ubx_module_type_t ubxModuleType, uint8_t emuUbxPktSource_) {
+  emulatorEnabled = false;
+  emuUbxPktSource = emuUbxPktSource_;
+  emulatorColdStartPacketCount = 0;
+  emulatorLoopEnabled = false;
+  if(emuUbxPktSource == EMU_SDCINPUT) {
+    if(sdcard_openUBXInputFile() &&
+       emulator.init(serialPort, baudRate, ubxModuleType,
+                     []() -> uint8_t { return sdcard_readUBXInputFile(); })) {
+      emulatorEnabled = true;
+    }
   } else {
-    emulatorEnabled = false;
+    if(emulator.init(serialPort, baudRate, ubxModuleType)) {
+      emulatorEnabled = true;
+    }
   }
   return emulatorEnabled;
 }
 
 /********************************************************************/
 void emulator_end() {
-  // TBD - Close optional SD card emulation loop file
+  if(emuUbxPktSource == EMU_SDCINPUT) {
+    sdcard_closeUBXInputFile();
+  }
 }
 

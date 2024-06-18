@@ -330,7 +330,10 @@ class TeenyGPSEmulate {
     TeenyGPSEmulate& operator=(const TeenyGPSEmulate&);
 
     // Setup
-    bool init(HardwareSerial &serialPort_, uint32_t baudRate_, tgpse_ubx_module_type_t ubxModuleType_);
+    bool init(HardwareSerial &serialPort_,
+              uint32_t baudRate_,
+              tgpse_ubx_module_type_t ubxModuleType_,
+              uint8_t (*fetch)() = nullptr);
     bool reset();
 
     // Methods for process incoming commands/requests from host
@@ -353,9 +356,6 @@ class TeenyGPSEmulate {
     uint8_t         getLostNAVPVTRequestCount();
     void            setAutoNAVPVTRate(uint8_t rate=1); // Debug use only //
     bool            isAutoNAVPVTEnabled();
-    bool            isNAVPVTPacket(const uint8_t *buf, size_t size);
-    bool            setNAVPVTPacket(const uint8_t *buf, size_t size);
-    void            setNAVPVTColdPacket();
     ubxNAVPVTInfo_t getNAVPVTPacketInfo();
     void            setNAVPVTPacketDateTime(uint16_t year, uint8_t month, uint8_t day,
                                             uint8_t hour, uint8_t minute, uint8_t second);
@@ -370,9 +370,6 @@ class TeenyGPSEmulate {
     uint8_t            getLostNAVSTATUSRequestCount();
     void               setAutoNAVSTATUSRate(uint8_t rate=1); // Debug use only //
     bool               isAutoNAVSTATUSEnabled();
-    bool               isNAVSTATUSPacket(const uint8_t *buf, size_t size);
-    bool               setNAVSTATUSPacket(const uint8_t *buf, size_t size);
-    void               setNAVSTATUSColdPacket();
     ubxNAVSTATUSInfo_t getNAVSTATUSPacketInfo();
     bool               sendNAVSTATUSPacket(); // do not call in ISR - uses serial write and sdcard
 
@@ -382,9 +379,6 @@ class TeenyGPSEmulate {
     uint8_t         getLostNAVSATRequestCount();
     void            setAutoNAVSATRate(uint8_t rate=10); // Debug use only //
     bool            isAutoNAVSATEnabled();
-    bool            isNAVSATPacket(const uint8_t *buf, size_t size);
-    bool            setNAVSATPacket(const uint8_t *buf, size_t size);
-    void            setNAVSATColdPacket();
     ubxNAVSATInfo_t getNAVSATPacketInfo();
     bool            sendNAVSATPacket(); // do not call in ISR - uses serial write and sdcard
 
@@ -398,6 +392,7 @@ class TeenyGPSEmulate {
     ubxPacket_t          responsePacket;
     ubxPacket_t          acknowledgePacket;
     ubxPacket_t          unknownPacket;
+    ubxPacket_t          ubxLoopPacket;
     ubxNAVPVTPacket_t    ubxNAVPVTPacket;
     ubxNAVPVTInfo_t      ubxNAVPVTInfo;
     ubxNAVSTATUSPacket_t ubxNAVSTATUSPacket;
@@ -409,6 +404,7 @@ class TeenyGPSEmulate {
 
     HardwareSerial *serialPort;
     tgpse_ubx_module_type_t ubxModuleType;
+    uint8_t  (*ubxFetch)();
     emulatorSettings_t emulatorSettings;
     emulatorSettings_t emulatorSettings_default;
     uint32_t requestedBaudRate;
@@ -425,9 +421,22 @@ class TeenyGPSEmulate {
     bool     requestNAVSATPacket;
     uint8_t  lostNAVSATRequestCount;
 
-    uint32_t loopPacketIndex;
-    uint32_t getLoopPacketTimeStamp();
-    bool     assignEmuLoopOutputPacket();
+    uint8_t  readUBXLoopByte();
+    bool     processUBXLoopPacket();
+    uint32_t ubxLoopPacketIndex;
+    uint16_t getUBXLoopPacketLength();
+    uint32_t getUBXLoopPacketTimeStamp();
+    bool     assignUBXLoopOutputPacket();
+
+    bool     isNAVPVTPacket();
+    bool     setNAVPVTPacket();
+    void     setNAVPVTColdPacket();
+    bool     isNAVSTATUSPacket();
+    bool     setNAVSTATUSPacket();
+    void     setNAVSTATUSColdPacket();
+    bool     isNAVSATPacket();
+    bool     setNAVSATPacket();
+    void     setNAVSATColdPacket();
 
     void     calcChecksum(ubxPacket_t *pkt);
     void     calcChecksum(ubxNAVPVTPacket_t *pkt);

@@ -328,6 +328,13 @@ TeenyMenuPage menuPageEMULSettings("EMULATOR SETTINGS");
 TeenyMenuItem menuItemEMULSettings("Emulator Settings", menuPageEMULSettings);
 TeenyMenuItem menuItemEMULSettingsExit(false); // optional return menu item
 //
+// emulator ubx packet source
+SelectOptionUint8t selectEMUUBXPktSourceOptions[] = {
+  {"PROG",   EMU_PGMINPUT},
+  {"SDCARD", EMU_SDCINPUT}};
+TeenyMenuSelect selectEMUUBXPktSource(sizeof(selectEMUUBXPktSourceOptions)/sizeof(SelectOptionUint8t), selectEMUUBXPktSourceOptions);
+TeenyMenuItem menuItemEMUUBXPktSource("UBX Pkt Src", deviceState.EMUL_UBXPKTSOURCE, selectEMUUBXPktSource);
+//
 // emulator cold start packet count
 uint8_t menuColdStartPktsMin = 0;
 uint8_t menuColdStartPktsMax = 60;
@@ -527,6 +534,7 @@ void menu_setup() {
   menuPageGPSFactoryReset.addMenuItem(menuItemGPSFactoryResetExit);
   menuPageGPSSettings.addMenuItem(menuItemGPSSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemEMULSettings);
+  menuPageEMULSettings.addMenuItem(menuItemEMUUBXPktSource);
   menuPageEMULSettings.addMenuItem(menuItemColdStartPkts);
   menuPageEMULSettings.addMenuItem(menuItemEMULSettingsExit); // optional return menu item
   menuPageTopLevelSettings.addMenuItem(menuItemDisplayBrightness);
@@ -1169,13 +1177,6 @@ void menu_entrGPSStepCB() {
 }
 
 /********************************************************************/
-void menu_exitGPSStepCB() {
-  deviceMode_end();
-  menu.exitToParentMenuPage();
-  displayRefresh = true;
-}
-
-/********************************************************************/
 void menu_sstBeginCB() {
   char _msgStr[22];
   gpsSerial->begin(GPS_BAUD_RATE);
@@ -1201,6 +1202,13 @@ void menu_sstReqMonVerCB() {
           rxPktFileName,
           min(rxPktWriteCount, 999));
   msg_update(_msgStr);
+  displayRefresh = true;
+}
+
+/********************************************************************/
+void menu_exitGPSStepCB() {
+  deviceMode_end();
+  menu.exitToParentMenuPage();
   displayRefresh = true;
 }
 

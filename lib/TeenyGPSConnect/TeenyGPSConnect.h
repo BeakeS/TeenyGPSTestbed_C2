@@ -179,6 +179,7 @@ class TeenyGPSConnect {
     void getNAVSTATUSPacket(uint8_t* packet);
     // NAVSTATUS packet info
     void getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_);
+    void resetNAVSTATUSInfo();
 
     // UBX-NAV-SAT
     bool getNAVSAT();

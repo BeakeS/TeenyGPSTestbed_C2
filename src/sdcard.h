@@ -8,6 +8,7 @@ bool sdcardEnabled;
 // m5stack core2 chip select = 4
 const int sdChipSelect = 4;
 File sdFile; // SD file pointer
+File sdFile_ubx; // SD file pointer
 File sdFile_gpx; // SD file pointer
 File sdFile_kml; // SD file pointer
 
@@ -74,30 +75,30 @@ bool sdcard_deviceStateRestore() {
 bool     ubxLoggingInProgress = false;
 uint8_t  ubxLoggingFileNum = 0;
 char     ubxLoggingFileName[14]={0};
-uint16_t ubxLoggingFileWriteCount;
-uint16_t ubxLoggingFileWriteValidCount;
+uint32_t ubxLoggingFileWriteCount;
+uint32_t ubxLoggingFileWriteValidCount;
 /********************************************************************/
 bool sdcard_openUBXLoggingFile() {
   if(!sdcardEnabled) return false;
-  sprintf(ubxLoggingFileName, "/GPSLOG%02d.hex", ubxLoggingFileNum);
+  sprintf(ubxLoggingFileName, "/UBXLOG%02d.hex", ubxLoggingFileNum);
   if(SD.exists(ubxLoggingFileName)) {
     if(!SD.remove(ubxLoggingFileName)) return false;
   }
   //SdFile::dateTimeCallback(sdDateTimeCB);
-  sdFile = SD.open(ubxLoggingFileName, FILE_WRITE);
-  if(!sdFile) return false;
+  sdFile_ubx = SD.open(ubxLoggingFileName, FILE_WRITE);
+  if(!sdFile_ubx) return false;
   ubxLoggingFileWriteCount = 0;
   ubxLoggingFileWriteValidCount = 0;
   return true;
 }
 /********************************************************************/
 void sdcard_writeUBXLoggingFile(const uint8_t *buf, size_t size) {
-  sdFile.write(buf, size);
+  sdFile_ubx.write(buf, size);
   //ubxLoggingFileWriteCount++; //done in loop along with fixed count
 }
 /********************************************************************/
 uint16_t sdcard_closeUBXLoggingFile() {
-  sdFile.close();
+  sdFile_ubx.close();
   ubxLoggingFileNum++;
   if(ubxLoggingFileNum > 99) ubxLoggingFileNum = 0;
   return ubxLoggingFileWriteCount;
@@ -200,6 +201,36 @@ uint16_t sdcard_closeKMLLoggingFile() {
 }
 
 /********************************************************************/
+// UBX Emulation Loop File Reader
+/********************************************************************/
+char     ubxInputFileName[14]={0};
+/********************************************************************/
+bool sdcard_openUBXInputFile() {
+  if(!sdcardEnabled) return false;
+  sprintf(ubxInputFileName, "/UBXINPUT.hex");
+  if(!SD.exists(ubxInputFileName)) {
+    return false;
+  }
+  sdFile_ubx = SD.open(ubxInputFileName, FILE_READ);
+  if(!sdFile_ubx) return false;
+  return true;
+}
+/********************************************************************/
+uint8_t sdcard_readUBXInputFile() {
+  if(sdcardEnabled && sdFile_ubx) {
+    if(!sdFile_ubx.available()) {
+      sdFile_ubx.seek(0);
+    }
+    return sdFile_ubx.read();
+  }
+  return 0;
+}
+/********************************************************************/
+void sdcard_closeUBXInputFile() {
+  sdFile_ubx.close();
+}
+
+/********************************************************************/
 // Rx Pkt File Writer
 /********************************************************************/
 uint8_t rxPktFileNum = 0;
@@ -232,9 +263,4 @@ uint16_t sdcard_closeRxPktFile() {
   rxPktFileNum++;
   return rxPktWriteCount;
 }
-
-/********************************************************************/
-// UBX Emulation Loop File Reader
-/********************************************************************/
-// TBD
 

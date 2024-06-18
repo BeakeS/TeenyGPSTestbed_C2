@@ -415,6 +415,11 @@ void TeenyGPSConnect::getNAVSTATUSInfo(ubloxNAVSTATUSInfo_t &info_) {
 }
 
 /********************************************************************/
+void TeenyGPSConnect::resetNAVSTATUSInfo() {
+  gnss.resetNAVSTATUSInfo();
+}
+
+/********************************************************************/
 // UBX-NAV-SAT
 /********************************************************************/
 bool TeenyGPSConnect::getNAVSAT() {

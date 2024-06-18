@@ -40,17 +40,17 @@ HardwareSerial *gpsSerial;
 #include "compass.h"
 
 /********************************************************************/
+// Emulator
+HardwareSerial *emulatorSerial;
+#include "emulator.h"
+
+/********************************************************************/
 // Device State
 #include "device_state.h"
 
 /********************************************************************/
 // SD Card
 #include "sdcard.h"
-
-/********************************************************************/
-// Emulator
-HardwareSerial *emulatorSerial;
-#include "emulator.h"
 
 /********************************************************************/
 // Display
@@ -329,66 +329,68 @@ void loop() {
       break;
     case DM_GPSEMU_M8:
     case DM_GPSEMU_M10:
-      // Process host commands
-      emulator.processIncomingPacket();
+      if(emulatorEnabled) {
+        // Process host commands
+        emulator.processIncomingPacket();
 //*** NEED TO INCORPORATE TRANSMISSION RATE INTO sendNAVPVTPacket()
 //*** ALSO NEED TO FACTOR IN LOG RATE VS TRANSMISSION RATE
 //uint32_t getNAVPVTTransmissionRate();
 //uint32_t getNAVSATTransmissionRate();
-      uint8_t _ubxNAVPVTBuf[100];
-      ubxNAVPVTInfo_t _ubxNAVPVTInfo;
-      // Wait for loop to be enabled by auto* command or packet request
-      if(!emulatorLoopEnabled) {
-        if(emulator.isAutoNAVPVTEnabled() ||
-           emulator.isNAVPVTPacketRequested() ||
-           emulator.isAutoNAVSATEnabled() ||
-           emulator.isNAVSATPacketRequested()) {
-          emulatorLoopEnabled = true;
-        }
-      }
-      if(!emulatorLoopEnabled) break;
-      // Update loop event every second
-      if(_clockTick_1sec) {
-        if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPACKETS) {
-          emulatorColdStartPacketCount++;
-          emulator.setEmuColdOutputPackets(); // Sets cold NAVPVT, NAVSTATUS, and NAVSAT packets
-          //statusLED.pulse(1);
-        } else {
-          emulator.setEmuLoopOutputPackets(); // Sets NAVPVT packet and possible adjacent NAVSAT packet
-          if(!rtc.isValid()) {
-            _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
-            if(_ubxNAVPVTInfo.dateValid && _ubxNAVPVTInfo.timeValid) {
-              rtc.setRTCTime(_ubxNAVPVTInfo.year, _ubxNAVPVTInfo.month, _ubxNAVPVTInfo.day,
-                             _ubxNAVPVTInfo.hour, _ubxNAVPVTInfo.minute, _ubxNAVPVTInfo.second);
-              _prevClockTime = (uint32_t)(_ubxNAVPVTInfo.hour*3600) +
-                               (uint32_t)(_ubxNAVPVTInfo.minute*60) +
-                               _ubxNAVPVTInfo.second;
-            }
-            _clockTick_1sec_count = 0;
-            _clockTick_10sec = true;
-            //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
-          } else {
-            _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
-            emulator.setNAVPVTPacketDateTime(_rtcTime.year, _rtcTime.month, _rtcTime.day,
-                                             _rtcTime.hour, _rtcTime.minute, _rtcTime.second);
-            //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
+        uint8_t _ubxNAVPVTBuf[100];
+        ubxNAVPVTInfo_t _ubxNAVPVTInfo;
+        // Wait for loop to be enabled by auto* command or packet request
+        if(!emulatorLoopEnabled) {
+          if(emulator.isAutoNAVPVTEnabled() ||
+             emulator.isNAVPVTPacketRequested() ||
+             emulator.isAutoNAVSATEnabled() ||
+             emulator.isNAVSATPacketRequested()) {
+            emulatorLoopEnabled = true;
           }
         }
-      }
-      if((_clockTick_1sec && emulator.isAutoNAVPVTEnabled()) ||
-         emulator.isNAVPVTPacketRequested()) {
-        emulator.sendNAVPVTPacket();
-        displayRefresh = true;
-      }
-      if((_clockTick_1sec && emulator.isAutoNAVSTATUSEnabled()) ||
-         emulator.isNAVSTATUSPacketRequested()) {
-        emulator.sendNAVSTATUSPacket();
-        displayRefresh = true;
-      }
-      if((_clockTick_10sec && emulator.isAutoNAVSATEnabled()) ||
-         emulator.isNAVSATPacketRequested()) {
-        emulator.sendNAVSATPacket();
-        displayRefresh = true;
+        if(!emulatorLoopEnabled) break;
+        // Update loop event every second
+        if(_clockTick_1sec) {
+          if(emulatorColdStartPacketCount < deviceState.EMUL_NUMCOLDSTARTPACKETS) {
+            emulatorColdStartPacketCount++;
+            emulator.setEmuColdOutputPackets(); // Sets cold NAVPVT, NAVSTATUS, and NAVSAT packets
+            //statusLED.pulse(1);
+          } else {
+            emulator.setEmuLoopOutputPackets(); // Sets NAVPVT packet and possible adjacent NAVSAT packet
+            if(!rtc.isValid()) {
+              _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
+              if(_ubxNAVPVTInfo.dateValid && _ubxNAVPVTInfo.timeValid) {
+                rtc.setRTCTime(_ubxNAVPVTInfo.year, _ubxNAVPVTInfo.month, _ubxNAVPVTInfo.day,
+                               _ubxNAVPVTInfo.hour, _ubxNAVPVTInfo.minute, _ubxNAVPVTInfo.second);
+                _prevClockTime = (uint32_t)(_ubxNAVPVTInfo.hour*3600) +
+                                 (uint32_t)(_ubxNAVPVTInfo.minute*60) +
+                                 _ubxNAVPVTInfo.second;
+              }
+              _clockTick_1sec_count = 0;
+              _clockTick_10sec = true;
+              //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
+            } else {
+              _ubxNAVPVTInfo = emulator.getNAVPVTPacketInfo();
+              emulator.setNAVPVTPacketDateTime(_rtcTime.year, _rtcTime.month, _rtcTime.day,
+                                               _rtcTime.hour, _rtcTime.minute, _rtcTime.second);
+              //statusLED.pulse(_ubxNAVPVTInfo.locationValid ? 2 : 1);
+            }
+          }
+        }
+        if((_clockTick_1sec && emulator.isAutoNAVPVTEnabled()) ||
+           emulator.isNAVPVTPacketRequested()) {
+          emulator.sendNAVPVTPacket();
+          displayRefresh = true;
+        }
+        if((_clockTick_1sec && emulator.isAutoNAVSTATUSEnabled()) ||
+           emulator.isNAVSTATUSPacketRequested()) {
+          emulator.sendNAVSTATUSPacket();
+          displayRefresh = true;
+        }
+        if((_clockTick_10sec && emulator.isAutoNAVSATEnabled()) ||
+           emulator.isNAVSATPacketRequested()) {
+          emulator.sendNAVSATPacket();
+          displayRefresh = true;
+        }
       }
       break;
   }

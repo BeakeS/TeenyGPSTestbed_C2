@@ -217,11 +217,11 @@ void display_refresh() {
           displayPV.prt_str(_dispStr, 20, 0, 66);
         }
         if(ubxLoggingInProgress) {
-          sprintf(_dispStr, "  Total Pkts=%04d",
-                  min(ubxLoggingFileWriteCount, 9999));
+          sprintf(_dispStr, "  Total Pkts=%06d",
+                  min(ubxLoggingFileWriteCount, 999999));
           displayPV.prt_str(_dispStr, 20, 0, 204);
-          sprintf(_dispStr, "  Valid Pkts=%04d",
-                  min(ubxLoggingFileWriteValidCount, 9999));
+          sprintf(_dispStr, "  Valid Pkts=%06d",
+                  min(ubxLoggingFileWriteValidCount, 999999));
           displayPV.prt_str(_dispStr, 20, 0, 222);
         }
       //sprintf(_dispStr, "P%XL%XD%XT%X",
@@ -248,12 +248,16 @@ void display_refresh() {
           displayPV.prt_str(_dispStr, 20, 0, 86);
           sprintf(_dispStr, "PSMState=%02X", navstatusInfo.psmState);
           displayPV.prt_str(_dispStr, 20, 0, 104);
-          sprintf(_dispStr, "SpoofDetState=%02d", navstatusInfo.spoofDetState);
-          displayPV.prt_str(_dispStr, 20, 0, 122);
           sprintf(_dispStr, "CarrSoln=%02d", navstatusInfo.carrSoln);
-          displayPV.prt_str(_dispStr, 20, 0, 140);
+          displayPV.prt_str(_dispStr, 20, 0, 122);
           sprintf(_dispStr, "TTFF=%08d", navstatusInfo.ttff / 1000);
-          displayPV.prt_str(_dispStr, 20, 0, 158);
+          displayPV.prt_str(_dispStr, 20, 0, 140);
+          sprintf(_dispStr, "SpoofDetState=%d", navstatusInfo.spoofDetState);
+          displayPV.prt_str(_dispStr, 20, 0, 162);
+          sprintf(_dispStr, "SpoofIndicated=%d", navstatusInfo.spoofingIndicated);
+          displayPV.prt_str(_dispStr, 20, 0, 180);
+          sprintf(_dispStr, "MultiSpoofInd=%d", navstatusInfo.multipleSpoofingIndications);
+          displayPV.prt_str(_dispStr, 20, 0, 198);
         }
       } else if(menu.isMenuPageCurrent(menuPageGPSNsat)) {
         // GPS Clock
