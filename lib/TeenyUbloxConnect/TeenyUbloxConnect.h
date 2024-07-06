@@ -216,8 +216,8 @@ typedef struct {
 // UBX-CFG-GNSS Info Struct
 /********************************************************************/
 typedef struct {
-  uint8_t  gnssId;
-  char     gnssIdType;
+  int8_t   gnssId;
+  uint8_t  gnssIdType;
   uint8_t  resTrkCh;
   uint8_t  maxTrkCh;
   uint8_t  enable;
@@ -240,8 +240,8 @@ typedef struct {
 } ubloxM10CFGGNSSSignal_t;
 /********************************************************************/
 typedef struct {
-  uint8_t  gnssId;
-  char     gnssIdType;
+  int8_t   gnssId;
+  uint8_t  gnssIdType;
   uint8_t  enable;
   uint8_t  numSigs;
   ubloxM10CFGGNSSSignal_t signalList[2];
@@ -322,9 +322,9 @@ typedef struct {
 // UBX-NAV-SAT Info Struct
 /********************************************************************/
 typedef struct {
-  uint8_t  gnssId;
-  char     gnssIdType;
-  uint8_t  svId;
+  int8_t   gnssId;
+  uint8_t  gnssIdType;
+  int8_t   svId;
   uint8_t  cno;
   int16_t  azim;
   int16_t  prRes;

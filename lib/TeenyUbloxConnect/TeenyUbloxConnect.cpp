@@ -329,10 +329,12 @@ bool TeenyUbloxConnect::pollGNSSConfigInfo_M8(uint16_t maxWait_) {
     ubloxCFGGNSSInfo.M8.numTrkChHw      = responsePacket.payload[1];
     ubloxCFGGNSSInfo.M8.numTrkChUse     = responsePacket.payload[2];
     ubloxCFGGNSSInfo.M8.numConfigBlocks = responsePacket.payload[3];
-    char gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
+    uint8_t gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
     for(uint8_t i = 0; i < ubloxCFGGNSSInfo.M8.numConfigBlocks; i++) {
       ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId = responsePacket.payload[4+(i*8)];
-      if(ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId > 7) {
+      if((ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId < 0) ||
+         (ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId > 7) {
+        ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId = -1;
         ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType = '?';
       } else {
         ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType =
@@ -1495,9 +1497,9 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
   for(uint8_t i=0; i<32; i++) {
-    ubloxNAVSATInfo.svSortList[i].gnssId = 0;
+    ubloxNAVSATInfo.svSortList[i].gnssId = -1;
     ubloxNAVSATInfo.svSortList[i].gnssIdType = '?';
-    ubloxNAVSATInfo.svSortList[i].svId = 0;
+    ubloxNAVSATInfo.svSortList[i].svId = -1;
     ubloxNAVSATInfo.svSortList[i].cno = 0;
     ubloxNAVSATInfo.svSortList[i].elev = -91;
     ubloxNAVSATInfo.svSortList[i].azim = 0;
@@ -1514,7 +1516,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
     }
   }
   // Find and sort up to 32 usable satellites
-  char gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
+  uint8_t gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
   for(uint8_t i=0; i<32; i++) {
     bool foundSat = false;
     uint8_t foundSatIndex;
@@ -1523,12 +1525,14 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
       if(ubloxNAVSATPacketBuffer.payload[(j*12)+10]) {
         // compare all the fields to see which is a 'better' satellite and replace if better
         compareSatInfo.gnssId = ubloxNAVSATPacketBuffer.payload[(j*12)+8];
-        if(compareSatInfo.gnssId > 7) {
+        if((compareSatInfo.gnssId < 0) || (compareSatInfo.gnssId > 7)) {
+          compareSatInfo.gnssId = -1;
           compareSatInfo.gnssIdType = '?';
+          compareSatInfo.svId = -1;
         } else {
-          compareSatInfo.gnssIdType = gnssIdTypeMap[foundSatInfo.gnssId];
+          compareSatInfo.gnssIdType = gnssIdTypeMap[compareSatInfo.gnssId];
+          compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
         }
-        compareSatInfo.svId = ubloxNAVSATPacketBuffer.payload[(j*12)+9];
         compareSatInfo.cno = ubloxNAVSATPacketBuffer.payload[(j*12)+10];
         compareSatInfo.elev = ubloxNAVSATPacketBuffer.payload[(j*12)+11];
         compareSatInfo.ephValid = (compareSatInfo.elev >= -90) && (compareSatInfo.elev <= 90);
@@ -1564,7 +1568,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
       }
     }
     if(foundSat) {
-      // remove satellite from buffer sort
+      // remove found satellite from buffer sort by changing cno to 0
       ubloxNAVSATPacketBuffer.payload[(foundSatIndex*12)+10] = 0;
       // add found satellite to sort list
       ubloxNAVSATInfo.svSortList[i] = foundSatInfo;
