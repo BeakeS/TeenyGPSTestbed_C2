@@ -333,7 +333,7 @@ bool TeenyUbloxConnect::pollGNSSConfigInfo_M8(uint16_t maxWait_) {
     for(uint8_t i = 0; i < ubloxCFGGNSSInfo.M8.numConfigBlocks; i++) {
       ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId = responsePacket.payload[4+(i*8)];
       if((ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId < 0) ||
-         (ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId > 7) {
+         (ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId > 7)) {
         ubloxCFGGNSSInfo.M8.configBlockList[i].gnssId = -1;
         ubloxCFGGNSSInfo.M8.configBlockList[i].gnssIdType = '?';
       } else {
