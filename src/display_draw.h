@@ -277,13 +277,13 @@ void display_refresh() {
           if(navsatInfo.validPacket) {
             sprintf(_dispStr, "   SATELLITE INFO");
             displayPV.prt_str(_dispStr, 20, 0, 48);
-            sprintf(_dispStr, "Total=%02d", navsatInfo.numSvs);
+            sprintf(_dispStr, "Total=%d/%d", navsatInfo.numSvs, navsatInfo.numSvsReceived);
             displayPV.prt_str(_dispStr, 20, 0, 68);
-            sprintf(_dispStr, "HealthySignal=%02d", navsatInfo.numSvsHealthy);
+            sprintf(_dispStr, "HealthySignal=%d", navsatInfo.numSvsHealthy);
             displayPV.prt_str(_dispStr, 20, 0, 86);
-            sprintf(_dispStr, "EphemerisValid=%02d", navsatInfo.numSvsEphValid);
+            sprintf(_dispStr, "EphemerisValid=%d", navsatInfo.numSvsEphValid);
             displayPV.prt_str(_dispStr, 20, 0, 104);
-            sprintf(_dispStr, "UsedForNav=%02d", navsatInfo.numSvsUsed);
+            sprintf(_dispStr, "UsedForNav=%d", navsatInfo.numSvsUsed);
             displayPV.prt_str(_dispStr, 20, 0, 122);
             displayPV.prt_str("Satellites(id/snr):", 20, 0, 146);
             for(uint8_t i=0; i<min(navsatInfo.numSvsHealthy, 21); i++) {

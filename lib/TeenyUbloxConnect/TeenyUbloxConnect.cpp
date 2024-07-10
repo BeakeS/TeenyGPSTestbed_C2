@@ -1159,7 +1159,7 @@ void TeenyUbloxConnect::processIncomingPacket(uint8_t requestedClass_, uint8_t r
     if((receivedPacket.messageClass == UBX_CLASS_NAV) &&
        (receivedPacket.messageID == UBX_NAV_SAT) &&
        (receivedPacket.payloadLength >= UBX_NAV_SAT_MINPAYLOADLENGTH) &&
-       (receivedPacket.payloadLength <= UBX_NAV_SAT_MAXPAYLOADLENGTH)) {
+       (((receivedPacket.payloadLength - 8) % 12) == 0)) {
       if(ubloxNAVSATPacketBuffer.validPacket) {
         // Lost rx packet
         lostNAVSATPacketCount += (lostNAVSATPacketCount < 99) ? 1 : 0;
@@ -1469,16 +1469,40 @@ bool TeenyUbloxConnect::getNAVSAT() {
 bool TeenyUbloxConnect::processNAVSATPacket() {
   if(ubloxNAVSATPacketBuffer.validPacket) {
     // Save buffer to packet
-    ubloxNAVSATPacketLength = 8 + 8 + (12 * ubloxNAVSATPacketBuffer.payload[5]);
+    uint16_t payloadLength = min(ubloxNAVSATPacketBuffer.payloadLength, UBX_NAV_SAT_MAXPAYLOADLENGTH);
+    ubloxNAVSATPacketLength = 8 + payloadLength;
     ubloxNAVSATPacket[0] = ubloxNAVSATPacketBuffer.synch1;
     ubloxNAVSATPacket[1] = ubloxNAVSATPacketBuffer.synch2;
     ubloxNAVSATPacket[2] = ubloxNAVSATPacketBuffer.messageClass;
     ubloxNAVSATPacket[3] = ubloxNAVSATPacketBuffer.messageID;
-    ubloxNAVSATPacket[4] = ubloxNAVSATPacketBuffer.payloadLength;
-    ubloxNAVSATPacket[5] = ubloxNAVSATPacketBuffer.payloadLength >> 8;
-    memcpy(ubloxNAVSATPacket+6, ubloxNAVSATPacketBuffer.payload, ubloxNAVSATPacketLength - 8);
-    ubloxNAVSATPacket[ubloxNAVSATPacketLength-2] = ubloxNAVSATPacketBuffer.checksumA;
-    ubloxNAVSATPacket[ubloxNAVSATPacketLength-1] = ubloxNAVSATPacketBuffer.checksumB;
+    ubloxNAVSATPacket[4] = payloadLength & 0xFF;
+    ubloxNAVSATPacket[5] = payloadLength >> 8;
+    memcpy(ubloxNAVSATPacket+6, ubloxNAVSATPacketBuffer.payload, payloadLength);
+    // Adjust numSvs based on max packet/payload size
+    ubloxNAVSATPacket[6+5] = min(ubloxNAVSATPacket[6+5], UBX_MAXNAVSATSATELLITES);
+    if(ubloxNAVSATPacketBuffer.payloadLength <= UBX_NAV_SAT_MAXPAYLOADLENGTH) {
+      // Save checksum
+      ubloxNAVSATPacket[ubloxNAVSATPacketLength-2] = ubloxNAVSATPacketBuffer.checksumA;
+      ubloxNAVSATPacket[ubloxNAVSATPacketLength-1] = ubloxNAVSATPacketBuffer.checksumB;
+    } else {
+      // Calculate new checksum
+      uint8_t checksumA = 0;
+      uint8_t checksumB = 0;
+      checksumA += ubloxNAVSATPacket[2];
+      checksumB += checksumA;
+      checksumA += ubloxNAVSATPacket[3];
+      checksumB += checksumA;
+      checksumA += ubloxNAVSATPacket[4];
+      checksumB += checksumA;
+      checksumA += ubloxNAVSATPacket[5];
+      checksumB += checksumA;
+      for(uint16_t i = 0; i < payloadLength; i++) {
+        checksumA += ubloxNAVSATPacket[6 + i];
+        checksumB += checksumA;
+      }
+      ubloxNAVSATPacket[ubloxNAVSATPacketLength-2] = checksumA;
+      ubloxNAVSATPacket[ubloxNAVSATPacketLength-1] = checksumB;
+    }
     // Parse packet fields
     setNAVSATPacketInfo();
     ubloxNAVSATPacketBuffer.validPacket = false;
@@ -1490,7 +1514,8 @@ bool TeenyUbloxConnect::processNAVSATPacket() {
 /********************************************************************/
 void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.validPacket = true;
-  ubloxNAVSATInfo.numSvs = ubloxNAVSATPacketBuffer.payload[5];
+  ubloxNAVSATInfo.numSvsReceived = ubloxNAVSATPacketBuffer.payload[5];
+  ubloxNAVSATInfo.numSvs = min(ubloxNAVSATInfo.numSvsReceived, UBX_MAXNAVSATSATELLITES);
   ubloxNAVSATInfo.numSvsHealthy = 0;
   ubloxNAVSATInfo.numSvsEphValid = 0;
   ubloxNAVSATInfo.numSvsHealthyAndEphValid = 0;
@@ -1515,7 +1540,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
       ubloxNAVSATPacketBuffer.payload[(i*12)+10] = 0;
     }
   }
-  // Find and sort up to 32 usable satellites
+  // Find and sort up to UBX_MAXNAVSATSATELLITES
   uint8_t gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
   for(uint8_t i=0; i<32; i++) {
     bool foundSat = false;

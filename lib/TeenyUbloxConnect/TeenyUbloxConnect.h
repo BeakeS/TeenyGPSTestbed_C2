@@ -77,8 +77,8 @@ enum ubx_module_type_t : uint8_t {
 const uint8_t  COM_PORT_UART1 = 1;
 const uint8_t  COM_TYPE_UBX  = 0x01;
 const uint8_t  COM_TYPE_NMEA = 0x02;
-//const uint16_t UBX_MAXPAYLOADLENGTH = 872; // NAV-SAT message with 72 satellites
-const uint16_t UBX_MAXPAYLOADLENGTH = 392; // NAV-SAT message with 32 tracking channels
+const uint8_t  UBX_MAXNAVSATSATELLITES = 64; // Max payload determined by NAV-SAT max satellites
+const uint16_t UBX_MAXPAYLOADLENGTH = 8 + (12 * (uint16_t)UBX_MAXNAVSATSATELLITES);
 const uint8_t  UBX_SYNCH_1 = 0xB5;
 const uint8_t  UBX_SYNCH_2 = 0x62;
 const uint8_t  UBX_CLASS_NAV = 0x01;
@@ -336,12 +336,12 @@ typedef struct {
 /********************************************************************/
 typedef struct {
   bool     validPacket = false;
+  uint8_t  numSvsReceived;
   uint8_t  numSvs;
   uint8_t  numSvsHealthy;
   uint8_t  numSvsEphValid;
   uint8_t  numSvsHealthyAndEphValid;
   uint8_t  numSvsUsed;
-  uint8_t  pad00a;
   uint8_t  pad00b;
   ubloxNAVSATSVInfo_t svSortList[32];
 } ubloxNAVSATInfo_t;
