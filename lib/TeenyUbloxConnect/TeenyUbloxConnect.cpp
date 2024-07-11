@@ -1306,10 +1306,34 @@ void TeenyUbloxConnect::setNAVPVTPacketInfo() {
   ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[45] << 8;
   ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[46] << 16;
   ubloxNAVPVTInfo.vAcc |= ubloxNAVPVTPacketBuffer.payload[47] << 24;
+  ubloxNAVPVTInfo.velN = ubloxNAVPVTPacketBuffer.payload[48];
+  ubloxNAVPVTInfo.velN |= ubloxNAVPVTPacketBuffer.payload[49] << 8;
+  ubloxNAVPVTInfo.velN |= ubloxNAVPVTPacketBuffer.payload[50] << 16;
+  ubloxNAVPVTInfo.velN |= ubloxNAVPVTPacketBuffer.payload[51] << 24;
+  ubloxNAVPVTInfo.velE = ubloxNAVPVTPacketBuffer.payload[52];
+  ubloxNAVPVTInfo.velE |= ubloxNAVPVTPacketBuffer.payload[53] << 8;
+  ubloxNAVPVTInfo.velE |= ubloxNAVPVTPacketBuffer.payload[54] << 16;
+  ubloxNAVPVTInfo.velE |= ubloxNAVPVTPacketBuffer.payload[55] << 24;
+  ubloxNAVPVTInfo.velD = ubloxNAVPVTPacketBuffer.payload[56];
+  ubloxNAVPVTInfo.velD |= ubloxNAVPVTPacketBuffer.payload[57] << 8;
+  ubloxNAVPVTInfo.velD |= ubloxNAVPVTPacketBuffer.payload[58] << 16;
+  ubloxNAVPVTInfo.velD |= ubloxNAVPVTPacketBuffer.payload[59] << 24;
+  ubloxNAVPVTInfo.gSpeed = ubloxNAVPVTPacketBuffer.payload[60];
+  ubloxNAVPVTInfo.gSpeed |= ubloxNAVPVTPacketBuffer.payload[61] << 8;
+  ubloxNAVPVTInfo.gSpeed |= ubloxNAVPVTPacketBuffer.payload[62] << 16;
+  ubloxNAVPVTInfo.gSpeed |= ubloxNAVPVTPacketBuffer.payload[63] << 24;
   ubloxNAVPVTInfo.headMot = ubloxNAVPVTPacketBuffer.payload[64];
   ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[65] << 8;
   ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[66] << 16;
   ubloxNAVPVTInfo.headMot |= ubloxNAVPVTPacketBuffer.payload[67] << 24;
+  ubloxNAVPVTInfo.sAcc = ubloxNAVPVTPacketBuffer.payload[68];
+  ubloxNAVPVTInfo.sAcc |= ubloxNAVPVTPacketBuffer.payload[69] << 8;
+  ubloxNAVPVTInfo.sAcc |= ubloxNAVPVTPacketBuffer.payload[70] << 16;
+  ubloxNAVPVTInfo.sAcc |= ubloxNAVPVTPacketBuffer.payload[71] << 24;
+  ubloxNAVPVTInfo.headAcc = ubloxNAVPVTPacketBuffer.payload[72];
+  ubloxNAVPVTInfo.headAcc |= ubloxNAVPVTPacketBuffer.payload[73] << 8;
+  ubloxNAVPVTInfo.headAcc |= ubloxNAVPVTPacketBuffer.payload[74] << 16;
+  ubloxNAVPVTInfo.headAcc |= ubloxNAVPVTPacketBuffer.payload[75] << 24;
   ubloxNAVPVTInfo.pDOP = ubloxNAVPVTPacketBuffer.payload[76];
   ubloxNAVPVTInfo.pDOP |= ubloxNAVPVTPacketBuffer.payload[77] << 8;
 }
@@ -1375,8 +1399,26 @@ uint32_t TeenyUbloxConnect::getHorizontalAccEst() {
 uint32_t TeenyUbloxConnect::getVerticalAccEst() {
   return ubloxNAVPVTInfo.vAcc;
 }
+int32_t TeenyUbloxConnect::getVelN() {
+  return ubloxNAVPVTInfo.velN;
+}
+int32_t TeenyUbloxConnect::getVelE() {
+  return ubloxNAVPVTInfo.velE;
+}
+int32_t TeenyUbloxConnect::getVelD() {
+  return ubloxNAVPVTInfo.velD;
+}
+int32_t TeenyUbloxConnect::getGroundSpeed() {
+  return ubloxNAVPVTInfo.gSpeed;
+}
 int32_t TeenyUbloxConnect::getHeading() {
   return ubloxNAVPVTInfo.headMot;
+}
+uint32_t TeenyUbloxConnect::getSpeedAccEst() {
+  return ubloxNAVPVTInfo.sAcc;
+}
+uint32_t TeenyUbloxConnect::getHeadingAccEst() {
+  return ubloxNAVPVTInfo.headAcc;
 }
 uint16_t TeenyUbloxConnect::getPDOP() {
   return ubloxNAVPVTInfo.pDOP;

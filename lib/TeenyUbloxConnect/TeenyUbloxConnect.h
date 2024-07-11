@@ -312,7 +312,13 @@ typedef struct {
   int32_t  altitudeMSL;
   uint32_t hAcc;
   uint32_t vAcc;
+  int32_t  velN;
+  int32_t  velE;
+  int32_t  velD;
+  int32_t  gSpeed;
   int32_t  headMot;
+  uint32_t sAcc;
+  uint32_t headAcc;
   uint16_t pDOP;
   uint8_t  pad02a;
   uint8_t  pad02b;
@@ -458,7 +464,13 @@ class TeenyUbloxConnect {
     int32_t  getAltitudeMSL();
     uint32_t getHorizontalAccEst();
     uint32_t getVerticalAccEst();
+    int32_t  getVelN();
+    int32_t  getVelE();
+    int32_t  getVelD();
+    int32_t  getGroundSpeed();
     int32_t  getHeading();
+    uint32_t getSpeedAccEst();
+    uint32_t getHeadingAccEst();
     uint16_t getPDOP();
 
     // Ublox navstatus data access
