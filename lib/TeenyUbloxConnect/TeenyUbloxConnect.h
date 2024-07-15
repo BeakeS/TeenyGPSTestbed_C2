@@ -348,8 +348,8 @@ typedef struct {
   uint8_t  numSvsEphValid;
   uint8_t  numSvsHealthyAndEphValid;
   uint8_t  numSvsUsed;
-  uint8_t  pad00b;
-  ubloxNAVSATSVInfo_t svSortList[32];
+  uint8_t  pad00a;
+  ubloxNAVSATSVInfo_t svSortList[UBX_MAXNAVSATSATELLITES];
 } ubloxNAVSATInfo_t;
 
 /********************************************************************/

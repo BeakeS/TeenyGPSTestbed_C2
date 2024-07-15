@@ -1563,7 +1563,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
   ubloxNAVSATInfo.numSvsHealthyAndEphValid = 0;
   ubloxNAVSATInfo.numSvsUsed = 0;
   // Reset sort list
-  for(uint8_t i=0; i<32; i++) {
+  for(uint8_t i=0; i<UBX_MAXNAVSATSATELLITES; i++) {
     ubloxNAVSATInfo.svSortList[i].gnssId = -1;
     ubloxNAVSATInfo.svSortList[i].gnssIdType = '?';
     ubloxNAVSATInfo.svSortList[i].svId = -1;
@@ -1584,7 +1584,7 @@ void TeenyUbloxConnect::setNAVSATPacketInfo() {
   }
   // Find and sort up to UBX_MAXNAVSATSATELLITES
   uint8_t gnssIdTypeMap[8]={'G','S','E','B','I','Q','R','N'};
-  for(uint8_t i=0; i<32; i++) {
+  for(uint8_t i=0; i<UBX_MAXNAVSATSATELLITES; i++) {
     bool foundSat = false;
     uint8_t foundSatIndex;
     ubloxNAVSATSVInfo_t foundSatInfo, compareSatInfo; 
