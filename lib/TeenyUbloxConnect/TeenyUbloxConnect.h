@@ -400,6 +400,7 @@ class TeenyUbloxConnect {
     bool    pollUART1Port(uint16_t maxWait_ = defaultMaxWait);
     bool    setPortOutput(uint8_t portID_, uint8_t comSettings_, uint16_t maxWait_ = defaultMaxWait);
     void    setSerialRate(uint32_t baudrate_, uint8_t uartPort_ = COM_PORT_UART1, uint16_t maxWait_ = defaultMaxWait);
+    bool    factoryReset();
     void    hardwareReset();
     void    coldStart();
     void    warmStart();

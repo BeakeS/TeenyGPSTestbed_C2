@@ -131,12 +131,7 @@ void TeenyGPSConnect::gnss_checkUblox() {
 // FACTORY RESET
 /********************************************************************/
 bool TeenyGPSConnect::factoryReset() {
-  if(gnss.clearConfiguration(0x0000FFFF)) {
-    gnss.hardwareReset();
-    // Will need system reboot to access GPS module
-    return true;
-  }
-  return false;
+  return gnss.factoryReset();
 }
 
 /********************************************************************/
@@ -164,21 +159,10 @@ ubloxCFGGNSSInfo_t TeenyGPSConnect::getGNSSConfigInfo() {
 /********************************************************************/
 bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
   if(gnss.setGNSSConfig(gnssId, enable)) {
-    //Applying the GNSS system configuration takes some time.
-    //After issuing UBX-CFG-GNSS, wait first for the acknowledgement
-    //from the receiver and then 0.5 seconds before sending the next command.
-    delay(500);
-    //If Galileo is enabled, UBX-CFG-GNSS must be followed by
-    //UBX-CFG-CFG to save current configuration to BBR and then
-    // by UBX-CFG-RST with resetMode set to Hardware reset.
-    if(gnss.saveConfiguration(0x00000010)) {
-      gnss.hardwareReset();
-      // Re-establish comms after cold start and hardware reset
-      delay(100); // recovery time for possible gnss module baud rate change;
-      if(gnss_setSerialRate()) {
-        gnss_config();
-        return true;
-      }
+    // For M8 module - Re-establish comms after cold start and hardware reset
+    if(gnss_setSerialRate()) {
+      gnss_config();
+      return true;
     }
   }
   return false;
@@ -186,25 +170,8 @@ bool TeenyGPSConnect::setGNSSConfig(uint8_t gnssId, bool enable) {
 
 /********************************************************************/
 bool TeenyGPSConnect::setGNSSSignalConfig(uint8_t gnssId, const char* signalName, bool enable) {
-  if(gnss.setGNSSSignalConfig(gnssId, signalName, enable)) {
-    //Applying the GNSS system configuration takes some time.
-    //After issuing UBX-CFG-GNSS, wait first for the acknowledgement
-    //from the receiver and then 0.5 seconds before sending the next command.
-    delay(500);
-    //If Galileo is enabled, UBX-CFG-GNSS must be followed by
-    //UBX-CFG-CFG to save current configuration to BBR and then
-    // by UBX-CFG-RST with resetMode set to Hardware reset.
-    if(gnss.saveConfiguration(0x00000010)) {
-      gnss.hardwareReset();
-      // Re-establish comms after cold start and hardware reset
-      delay(100); // recovery time for possible gnss module baud rate change;
-      if(gnss_setSerialRate()) {
-        gnss_config();
-        return true;
-      }
-    }
-  }
-  return false;
+  // Only used for M10 modules
+  return gnss.setGNSSSignalConfig(gnssId, signalName, enable);
 }
 
 /********************************************************************/

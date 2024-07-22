@@ -191,6 +191,16 @@ void TeenyUbloxConnect::setSerialRate_M10(uint32_t baudrate_, uint8_t uartPort_,
 }
 
 /********************************************************************/
+bool TeenyUbloxConnect::factoryReset() {
+  if(clearConfiguration(0x0000FFFF)) {
+    // Will need system reboot to access GPS module
+    hardwareReset();
+    return true;
+  }
+  return false;
+}
+
+/********************************************************************/
 void TeenyUbloxConnect::hardwareReset() {
   resetNAVSTATUSInfo(); // reset spoofing flags
   commandPacket.messageClass = UBX_CLASS_CFG;
@@ -531,7 +541,20 @@ bool TeenyUbloxConnect::setGNSSConfig_M8(uint8_t gnssId, bool enable, uint16_t m
     }
     if(_blockFound) {
       commandPacket.validPacket = true;
-      return sendCommandPacket(false, true, maxWait_);
+      if(sendCommandPacket(false, true, maxWait_)) {
+        //Applying the GNSS system configuration takes some time.
+        //After issuing UBX-CFG-GNSS, wait first for the acknowledgement
+        //from the receiver and then 0.5 seconds before sending the next command.
+        delay(500);
+        //If Galileo is enabled, UBX-CFG-GNSS must be followed by
+        //UBX-CFG-CFG to save current configuration to BBR and then
+        //by UBX-CFG-RST with resetMode set to Hardware reset.
+        if(saveConfiguration(0x00000010)) {
+          hardwareReset();
+          delay(100); // recovery time for possible gnss module baud rate change;
+          return true;
+        }
+      }
     }
   }
   return false;
@@ -559,7 +582,16 @@ bool TeenyUbloxConnect::setGNSSConfig_M10(uint8_t gnssId, bool enable, uint16_t 
     commandPacket.payload[4 + i] = gnssKey >> (8 * i);
   commandPacket.payload[8] = enable;
   commandPacket.validPacket = true;
-  return sendCommandPacket(false, true, maxWait_);
+  if(sendCommandPacket(false, true, maxWait_)) {
+    //Note that changes to any items within CFG-SIGNAL will
+    //trigger a reset to the GNSS subsystem. The reset takes
+    //some time, so wait ﬁrst for the acknowledgement from the
+    //receiver and then 0.5 seconds before sending the next command.
+    delay(500);
+    return true;
+  }
+  delay(500);
+  return false;
 }
 
 /********************************************************************/
@@ -573,6 +605,7 @@ bool TeenyUbloxConnect::setGNSSSignalConfig(uint8_t gnssId, const char* signalNa
 }
 /********************************************************************/
 bool TeenyUbloxConnect::setGNSSSignalConfig_M8(uint8_t gnssId, const char* signalName, bool enable, uint16_t maxWait_) {
+  // Only used for M10 modules
   return false;
 }
 /********************************************************************/
@@ -640,7 +673,16 @@ bool TeenyUbloxConnect::setGNSSSignalConfig_M10(uint8_t gnssId, const char* sign
     commandPacket.payload[4 + i] = gnssKey >> (8 * i);
   commandPacket.payload[8] = enable;
   commandPacket.validPacket = true;
-  return sendCommandPacket(false, true, maxWait_);
+  if(sendCommandPacket(false, true, maxWait_)) {
+    //Note that changes to any items within CFG-SIGNAL will
+    //trigger a reset to the GNSS subsystem. The reset takes
+    //some time, so wait ﬁrst for the acknowledgement from the
+    //receiver and then 0.5 seconds before sending the next command.
+    delay(500);
+    return true;
+  }
+  delay(500);
+  return false;
 }
 
 /********************************************************************/
