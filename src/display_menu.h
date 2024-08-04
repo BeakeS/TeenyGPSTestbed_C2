@@ -1257,7 +1257,7 @@ void menu_getRTC_CB() {
 void menu_setRTC_CB() {
   rtc.setRTCTime(menuRTCYear, menuRTCMonth, menuRTCDay,
                  menuRTCHour, menuRTCMinute, menuRTCSecond,
-                 -deviceState.TIMEZONE);
+                 deviceState.TIMEZONE);
   msg_update("RTC Date/Time Set");
 }
 
