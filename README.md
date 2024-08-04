@@ -1,9 +1,9 @@
 # TeenyGPSTestbed_C2
 
-TeenyGPSTestbed_C2 is an application for testing Ublox GPS modules.  This application runs on the M5Stack Core2 ESP32 IoT Development Kit.
-The application was developed to test Ublox M8 and M10 GPS modules connected to the Core2's Serial2 interface.  The application also has a Ublox GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
+TeenyGPSTestbed_C2 is an application for configuring and evaluating Ublox GPS modules.  This application runs on the M5Stack Core2 ESP32 IoT Development Kit.
+The application was developed for Ublox M8 and M10 GPS modules connected to the Core2's Serial2 interface.  The application also has a Ublox GPS emulation mode which can be used for testing navigation applications when no GPS signals can be acquired or when a fixed, repeatable GPS source is desired.
 
-Navigation:
+Menu Navigation:
 TeenyGPSTestbed_C2 utilizes the TeenyMenu library for menu/page navigation via a three button interface.
 The TeenyMenu library was derived from the GEM (Good Enough Menu) Arduino library in 2021.
 
